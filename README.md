@@ -41,6 +41,7 @@ cd frontend && npm install && npm run dev
 
 ## 문서
 
+- **[👋 START_HERE — 팀원은 이 문서부터](docs/START_HERE.md)**
 - [1주차 · 초기 아이디어 노트](docs/1주차_초기아이디어노트.html)
 - [2주차 · 입찰 제안서 (PDF)](docs/2주차_입찰제안서_모아.pdf)
 - [협업 가이드 (GitHub Flow + Issues/Projects)](docs/COLLABORATION.md)
