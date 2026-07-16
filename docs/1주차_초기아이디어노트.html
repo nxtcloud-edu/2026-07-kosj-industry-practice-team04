@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>초기 아이디어 노트 — AI 생활 인프라 유지관리 플랫폼 「모아」</title>
+<style>
+:root{--bg:#eef5f3;--paper:#fff;--ink:#182521;--muted:#66756f;--line:#d7e3df;--teal:#0f766e;--teal-dark:#0b544f;--teal-soft:#e5f4f1;--coral:#ea6b4d;--coral-soft:#fff0eb;--yellow:#f2b94b;--navy:#17324d;--gray:#f6f8f7;--shadow:0 18px 50px rgba(15,77,68,.12)}
+*{box-sizing:border-box;margin:0;padding:0}body{background:linear-gradient(135deg,rgba(15,118,110,.08),transparent 36%),linear-gradient(180deg,#f4f9f7 0%,#edf3f1 100%);color:var(--ink);font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;line-height:1.7;letter-spacing:-.012em;word-break:keep-all}.page{width:min(1120px,calc(100% - 34px));margin:34px auto 70px;background:var(--paper);box-shadow:var(--shadow);border-radius:24px;overflow:hidden;border:1px solid #dfeae6}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;min-height:590px;background:radial-gradient(circle at 82% 18%,rgba(242,185,75,.20),transparent 22%),linear-gradient(135deg,#0d625c 0%,#0f766e 58%,#189487 100%);color:#fff}.hero-main{padding:68px 64px 58px;display:flex;flex-direction:column;justify-content:space-between}.hero-tag{display:inline-flex;align-items:center;gap:8px;width:max-content;padding:7px 12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.05em;background:rgba(255,255,255,.08)}h1{margin-top:28px;font-size:49px;line-height:1.18;letter-spacing:-.055em;font-weight:850;max-width:720px}h1 span{color:#ffd584}.hero-lead{max-width:690px;margin-top:25px;font-size:18px;color:rgba(255,255,255,.85)}.hero-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:50px}.hero-stat{border-top:1px solid rgba(255,255,255,.32);padding-top:13px}.hero-stat small{display:block;color:rgba(255,255,255,.62);font-size:11px;letter-spacing:.08em;margin-bottom:5px}.hero-stat b{font-size:14px}.hero-side{background:#f7fbfa;color:var(--ink);padding:48px 36px;display:flex;flex-direction:column;justify-content:center}.mini-app{background:#fff;border-radius:28px;padding:20px;box-shadow:0 18px 38px rgba(15,84,79,.18);border:1px solid #dbe8e4}.mini-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.mini-top strong{font-size:15px;color:var(--teal-dark)}.mini-top span{font-size:11px;color:var(--muted)}.progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px}.progress div,.progress button{padding:9px 8px;border-radius:10px;text-align:center;font-size:10.5px;font-weight:800;background:#edf4f2;color:#6f7e79;border:0;cursor:pointer;transition:.18s ease}.progress button:hover{background:#dfece8;transform:translateY(-1px)}.progress div.active,.progress button.active{background:var(--teal);color:#fff}.camera-box{border:2px dashed #b9d1ca;border-radius:18px;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fcfb;text-align:center;padding:22px}.camera-box .icon{width:58px;height:58px;border-radius:50%;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px}.camera-box b{font-size:14px}.camera-box p{font-size:12px;color:var(--muted);margin-top:5px}.mini-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.mini-btn{border-radius:12px;padding:11px 10px;text-align:center;font-size:12px;font-weight:800}.mini-btn.secondary{background:#f1f4f3;color:#53635d}.mini-btn.primary{background:var(--coral);color:#fff}
+.content{padding:0 62px 62px}section{padding:54px 0;border-bottom:1px solid var(--line)}section:last-child{border-bottom:0}.section-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:24px}.sec-no{min-width:52px;height:30px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;letter-spacing:.06em}.section-head h2{font-size:26px;line-height:1.28;letter-spacing:-.04em}.section-head p{margin-top:6px;color:var(--muted);font-size:14px}.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}.problem-card{background:var(--gray);border:1px solid var(--line);border-radius:18px;padding:22px}.problem-card small{color:var(--coral);font-size:11px;font-weight:900;letter-spacing:.08em}.problem-card h3{margin:9px 0 8px;font-size:18px}.problem-card p{color:var(--muted);font-size:13.5px}.statement{margin-top:24px;border-radius:18px;padding:24px 26px;background:var(--navy);color:#fff;font-size:20px;font-weight:750;line-height:1.55}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}.flow-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;min-height:170px}.flow-card::after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:#94aaa3;font-weight:900}.flow-card:nth-child(4)::after,.flow-card:nth-child(8)::after{display:none}.flow-card .step{color:var(--teal);font-size:11px;font-weight:900;letter-spacing:.08em}.flow-card h3{margin:10px 0 8px;font-size:16px}.flow-card p{font-size:12.7px;color:var(--muted)}.flow-card.core{background:linear-gradient(135deg,#0f766e,#12857c);color:#fff;border-color:var(--teal)}.flow-card.core .step{color:#ffd584}.flow-card.core p{color:rgba(255,255,255,.80)}
+.access-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:22px}.access-card{border:1px solid var(--line);border-radius:18px;padding:22px;background:#fff;display:grid;grid-template-columns:44px 1fr;gap:14px}.access-icon{width:44px;height:44px;border-radius:14px;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;font-size:21px}.access-card h3{font-size:16px;margin-bottom:5px}.access-card p{color:var(--muted);font-size:13px}.access-card strong{color:var(--teal-dark)}
+.arch{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:24px}.arch-col{border-radius:18px;padding:23px;min-height:205px;border:1px solid var(--line)}.arch-col:nth-child(1){background:#f2fbf9}.arch-col:nth-child(2){background:#fff7f3}.arch-col:nth-child(3){background:#f5f7fb}.arch-col small{display:block;font-size:10.5px;font-weight:900;letter-spacing:.08em;color:var(--teal);margin-bottom:9px}.arch-col h3{font-size:18px;margin-bottom:11px}.arch-col ul{padding-left:18px;color:var(--muted);font-size:13px}.arch-col li+li{margin-top:7px}.logic-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}.logic-box{border:1px solid var(--line);border-radius:18px;padding:24px;background:#fff}.logic-box h3{font-size:18px;margin-bottom:12px}.logic-box ul{padding-left:18px;color:var(--muted);font-size:13.5px}.logic-box li+li{margin-top:8px}.formula{margin-top:17px;border-radius:13px;background:var(--teal-soft);color:var(--teal-dark);text-align:center;padding:15px;font-weight:900;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.flywheel{margin-top:22px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:stretch}.fly{background:#f8fbfa;border:1px solid var(--line);border-radius:15px;padding:18px 14px;text-align:center;font-size:12.5px;font-weight:800;color:#42544d;position:relative}.fly::after{content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:#8ea59e}.fly:last-child::after{display:none}.consent{margin-top:18px;padding:17px 19px;border-left:4px solid var(--coral);background:var(--coral-soft);color:#6d493f;border-radius:0 13px 13px 0;font-size:13.5px}
+table{width:100%;border-collapse:collapse;margin-top:22px;font-size:13px}th{text-align:left;padding:12px 13px;background:#f4f8f6;color:#718078;font-size:11px;letter-spacing:.06em;border-top:2px solid var(--teal-dark);border-bottom:1px solid var(--line)}td{padding:13px;border-bottom:1px solid #e5ece9;vertical-align:top}.req{color:var(--teal);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;white-space:nowrap}.status{display:inline-block;border-radius:999px;padding:2px 9px;font-size:10.5px;font-weight:900;white-space:nowrap}.status.core{background:var(--teal-soft);color:var(--teal-dark)}.status.mid{background:#fff2d7;color:#8b661f}.status.later{background:#ecefef;color:#67716d}.mvp{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.mvp-card{border-radius:18px;padding:23px;border:1px solid var(--line)}.mvp-card:nth-child(1){background:#f0faf7}.mvp-card:nth-child(2){background:#fff8ec}.mvp-card:nth-child(3){background:#f5f6f8}.mvp-card small{display:block;font-size:10.5px;font-weight:900;letter-spacing:.08em;margin-bottom:10px}.mvp-card:nth-child(1) small{color:var(--teal)}.mvp-card:nth-child(2) small{color:#9b6c13}.mvp-card:nth-child(3) small{color:#6c7370}.mvp-card h3{font-size:18px;margin-bottom:10px}.mvp-card p{color:var(--muted);font-size:13px}footer{background:#112d2a;color:rgba(255,255,255,.72);padding:24px 62px;display:flex;justify-content:space-between;gap:20px;font-size:11.5px}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.hero-side{padding:36px}.content{padding:0 34px 46px}.problem-grid,.arch,.mvp{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.flow-card:nth-child(2n)::after{display:none}.flywheel{grid-template-columns:1fr 1fr}.fly::after{display:none}}@media(max-width:620px){.page{width:100%;margin:0;border-radius:0}.hero-main{padding:46px 22px}.hero-side{padding:28px 20px}h1{font-size:35px}.hero-bottom{grid-template-columns:1fr}.content{padding:0 20px 36px}.flow,.access-grid,.logic-wrap{grid-template-columns:1fr}.flow-card::after{display:none}.flywheel{grid-template-columns:1fr}footer{padding:22px;flex-direction:column}}@media print{body{background:#fff}.page{width:100%;margin:0;box-shadow:none;border:0}section,.problem-card,.flow-card,.access-card,.arch-col,.logic-box,.mvp-card{break-inside:avoid}}
+
+/* Interactive report prototype */
+.mini-app button{font:inherit;border:0;cursor:pointer}.mini-app button:focus-visible,.camera-box:focus-visible{outline:3px solid #f2b94b;outline-offset:3px}
+.mini-top-actions{display:flex;align-items:center;gap:6px}.tool-btn{width:30px;height:30px;border-radius:9px;background:#edf4f2;color:var(--teal-dark);font-size:11px;font-weight:900}.tool-btn:hover{background:#dcebe6}
+.prototype-note{margin:-8px 0 14px;padding:8px 10px;border-radius:10px;background:#fff7e7;color:#80601f;font-size:10.5px;text-align:center}
+.progress .done{background:#dff1eb!important;color:var(--teal-dark)!important}
+.proto-panel[hidden]{display:none!important}.camera-box{cursor:pointer;position:relative;overflow:hidden;transition:.2s ease}.camera-box:hover{border-color:var(--teal);background:#f1faf7;transform:translateY(-1px)}
+.camera-box.has-image{padding:0;border-style:solid;background:#111;min-height:230px}.camera-box.has-image .camera-placeholder{display:none}.photo-preview{width:100%;height:230px;object-fit:cover;display:none}.camera-box.has-image .photo-preview{display:block}
+.preview-badge{display:none;position:absolute;left:10px;bottom:10px;padding:5px 8px;border-radius:999px;background:rgba(17,45,42,.82);color:#fff;font-size:10px;font-weight:800}.camera-box.has-image .preview-badge{display:block}
+.camera-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center}.file-meta{margin-top:10px;padding:9px 11px;border-radius:10px;background:#eef7f4;color:#49605a;font-size:10.5px;display:none}.file-meta.show{display:block}
+.mini-actions.three{grid-template-columns:1fr 1fr 1fr}.mini-btn{display:flex;align-items:center;justify-content:center;min-height:39px;transition:.18s ease}.mini-btn:hover{filter:brightness(.97);transform:translateY(-1px)}.mini-btn:disabled{cursor:not-allowed;opacity:.45;transform:none}
+.mini-btn.success{background:var(--teal);color:#fff}.mini-btn.danger{background:#fff0eb;color:#a94631}.mini-btn.full{grid-column:1/-1}
+.location-card{border:1px solid #dbe8e4;border-radius:18px;background:#f8fbfa;padding:18px}.location-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;font-size:25px}.location-card h4{text-align:center;font-size:14px}.location-card p{text-align:center;margin-top:6px;color:var(--muted);font-size:11.5px}.location-result{margin-top:13px;padding:11px;border-radius:11px;background:#fff;border:1px solid var(--line);font-size:11px;color:#40544e;min-height:42px}.location-result strong{display:block;color:var(--teal-dark)}
+.complete-card{text-align:center;border:1px solid #cfe5de;border-radius:18px;padding:22px;background:linear-gradient(180deg,#f5fcf9,#fff)}.complete-icon{width:62px;height:62px;margin:0 auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--teal);color:#fff;font-size:30px}.complete-card h4{font-size:17px}.complete-card p{font-size:11.5px;color:var(--muted);margin-top:6px}.receipt{margin-top:14px;padding:11px;border-radius:11px;background:#edf6f3;color:#36534a;font-size:11px;text-align:left}.receipt b{color:var(--teal-dark)}
+.mini-app.prototype-large{font-size:18px}.mini-app.prototype-large .mini-btn,.mini-app.prototype-large .progress div{font-size:12px}.mini-app.prototype-large .camera-box b{font-size:16px}.mini-app.prototype-contrast{background:#000;color:#fff;border-color:#fff}.mini-app.prototype-contrast .mini-top strong,.mini-app.prototype-contrast .mini-top span{color:#fff}.mini-app.prototype-contrast .progress div{background:#222;color:#fff;border:1px solid #fff}.mini-app.prototype-contrast .progress div.active{background:#ffdf00;color:#000}.mini-app.prototype-contrast .progress div.done{background:#fff;color:#000}.mini-app.prototype-contrast .camera-box,.mini-app.prototype-contrast .location-card,.mini-app.prototype-contrast .location-result,.mini-app.prototype-contrast .complete-card{background:#111;color:#fff;border-color:#fff}.mini-app.prototype-contrast .camera-box p,.mini-app.prototype-contrast .location-card p,.mini-app.prototype-contrast .complete-card p{color:#eee}.mini-app.prototype-contrast .file-meta,.mini-app.prototype-contrast .receipt{background:#222;color:#fff}.mini-app.prototype-contrast .tool-btn{background:#fff;color:#000}
+@media(max-width:620px){.mini-actions.three{grid-template-columns:1fr 1fr}.mini-actions.three .full-mobile{grid-column:1/-1}}
+
+
+/* 2·3단계 확장형 인터랙션 */
+.map-prototype{height:145px;margin-top:14px;border:1px solid #cbded8;border-radius:14px;background:
+linear-gradient(90deg,transparent 48%,rgba(255,255,255,.9) 48%,rgba(255,255,255,.9) 55%,transparent 55%),
+linear-gradient(0deg,transparent 42%,rgba(255,255,255,.9) 42%,rgba(255,255,255,.9) 50%,transparent 50%),
+#dcefe7;position:relative;overflow:hidden;cursor:crosshair}
+.map-prototype:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.map-road{position:absolute;background:#fff;border:1px solid #d7ddd9}.road-a{left:-10%;right:-10%;height:22px;top:62px;transform:rotate(-8deg)}.road-b{top:-10%;bottom:-10%;width:22px;left:58%;transform:rotate(7deg)}
+.map-block{position:absolute;border-radius:8px;background:#b9dfcb;color:#416257;font-size:9px;font-weight:800;padding:6px 8px}.block-a{left:14px;top:17px}.block-b{right:12px;bottom:15px;background:#f0ddb5;color:#735f35}
+.map-pin{position:absolute;left:55%;top:47%;transform:translate(-50%,-100%);font-size:30px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25));transition:left .18s ease,top .18s ease}
+.map-caption{position:absolute;left:8px;bottom:7px;background:rgba(255,255,255,.9);padding:3px 7px;border-radius:999px;font-size:9px;color:#587069}
+.field-label{display:block;margin-top:12px;margin-bottom:5px;font-size:10px;font-weight:900;color:var(--teal-dark)}
+.proto-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font:inherit;font-size:11px;background:#fff;color:var(--ink)}
+.proto-input:focus{outline:2px solid #9accc0;border-color:var(--teal)}
+.notify-option{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 11px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:11px;font-weight:800;color:#42544e;cursor:pointer}
+.notify-option input{accent-color:var(--teal)}.notify-option small{font-size:9px;color:#85918c;font-weight:700}
+.preview-mode{display:inline-block;margin-bottom:10px;padding:4px 9px;border-radius:999px;background:#fff2d7;color:#89631c;font-size:9.5px;font-weight:900}
+.complete-summary{display:grid;grid-template-columns:92px 1fr;gap:13px;margin-top:15px;text-align:left}
+.complete-photo-wrap{height:100px;border-radius:12px;overflow:hidden;background:#edf4f2;border:1px solid var(--line)}
+.complete-photo-wrap img{width:100%;height:100%;object-fit:cover;display:none}.complete-photo-placeholder{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#698079;font-size:11px;font-weight:800}
+.summary-list{display:grid;gap:6px}.summary-list div{display:grid;grid-template-columns:86px 1fr;gap:6px;padding-bottom:5px;border-bottom:1px solid #e5ece9}.summary-list span{font-size:9.5px;color:#7d8b86}.summary-list strong{font-size:10.5px;color:#25433a}.priority-high{color:#b64b34!important}
+.similar-report{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding:11px;border-radius:12px;background:#fff7ec;border:1px solid #f1d9ac;text-align:left}.similar-report b{display:block;font-size:10.5px;color:#725629}.similar-report span{display:block;font-size:9px;color:#8d7956;margin-top:2px}.similar-report button{flex:0 0 auto;padding:8px 9px;border-radius:10px;background:#fff;color:#805b1b;border:1px solid #e4c987;font-size:9.5px;font-weight:900}
+.similar-report button.active{background:#f2b94b;color:#4e390d}
+.status-track{display:flex;align-items:flex-start;margin-top:16px}.status-node{width:52px;text-align:center;color:#96a29e}.status-node i{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;background:#e7ecea;font-style:normal;font-size:10px;font-weight:900}.status-node span{font-size:8.5px;font-weight:800;line-height:1.25;display:block}.status-node.done,.status-node.current{color:var(--teal-dark)}.status-node.done i{background:var(--teal);color:#fff}.status-node.current i{background:#fff2d7;color:#8a641d;border:2px solid var(--yellow)}
+.status-line{height:2px;background:#dce5e2;flex:1;margin-top:11px}
+.status-detail{margin-top:13px;padding:11px;border-radius:11px;background:#edf6f3;text-align:left;color:#3f5b52}.status-detail b{font-size:10.5px}.status-detail p{margin-top:3px!important;font-size:9.5px!important;color:#5d716b!important}
+.complete-card.cancelled{background:#fff4f1;border-color:#efc9bf}.complete-card.cancelled .complete-icon{background:#b95a44}.complete-card.cancelled .status-track,.complete-card.cancelled .similar-report{display:none}
+.mini-app.prototype-large .progress button{font-size:12px}
+.mini-app.prototype-contrast .progress button{background:#222;color:#fff;border:1px solid #fff}.mini-app.prototype-contrast .progress button.active{background:#ffdf00;color:#000}.mini-app.prototype-contrast .progress button.done{background:#fff;color:#000}.mini-app.prototype-contrast .map-prototype,.mini-app.prototype-contrast .proto-input,.mini-app.prototype-contrast .notify-option,.mini-app.prototype-contrast .complete-summary,.mini-app.prototype-contrast .similar-report,.mini-app.prototype-contrast .status-detail{filter:contrast(1.15)}
+@media(max-width:620px){.complete-summary{grid-template-columns:76px 1fr}.summary-list div{grid-template-columns:74px 1fr}.status-node{width:44px}.similar-report{align-items:flex-start;flex-direction:column}.similar-report button{width:100%}}
+
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hero">
+  <div class="hero-main">
+    <div>
+      <span class="hero-tag">고려대 세종 산업체 실습 · 1주차 초기 아이디어 노트</span>
+      <h1>같은 신고는 모으고,<br><span>누구나 쉽게 신고하게</span></h1>
+      <p class="hero-lead">React 기반 모바일 웹앱을 통해 시민은 사진 한 장으로 생활 불편을 신고하고, 시스템은 유사 신고를 하나의 문제 단위로 통합하여 담당자에게 우선 처리 목록을 제공한다.</p>
+    </div>
+    <div class="hero-bottom">
+      <div class="hero-stat"><small>PROJECT</small><b>AI 생활 인프라 유지관리 플랫폼 「모아」</b></div>
+      <div class="hero-stat"><small>RFP</small><b>2026-세종-0002</b></div>
+      <div class="hero-stat"><small>DATE</small><b>2026. 07.</b></div>
+    </div>
+  </div>
+  <aside class="hero-side">
+    <div class="mini-app" id="reportPrototype">
+      <div class="mini-top">
+        <strong>생활 불편 신고</strong>
+        <div class="mini-top-actions" aria-label="접근성 설정">
+          <button type="button" class="tool-btn" id="fontToggle" title="글자 크게">A+</button>
+          <button type="button" class="tool-btn" id="contrastToggle" title="고대비 모드">◐</button>
+        </div>
+      </div>
+      <div class="prototype-note">직접 눌러볼 수 있는 화면 프로토타입입니다.</div>
+      <div class="progress" aria-label="신고 진행 단계">
+        <button type="button" class="active" id="progressPhoto" data-step="0" aria-label="사진 촬영 단계 보기">1. 사진 촬영</button>
+        <button type="button" id="progressLocation" data-step="1" aria-label="위치 확인 단계 보기">2. 위치 확인</button>
+        <button type="button" id="progressComplete" data-step="2" aria-label="신고 완료 단계 보기">3. 신고 완료</button>
+      </div>
+
+      <section class="proto-panel" id="photoPanel" aria-label="사진 촬영 단계">
+        <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+        <div class="camera-box" id="cameraBox" role="button" tabindex="0" aria-label="사진 촬영 또는 이미지 선택">
+          <div class="camera-placeholder">
+            <div class="icon">📷</div>
+            <b>문제와 주변 환경이 함께 보이게 촬영해 주세요</b>
+            <p>모바일에서는 카메라가, PC에서는 파일 선택 창이 열립니다.</p>
+          </div>
+          <img class="photo-preview" id="photoPreview" alt="선택한 신고 사진 미리보기">
+          <span class="preview-badge">사진 미리보기</span>
+        </div>
+        <div class="file-meta" id="fileMeta" aria-live="polite"></div>
+        <div class="mini-actions" id="initialActions">
+          <button type="button" class="mini-btn secondary" id="voiceGuide">🔊 음성 안내</button>
+          <button type="button" class="mini-btn primary" id="takePhoto">사진 촬영하기</button>
+        </div>
+        <div class="mini-actions three" id="previewActions" hidden>
+          <button type="button" class="mini-btn secondary" id="retakePhoto">다시 촬영</button>
+          <button type="button" class="mini-btn danger" id="removePhoto">사진 삭제</button>
+          <button type="button" class="mini-btn success full-mobile" id="usePhoto">이 사진 사용</button>
+        </div>
+      </section>
+
+      <section class="proto-panel" id="locationPanel" aria-label="위치 확인 단계" hidden>
+        <div class="location-card">
+          <div class="location-icon">📍</div>
+          <h4>신고 위치를 확인해 주세요</h4>
+          <p>현재 위치를 불러오거나 아래 지도를 눌러 신고 지점을 조정할 수 있습니다.</p>
+
+          <div class="map-prototype" id="mapPrototype" role="button" tabindex="0" aria-label="프로토타입 지도에서 위치 선택">
+            <div class="map-road road-a"></div>
+            <div class="map-road road-b"></div>
+            <div class="map-block block-a">공원</div>
+            <div class="map-block block-b">공공시설</div>
+            <div class="map-pin" id="mapPin">📍</div>
+            <span class="map-caption">지도를 눌러 위치를 옮겨보세요</span>
+          </div>
+
+          <label class="field-label" for="addressInput">확인된 위치</label>
+          <input class="proto-input" id="addressInput" type="text" value="" placeholder="현재 위치 또는 지도에서 위치를 선택해 주세요">
+
+          <div class="location-result" id="locationResult" aria-live="polite">아직 위치가 확인되지 않았습니다.</div>
+
+          <label class="notify-option">
+            <input type="checkbox" id="notifyCheck">
+            <span>처리 결과 알림 받기 <small>선택 사항</small></span>
+          </label>
+          <div id="phoneWrap" hidden>
+            <label class="field-label" for="phoneInput">연락처</label>
+            <input class="proto-input" id="phoneInput" type="tel" inputmode="numeric" placeholder="010-0000-0000">
+          </div>
+        </div>
+
+        <div class="mini-actions three">
+          <button type="button" class="mini-btn secondary" id="backToPhoto">사진 수정</button>
+          <button type="button" class="mini-btn primary" id="getLocation">현재 위치</button>
+          <button type="button" class="mini-btn secondary full-mobile" id="demoLocation">예시 위치 선택</button>
+          <button type="button" class="mini-btn success full" id="completeReport" disabled>이 위치로 신고하기</button>
+        </div>
+      </section>
+
+      <section class="proto-panel" id="completePanel" aria-label="신고 완료 단계" hidden>
+        <div class="complete-card">
+          <div class="preview-mode" id="previewMode" hidden>신고 완료 화면 미리보기</div>
+          <div class="complete-icon" id="completeIcon">✓</div>
+          <h4 id="completeTitle">신고가 접수되었습니다</h4>
+          <p id="completeDescription">접수 내용과 예상 처리 정보를 확인해 주세요.</p>
+
+          <div class="complete-summary">
+            <div class="complete-photo-wrap">
+              <img id="completePhoto" alt="신고 사진 요약">
+              <div class="complete-photo-placeholder" id="completePhotoPlaceholder">📷<br>신고 사진</div>
+            </div>
+            <div class="summary-list">
+              <div><span>접수번호</span><strong id="receiptNumber">PROTO-2026-0710</strong></div>
+              <div><span>신고 위치</span><strong id="completeLocation">세종특별자치시 예시 위치</strong></div>
+              <div><span>AI 예상 유형</span><strong id="completeCategory">도로 파손</strong></div>
+              <div><span>예상 우선순위</span><strong class="priority-high" id="completePriority">높음</strong></div>
+            </div>
+          </div>
+
+          <div class="similar-report">
+            <div>
+              <b>주변에 비슷한 신고가 2건 있습니다</b>
+              <span>동일 문제로 확인되면 대표 문제에 함께 묶입니다.</span>
+            </div>
+            <button type="button" id="agreeReport">🙋 나도 불편해요 <strong id="agreeCount">3</strong></button>
+          </div>
+
+          <div class="status-track">
+            <div class="status-node done"><i>✓</i><span>접수 완료</span></div>
+            <div class="status-line"></div>
+            <div class="status-node current"><i>2</i><span>AI 분류 중</span></div>
+            <div class="status-line"></div>
+            <div class="status-node"><i>3</i><span>담당 배정</span></div>
+            <div class="status-line"></div>
+            <div class="status-node"><i>4</i><span>처리 완료</span></div>
+          </div>
+
+          <div class="status-detail" id="statusDetail" hidden>
+            <b>현재 처리 상황</b>
+            <p>신고 접수가 완료되었으며 이미지 유형을 분석하고 있습니다. 분석 후 담당 부서가 자동 추천됩니다.</p>
+          </div>
+        </div>
+
+        <div class="mini-actions three">
+          <button type="button" class="mini-btn secondary" id="editReport">수정하기</button>
+          <button type="button" class="mini-btn danger" id="cancelReport">신고 취소</button>
+          <button type="button" class="mini-btn primary full-mobile" id="viewStatus">처리 상태 보기</button>
+          <button type="button" class="mini-btn secondary full" id="restartReport">새 신고 작성</button>
+        </div>
+      </section>
+    </div>
+  </aside>
+</header>
+<main class="content">
+<section>
+  <div class="section-head"><span class="sec-no">01</span><div><h2>문제 정의</h2><p>기존 신고 체계는 시민에게 복잡하고, 담당자에게는 중복 업무를 만든다.</p></div></div>
+  <div class="problem-grid">
+    <article class="problem-card"><small>CITIZEN</small><h3>신고 접근성이 낮다</h3><p>앱 설치, 로그인, 긴 양식 작성, 신고 유형 선택 등으로 디지털 취약층이 쉽게 이용하기 어렵다.</p></article>
+    <article class="problem-card"><small>OFFICER</small><h3>유사 신고가 흩어진다</h3><p>같은 위치의 같은 문제가 여러 번 신고되어도 각각 별개의 민원으로 쌓여 중복 확인이 필요하다.</p></article>
+    <article class="problem-card"><small>SYSTEM</small><h3>중요한 문제가 묻힌다</h3><p>접수 순서 중심 처리로 인해 위험도가 높거나 반복적으로 신고되는 문제가 뒤로 밀릴 수 있다.</p></article>
+  </div>
+  <div class="statement">시민의 입력은 최소화하고, 반복 신고는 하나의 문제로 모으며, 담당자는 실제로 먼저 처리해야 할 문제부터 확인하게 한다.</div>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">02</span><div><h2>제안 서비스와 전체 흐름</h2><p>React 기반 웹앱에서 신고부터 처리 상태 확인까지 하나의 흐름으로 제공한다.</p></div></div>
+  <div class="flow">
+    <article class="flow-card"><span class="step">STEP 01</span><h3>웹앱 접속</h3><p>QR코드나 링크로 접속하며 별도 앱 설치와 회원가입이 필요 없다.</p></article>
+    <article class="flow-card"><span class="step">STEP 02</span><h3>사진 촬영</h3><p>촬영 가이드와 음성 안내를 제공하고 사진은 자동 압축한다.</p></article>
+    <article class="flow-card"><span class="step">STEP 03</span><h3>위치 확인</h3><p>GPS로 현재 위치를 입력하고 사용자는 지도에서 수정할 수 있다.</p></article>
+    <article class="flow-card"><span class="step">STEP 04</span><h3>AI 유형 분류</h3><p>이미지 인식 API가 도로 파손, 가로등, 쓰레기 등으로 1차 분류한다.</p></article>
+    <article class="flow-card core"><span class="step">STEP 05</span><h3>유사 신고 통합</h3><p>반경 50m 내 동일 유형 신고를 하나의 대표 문제로 묶고 누적 건수를 표시한다.</p></article>
+    <article class="flow-card"><span class="step">STEP 06</span><h3>우선순위·배정</h3><p>위험도와 신고 빈도로 우선순위를 정하고 유형·구역별 담당 부서를 자동 배정한다.</p></article>
+    <article class="flow-card"><span class="step">STEP 07</span><h3>담당자 검수</h3><p>오분류, 잘못된 통합, 담당 부서 및 우선순위를 관리자 화면에서 수정한다.</p></article>
+    <article class="flow-card"><span class="step">STEP 08</span><h3>상태 확인</h3><p>접수, 배정, 처리 중, 완료 단계를 확인하고 연락처 입력 시 결과 알림을 받는다.</p></article>
+  </div>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">03</span><div><h2>접근성 중심 신고 설계</h2><p>디지털 취약층, 고령자, 외국인, 저속 인터넷 이용자까지 고려한다.</p></div></div>
+  <div class="access-grid">
+    <article class="access-card"><div class="access-icon">🔎</div><div><h3>글자 크기 확대·고대비 모드</h3><p>저시력 사용자와 고령층을 위해 <strong>큰 글자, 큰 버튼, 색상 대비 강화</strong> 기능을 제공한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">🔊</div><div><h3>음성 안내</h3><p>글을 읽거나 입력하기 어려운 사용자가 버튼을 누르면 사진 촬영부터 신고 완료까지 절차를 음성으로 안내한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">①</div><div><h3>3단계 진행 표시</h3><p><strong>사진 촬영 → 위치 확인 → 신고 완료</strong>를 화면 상단에 표시해 현재 단계를 명확하게 보여준다.</p></div></article>
+    <article class="access-card"><div class="access-icon">👤</div><div><h3>로그인 없는 신고</h3><p>회원가입과 로그인을 요구하지 않으며 연락처는 처리 결과 알림을 원하는 경우에만 선택적으로 입력한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">✏️</div><div><h3>신고 수정·취소</h3><p>사진, 위치, 설명을 잘못 입력했을 때 신고 전 수정하거나 접수 후 일정 시간 안에 취소할 수 있도록 한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">🌐</div><div><h3>다국어 지원</h3><p>한국어 외에 영어, 중국어, 베트남어 등 주요 언어로 핵심 안내와 신고 화면을 제공한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">📶</div><div><h3>저속 인터넷·연결 끊김 대응</h3><p>사진을 자동 압축하고 작성 내용을 기기에 임시 저장해 통신이 복구되면 다시 전송할 수 있도록 한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">🙋</div><div><h3>‘나도 불편해요’ 기능</h3><p>기존 유사 신고가 있으면 새 신고를 반복 작성하는 대신 버튼 한 번으로 기존 문제에 공감 건수를 추가한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">📸</div><div><h3>사진 촬영 가이드</h3><p>문제 지점과 주변 환경이 함께 보이도록 예시 이미지, 촬영 문구, 재촬영 안내를 제공한다.</p></div></article>
+    <article class="access-card"><div class="access-icon">🔗</div><div><h3>여러 신고 경로 통합</h3><p>모바일 웹, 전화, 주민센터, 키오스크, 챗봇 등 여러 경로의 신고를 하나의 관리자 시스템으로 통합한다.</p></div></article>
+  </div>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">04</span><div><h2>React 기반 웹앱과 시스템 구성</h2><p>시민용 화면, 관리자 업무 화면, AI·데이터 처리 기능을 분리해 구성한다.</p></div></div>
+  <div class="arch">
+    <article class="arch-col"><small>FRONTEND</small><h3>React 기반 모바일 웹앱</h3><ul><li>앱처럼 빠르게 화면 전환</li><li>카메라 촬영과 GPS 위치 사용</li><li>글자 확대, 고대비, 다국어 UI</li><li>임시 저장과 처리 상태 조회</li></ul></article>
+    <article class="arch-col"><small>BACKEND</small><h3>신고 처리 서버</h3><ul><li>신고 데이터와 사진 저장</li><li>유사 신고 거리 계산</li><li>우선순위와 부서 자동 배정</li><li>여러 신고 경로 데이터 통합</li></ul></article>
+    <article class="arch-col"><small>AI & DATA</small><h3>이미지 분류·데이터 축적</h3><ul><li>외부 이미지 인식 API 활용</li><li>담당자 수정 결과를 라벨로 저장</li><li>자체 학습 데이터셋 구축</li><li>장기적으로 자체 모델 전환</li></ul></article>
+  </div>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">05</span><div><h2>유사 신고 통합과 우선순위 로직</h2><p>중복 신고를 제거하지 않고 문제의 심각성을 판단하는 데이터로 활용한다.</p></div></div>
+  <div class="logic-wrap">
+    <article class="logic-box"><h3>유사 신고 통합 기준</h3><ul><li>기존 신고와의 거리가 반경 50m 이내인지 확인</li><li>AI가 분류한 신고 유형이 동일한지 확인</li><li>일정 기간 안에 접수된 신고인지 확인</li><li>조건 충족 시 하나의 대표 문제 카드에 연결</li><li>담당자가 잘못 통합된 신고를 분리할 수 있도록 제공</li></ul></article>
+    <article class="logic-box"><h3>우선순위 산정 기준</h3><ul><li>문제 유형별 기본 위험도 반영</li><li>동일 위치의 누적 신고 건수 반영</li><li>‘나도 불편해요’ 참여 수 반영</li><li>향후 경과시간, 취약지역 여부를 추가 가중치로 활용</li></ul><div class="formula">우선순위 = 기본 위험도 + 신고 빈도 + 공감 수</div></article>
+  </div>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">06</span><div><h2>데이터 축적과 자체 모델 발전</h2><p>초기에는 외부 API를 사용하고, 실제 운영 데이터를 바탕으로 자체 모델을 구축한다.</p></div></div>
+  <div class="flywheel"><div class="fly">신고 이미지 수집</div><div class="fly">외부 API 1차 분류</div><div class="fly">담당자 검수·수정</div><div class="fly">정제된 라벨 데이터 축적</div><div class="fly">자체 분류 모델 고도화</div></div>
+  <div class="consent">모델 개선을 위해 추가 사진이 필요한 경우, 특정 신고자에게 여러 장의 사진 제공을 요청할 수 있다. 다만 이는 <b>별도의 명확한 동의</b>를 받은 사용자에게만 선택적으로 요청하며, 사진의 사용 목적과 보관 기간을 안내하고 언제든 참여를 거부할 수 있도록 한다.</div>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">07</span><div><h2>기능 요구사항 대응</h2><p>RFP 요구사항과 접근성·데이터 발전 기능을 함께 연결한다.</p></div></div>
+  <table><thead><tr><th>요구사항</th><th>대응 기능</th><th>구현 계획</th></tr></thead><tbody>
+    <tr><td class="req">SFR-001</td><td>사진 촬영, 위치 자동 입력, React 모바일 웹 신고</td><td><span class="status core">MVP 핵심</span></td></tr>
+    <tr><td class="req">SFR-002</td><td>외부 이미지 인식 API 기반 유형 자동 분류</td><td><span class="status core">MVP 핵심</span></td></tr>
+    <tr><td class="req">SFR-003</td><td>위험도, 신고 빈도, ‘나도 불편해요’ 수 기반 우선순위</td><td><span class="status core">MVP 핵심</span></td></tr>
+    <tr><td class="req">SFR-004</td><td>유형과 발생 구역 기준 담당 부서 자동 배정</td><td><span class="status core">MVP 핵심</span></td></tr>
+    <tr><td class="req">SFR-005</td><td>분류·통합·배정 결과 관리자 검수 및 수정</td><td><span class="status core">MVP 핵심</span></td></tr>
+    <tr><td class="req">SFR-006</td><td>접수 → 배정 → 처리 중 → 완료 상태 조회</td><td><span class="status core">MVP 핵심</span></td></tr>
+    <tr><td class="req">SFR-007</td><td>대표 문제 위치 지도 표시 및 지역별 통계</td><td><span class="status mid">부분 구현</span></td></tr>
+    <tr><td class="req">SFR-008</td><td>연락처 선택 입력 시 처리 결과 알림</td><td><span class="status mid">선택 구현</span></td></tr>
+    <tr><td class="req">DAR-002</td><td>담당자 수정 결과를 학습 라벨로 축적하고 자체 모델 구축</td><td><span class="status later">로드맵</span></td></tr>
+    <tr><td class="req">COR-002</td><td>큰 글자, 고대비, 음성 안내, 다국어를 포함한 모바일 우선 설계</td><td><span class="status core">MVP 핵심</span></td></tr>
+  </tbody></table>
+</section>
+<section>
+  <div class="section-head"><span class="sec-no">08</span><div><h2>MVP 구현 범위와 단계별 확장</h2><p>모든 기능을 한 번에 구현하지 않고 핵심 흐름부터 완성한다.</p></div></div>
+  <div class="mvp">
+    <article class="mvp-card"><small>PHASE 1 · MVP CORE</small><h3>반드시 구현</h3><p>React 모바일 웹, 사진·위치 신고, 3단계 진행 표시, 이미지 분류, 반경 50m 유사 신고 통합, 우선순위 산정, 담당 부서 배정, 관리자 검수, 처리 상태 관리</p></article>
+    <article class="mvp-card"><small>PHASE 2 · ACCESSIBILITY</small><h3>우선 추가</h3><p>글자 확대·고대비, 음성 안내, 다국어, 사진 촬영 가이드, 사진 자동 압축, 임시 저장, 신고 수정·취소, ‘나도 불편해요’, 연락처 선택 알림</p></article>
+    <article class="mvp-card"><small>PHASE 3 · ROADMAP</small><h3>향후 고도화</h3><p>전화·키오스크·챗봇 신고 통합, 지도·통계 대시보드, 얼굴·번호판 비식별, 추가 사진 참여 프로그램, 축적 데이터 기반 자체 이미지 분류 모델</p></article>
+  </div>
+  <div class="statement">시민에게는 설치와 로그인 없이 누구나 사용할 수 있는 신고 경험을, 담당자에게는 같은 문제를 모아 중요한 순서대로 보여주는 업무 환경을 제공한다.</div>
+</section>
+</main>
+<footer><div>학습용 가상 공고 2026-세종-0002 · 1주차 초기 아이디어 노트</div><div>AI 생활 인프라 유지관리 플랫폼 「모아」 · 2026. 07.</div></footer>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const app = $('reportPrototype');
+  const input = $('photoInput');
+  const cameraBox = $('cameraBox');
+  const preview = $('photoPreview');
+  const fileMeta = $('fileMeta');
+  const initialActions = $('initialActions');
+  const previewActions = $('previewActions');
+  const photoPanel = $('photoPanel');
+  const locationPanel = $('locationPanel');
+  const completePanel = $('completePanel');
+  const locationResult = $('locationResult');
+  const completeBtn = $('completeReport');
+  const addressInput = $('addressInput');
+  const map = $('mapPrototype');
+  const pin = $('mapPin');
+  const notifyCheck = $('notifyCheck');
+  const phoneWrap = $('phoneWrap');
+  const phoneInput = $('phoneInput');
+  const steps = [$('progressPhoto'), $('progressLocation'), $('progressComplete')];
+
+  let compressedUrl = '';
+  let locationReady = false;
+  let selectedLocation = '';
+  let previewCompletion = false;
+  let reportCancelled = false;
+  let agreeActive = false;
+
+  function setStep(index, options = {}) {
+    steps.forEach((step, i) => {
+      step.classList.toggle('active', i === index);
+      step.classList.toggle('done', i < index);
+      step.setAttribute('aria-current', i === index ? 'step' : 'false');
+    });
+    photoPanel.hidden = index !== 0;
+    locationPanel.hidden = index !== 1;
+    completePanel.hidden = index !== 2;
+
+    if (index === 2) {
+      previewCompletion = Boolean(options.preview);
+      populateCompletion(previewCompletion);
+    }
+  }
+
+  steps.forEach((step, index) => {
+    step.addEventListener('click', () => {
+      if (index === 2) setStep(2, { preview: true });
+      else setStep(index);
+    });
+  });
+
+  function openCamera() { input.click(); }
+  $('takePhoto').addEventListener('click', openCamera);
+  $('retakePhoto').addEventListener('click', openCamera);
+  cameraBox.addEventListener('click', openCamera);
+  cameraBox.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openCamera();
+    }
+  });
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  async function compressImage(file) {
+    const image = new Image();
+    const sourceUrl = URL.createObjectURL(file);
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+      image.src = sourceUrl;
+    });
+    const max = 1280;
+    const scale = Math.min(1, max / Math.max(image.width, image.height));
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(image, 0, 0, width, height);
+    URL.revokeObjectURL(sourceUrl);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+    return blob || file;
+  }
+
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 선택할 수 있습니다.');
+      input.value = '';
+      return;
+    }
+    fileMeta.textContent = '사진을 준비하는 중입니다…';
+    fileMeta.classList.add('show');
+    try {
+      const compressed = await compressImage(file);
+      if (compressedUrl) URL.revokeObjectURL(compressedUrl);
+      compressedUrl = URL.createObjectURL(compressed);
+      preview.src = compressedUrl;
+      cameraBox.classList.add('has-image');
+      initialActions.hidden = true;
+      previewActions.hidden = false;
+      fileMeta.textContent = `자동 압축 완료 · ${formatBytes(file.size)} → ${formatBytes(compressed.size)}`;
+    } catch (error) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.src = reader.result;
+        cameraBox.classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+      initialActions.hidden = true;
+      previewActions.hidden = false;
+      fileMeta.textContent = `사진 선택 완료 · ${formatBytes(file.size)}`;
+    }
+  });
+
+  function clearPhoto() {
+    input.value = '';
+    preview.removeAttribute('src');
+    cameraBox.classList.remove('has-image');
+    initialActions.hidden = false;
+    previewActions.hidden = true;
+    fileMeta.classList.remove('show');
+    fileMeta.textContent = '';
+    if (compressedUrl) {
+      URL.revokeObjectURL(compressedUrl);
+      compressedUrl = '';
+    }
+  }
+
+  $('removePhoto').addEventListener('click', clearPhoto);
+  $('usePhoto').addEventListener('click', () => setStep(1));
+  $('backToPhoto').addEventListener('click', () => setStep(0));
+
+  function markLocation(title, detail, address) {
+    locationReady = true;
+    selectedLocation = address || detail;
+    addressInput.value = selectedLocation;
+    locationResult.innerHTML = `<strong>${title}</strong>${detail}`;
+    completeBtn.disabled = false;
+  }
+
+  $('getLocation').addEventListener('click', () => {
+    locationResult.textContent = '현재 위치를 확인하는 중입니다…';
+    completeBtn.disabled = true;
+    if (!navigator.geolocation) {
+      locationResult.textContent = '이 브라우저는 위치 기능을 지원하지 않습니다. 지도에서 선택해 주세요.';
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(5);
+        const lng = pos.coords.longitude.toFixed(5);
+        pin.style.left = '55%';
+        pin.style.top = '47%';
+        markLocation('현재 위치 확인 완료', `위도 ${lat}, 경도 ${lng}`, `현재 위치 · ${lat}, ${lng}`);
+      },
+      () => {
+        locationResult.textContent = '위치 권한을 사용할 수 없습니다. 예시 위치 선택 또는 지도를 이용해 주세요.';
+      },
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
+    );
+  });
+
+  function chooseMapPoint(event) {
+    const rect = map.getBoundingClientRect();
+    const x = Math.max(5, Math.min(95, ((event.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(12, Math.min(90, ((event.clientY - rect.top) / rect.height) * 100));
+    pin.style.left = `${x}%`;
+    pin.style.top = `${y}%`;
+    markLocation(
+      '지도 위치 선택 완료',
+      `지도 좌표 ${x.toFixed(0)}%, ${y.toFixed(0)}% 지점`,
+      '세종특별자치시 도움6로 인근 · 지도 선택 위치'
+    );
+  }
+
+  map.addEventListener('click', chooseMapPoint);
+  map.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      pin.style.left = '68%';
+      pin.style.top = '39%';
+      markLocation('지도 위치 선택 완료', '키보드로 예시 위치를 선택했습니다.', '세종특별자치시 도움6로 인근 · 지도 선택 위치');
+    }
+  });
+
+  $('demoLocation').addEventListener('click', () => {
+    pin.style.left = '68%';
+    pin.style.top = '39%';
+    markLocation('예시 위치 선택 완료', '세종특별자치시 도움6로 인근', '세종특별자치시 도움6로 인근');
+  });
+
+  addressInput.addEventListener('input', () => {
+    selectedLocation = addressInput.value.trim();
+    locationReady = selectedLocation.length > 2;
+    completeBtn.disabled = !locationReady;
+    if (locationReady) {
+      locationResult.innerHTML = `<strong>입력 위치 확인</strong>${selectedLocation}`;
+    }
+  });
+
+  notifyCheck.addEventListener('change', () => {
+    phoneWrap.hidden = !notifyCheck.checked;
+    if (notifyCheck.checked) phoneInput.focus();
+  });
+
+  completeBtn.addEventListener('click', () => {
+    if (!locationReady) return;
+    setStep(2, { preview: false });
+  });
+
+  function makeReceiptNumber() {
+    const now = new Date();
+    return `SJ-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(1000 + Math.random()*9000)}`;
+  }
+
+  function populateCompletion(isPreview) {
+    const completeCard = document.querySelector('.complete-card');
+    completeCard.classList.remove('cancelled');
+    reportCancelled = false;
+
+    $('previewMode').hidden = !isPreview;
+    $('completeIcon').textContent = '✓';
+    $('completeTitle').textContent = isPreview ? '신고 완료 화면입니다' : '신고가 접수되었습니다';
+    $('completeDescription').textContent = isPreview
+      ? '상단 단계를 눌러 확인하는 프로토타입 미리보기입니다.'
+      : '접수 내용과 예상 처리 정보를 확인해 주세요.';
+
+    $('receiptNumber').textContent = isPreview ? 'PROTO-PREVIEW-0001' : makeReceiptNumber();
+    $('completeLocation').textContent = selectedLocation || '세종특별자치시 도움6로 인근 · 예시 위치';
+    $('completeCategory').textContent = compressedUrl ? '도로 파손 · 신뢰도 87%' : '도로 파손 · 데모 분석';
+    $('completePriority').textContent = '높음';
+
+    const completePhoto = $('completePhoto');
+    const placeholder = $('completePhotoPlaceholder');
+    if (compressedUrl) {
+      completePhoto.src = compressedUrl;
+      completePhoto.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      completePhoto.removeAttribute('src');
+      completePhoto.style.display = 'none';
+      placeholder.style.display = 'flex';
+    }
+
+    $('statusDetail').hidden = true;
+    agreeActive = false;
+    $('agreeReport').classList.remove('active');
+    $('agreeCount').textContent = '3';
+  }
+
+  $('agreeReport').addEventListener('click', () => {
+    agreeActive = !agreeActive;
+    $('agreeReport').classList.toggle('active', agreeActive);
+    $('agreeCount').textContent = agreeActive ? '4' : '3';
+  });
+
+  $('viewStatus').addEventListener('click', () => {
+    $('statusDetail').hidden = !$('statusDetail').hidden;
+  });
+
+  $('editReport').addEventListener('click', () => setStep(0));
+
+  $('cancelReport').addEventListener('click', () => {
+    const confirmed = confirm('이 신고를 취소한 화면으로 변경할까요? 실제 서버에는 전송되지 않습니다.');
+    if (!confirmed) return;
+    reportCancelled = true;
+    const completeCard = document.querySelector('.complete-card');
+    completeCard.classList.add('cancelled');
+    $('completeIcon').textContent = '×';
+    $('completeTitle').textContent = '신고가 취소되었습니다';
+    $('completeDescription').textContent = '프로토타입에서 취소 상태가 반영되었습니다.';
+    $('completePriority').textContent = '취소됨';
+    $('statusDetail').hidden = true;
+  });
+
+  $('restartReport').addEventListener('click', () => {
+    clearPhoto();
+    locationReady = false;
+    selectedLocation = '';
+    completeBtn.disabled = true;
+    addressInput.value = '';
+    locationResult.textContent = '아직 위치가 확인되지 않았습니다.';
+    notifyCheck.checked = false;
+    phoneWrap.hidden = true;
+    phoneInput.value = '';
+    pin.style.left = '55%';
+    pin.style.top = '47%';
+    setStep(0);
+  });
+
+  $('voiceGuide').addEventListener('click', () => {
+    const message = '신고할 문제와 주변 환경이 함께 보이도록 사진을 촬영해 주세요. 사진 촬영 후 위치를 확인하면 신고가 완료됩니다.';
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = 'ko-KR';
+      utterance.rate = 0.95;
+      speechSynthesis.speak(utterance);
+    } else {
+      alert(message);
+    }
+  });
+
+  $('fontToggle').addEventListener('click', () => app.classList.toggle('prototype-large'));
+  $('contrastToggle').addEventListener('click', () => app.classList.toggle('prototype-contrast'));
+
+  setStep(0);
+})();
+</script>
+
+</body>
+</html>

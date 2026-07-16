@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>입찰 제안서 — AI 생활 인프라 유지관리 플랫폼 「모아」</title>
+<style>
+:root{
+  --ink:#182521;--muted:#66756f;--line:#d7e3df;
+  --teal:#0f766e;--teal-dark:#0b544f;--teal-soft:#e5f4f1;
+  --coral:#ea6b4d;--coral-soft:#fff0eb;--yellow:#f2b94b;--yellow-soft:#fff2d7;
+  --navy:#17324d;--gray:#f6f8f7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4;margin:0}
+html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  color:var(--ink);line-height:1.62;letter-spacing:-.012em;word-break:keep-all;background:#e8eeec;
+}
+.sheet{
+  width:210mm;min-height:296mm;margin:0 auto;background:#fff;
+  padding:13mm 14mm 12mm;page-break-after:always;position:relative;overflow:hidden;
+}
+.sheet:last-child{page-break-after:auto}
+@media screen{.sheet{margin:18px auto;box-shadow:0 10px 34px rgba(15,77,68,.14)}}
+
+/* running header */
+.run{display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid var(--teal);padding-bottom:6px;margin-bottom:22px;font-size:8.5px;color:var(--muted);letter-spacing:.02em}
+.run b{color:var(--teal-dark);font-weight:800}
+.run .pg{font-family:ui-monospace,Menlo,monospace;font-weight:700}
+
+/* section head */
+.sec-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.sec-no{min-width:46px;height:26px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;letter-spacing:.06em;margin-top:3px}
+.sec-head h2{font-size:21px;letter-spacing:-.04em;line-height:1.3}
+.sec-head p{margin-top:3px;color:var(--muted);font-size:11px}
+h3.block{font-size:13px;color:var(--teal-dark);margin:18px 0 8px;padding-left:9px;border-left:3.5px solid var(--teal)}
+
+p.body{font-size:11px;color:#33413c}
+small.note{display:block;margin-top:6px;font-size:8.5px;color:#8a978f}
+
+/* generic cards */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.card{background:var(--gray);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+.card small{color:var(--coral);font-size:8.5px;font-weight:900;letter-spacing:.08em}
+.card h4{font-size:12.5px;margin:5px 0 4px}
+.card p{color:var(--muted);font-size:10px}
+.statement{border-radius:12px;padding:15px 18px;background:var(--navy);color:#fff;font-size:13.5px;font-weight:750;line-height:1.55}
+.callout{border-left:4px solid var(--coral);background:var(--coral-soft);color:#6d493f;border-radius:0 10px 10px 0;padding:11px 14px;font-size:10px}
+.callout b{color:#a94631}
+.tealbox{border-left:4px solid var(--teal);background:var(--teal-soft);color:#274740;border-radius:0 10px 10px 0;padding:11px 14px;font-size:10px}
+.formula{border-radius:10px;background:var(--teal-soft);color:var(--teal-dark);text-align:center;padding:10px;font-weight:900;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:9.5px}
+th{text-align:left;padding:7px 8px;background:#f4f8f6;color:#718078;font-size:8.5px;letter-spacing:.05em;border-top:2px solid var(--teal-dark);border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid #e5ece9;vertical-align:top;color:#33413c}
+.req{color:var(--teal);font-family:ui-monospace,Menlo,monospace;font-weight:900;white-space:nowrap;font-size:9px}
+.tag{display:inline-block;border-radius:999px;padding:1.5px 8px;font-size:8px;font-weight:900;white-space:nowrap}
+.tag.core{background:var(--teal-soft);color:var(--teal-dark)}
+.tag.road{background:#ecefef;color:#67716d}
+.tag.hot{background:var(--yellow-soft);color:#8b661f}
+
+/* cover */
+.cover{background:radial-gradient(circle at 84% 12%,rgba(242,185,75,.22),transparent 26%),linear-gradient(150deg,#0b544f 0%,#0f766e 55%,#189487 100%);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:20mm 18mm}
+.cover-tag{display:inline-flex;width:max-content;padding:6px 13px;border:1px solid rgba(255,255,255,.4);border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;background:rgba(255,255,255,.08)}
+.cover h1{font-size:41px;line-height:1.22;letter-spacing:-.05em;font-weight:850;margin-top:26px}
+.cover h1 span{color:#ffd584}
+.cover .sub{margin-top:16px;font-size:13.5px;color:rgba(255,255,255,.86);max-width:560px}
+.cover-scene{margin-top:30px;border:1.5px solid rgba(255,255,255,.35);border-radius:14px;padding:15px 18px;background:rgba(255,255,255,.07);font-size:14px;font-weight:800;max-width:560px;line-height:1.6}
+.cover-scene em{font-style:normal;color:#ffd584}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;border-top:1px solid rgba(255,255,255,.32);padding-top:14px}
+.cover-meta small{display:block;color:rgba(255,255,255,.6);font-size:8.5px;letter-spacing:.1em;margin-bottom:3px}
+.cover-meta b{font-size:11px;font-weight:800}
+
+/* summary page pieces */
+.pillars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.pillar{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+.pillar .no{width:26px;height:26px;border-radius:8px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;margin-bottom:8px}
+.pillar h4{font-size:12.5px;margin-bottom:4px}
+.pillar p{font-size:9.5px;color:var(--muted)}
+.fb-list{display:grid;gap:6px}
+.fb-item{display:grid;grid-template-columns:130px 1fr;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:#fff;font-size:9.5px}
+.fb-item b{color:#a94631;font-size:9px}
+.fb-item span{color:#33413c}
+.fb-item .where{color:var(--teal-dark);font-weight:800;white-space:nowrap}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.flow-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-height:88px}
+.flow-card::after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:#94aaa3;font-weight:900;font-size:11px}
+.flow-card:nth-child(4n)::after{display:none}
+.flow-card .step{color:var(--teal);font-size:8px;font-weight:900;letter-spacing:.08em}
+.flow-card h4{margin:4px 0 3px;font-size:11px}
+.flow-card p{font-size:8.8px;color:var(--muted)}
+.flow-card.core{background:linear-gradient(135deg,#0f766e,#12857c);color:#fff;border-color:var(--teal)}
+.flow-card.core .step{color:#ffd584}
+.flow-card.core p{color:rgba(255,255,255,.82)}
+
+/* phone mockups */
+.screens{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.phone{border:1.5px solid #cfe0da;border-radius:16px;overflow:hidden;background:#fff}
+.phone .bar{background:var(--teal);color:#fff;font-size:9px;font-weight:800;padding:6px 10px;display:flex;justify-content:space-between}
+.phone .bar span{opacity:.75;font-weight:700}
+.phone .scr{padding:10px}
+.steps3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px}
+.steps3 i{font-style:normal;text-align:center;font-size:7.5px;font-weight:900;padding:4px 2px;border-radius:6px;background:#edf4f2;color:#6f7e79}
+.steps3 i.on{background:var(--teal);color:#fff}
+.steps3 i.done{background:#dff1eb;color:var(--teal-dark)}
+.ph-box{border:1.5px dashed #b9d1ca;border-radius:10px;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fcfb;font-size:9px;color:#4c5e58;text-align:center;padding:8px;gap:3px}
+.ph-box b{font-size:9.5px;color:var(--ink)}
+.ph-btn{margin-top:8px;border-radius:8px;background:var(--coral);color:#fff;text-align:center;font-size:9px;font-weight:900;padding:7px}
+.ph-btn.ghost{background:#f1f4f3;color:#53635d}
+.ph-note{margin-top:6px;font-size:7.8px;color:#8a978f;text-align:center}
+.ph-row{display:flex;gap:5px;margin-top:8px}
+.ph-row .ph-btn{flex:1;margin-top:0}
+.ph-map{border-radius:10px;height:64px;background:linear-gradient(0deg,transparent 44%,rgba(255,255,255,.9) 44%,rgba(255,255,255,.9) 52%,transparent 52%),linear-gradient(90deg,transparent 46%,rgba(255,255,255,.9) 46%,rgba(255,255,255,.9) 54%,transparent 54%),#dcefe7;position:relative}
+.ph-map::after{content:"📍";position:absolute;left:52%;top:38%;font-size:15px}
+.ph-sim{margin-top:8px;border:1px solid #f1d9ac;background:#fff7ec;border-radius:9px;padding:7px 8px;font-size:8px;color:#725629}
+.ph-sim b{display:block;font-size:8.6px}
+.ph-sim .btns{display:flex;gap:4px;margin-top:5px}
+.ph-sim .btns i{font-style:normal;flex:1;text-align:center;border-radius:6px;padding:4px;font-weight:900;font-size:7.8px;background:#f2b94b;color:#4e390d}
+.ph-sim .btns i.alt{background:#fff;border:1px solid #e4c987;color:#805b1b}
+.ph-receipt{margin-top:8px;background:#edf6f3;border-radius:9px;padding:7px 9px;font-size:8.2px;color:#36534a}
+.ph-receipt b{color:var(--teal-dark)}
+.a11y-chip{display:inline-block;font-size:7.6px;font-weight:900;background:#000;color:#ffdf00;border-radius:5px;padding:2px 6px;margin-left:4px}
+
+/* integration logic */
+.merge-steps{display:grid;gap:7px}
+.merge-step{display:grid;grid-template-columns:20px 1fr;gap:9px;align-items:flex-start;font-size:10px;color:#33413c}
+.merge-step i{font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:900;margin-top:1px}
+.merge-step b{color:var(--teal-dark)}
+
+/* architecture */
+.arch{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.arch-col{border-radius:12px;padding:13px;border:1px solid var(--line)}
+.arch-col:nth-child(1){background:#f2fbf9}
+.arch-col:nth-child(2){background:#fff7f3}
+.arch-col:nth-child(3){background:#f5f7fb}
+.arch-col small{display:block;font-size:8px;font-weight:900;letter-spacing:.08em;color:var(--teal);margin-bottom:6px}
+.arch-col h4{font-size:12px;margin-bottom:7px}
+.arch-col ul{padding-left:15px;color:var(--muted);font-size:9.5px}
+.arch-col li+li{margin-top:4px}
+.evolve{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.evo{position:relative;background:#f8fbfa;border:1px solid var(--line);border-radius:11px;padding:10px 11px;text-align:center}
+.evo::after{content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:#8ea59e;font-weight:900;font-size:10px}
+.evo:last-child::after{display:none}
+.evo b{display:block;font-size:10.5px;color:var(--teal-dark)}
+.evo span{font-size:8.3px;color:var(--muted)}
+.evo.now{background:var(--teal);border-color:var(--teal)}
+.evo.now b{color:#fff}.evo.now span{color:rgba(255,255,255,.8)}
+.flywheel{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.fly{background:#f8fbfa;border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center;font-size:8.8px;font-weight:800;color:#42544d;position:relative}
+.fly::after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:#8ea59e;font-size:9px}
+.fly:last-child::after{display:none}
+
+/* gauge (MVP 5 / 10) */
+.gauge{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:12px 0 6px}
+.gauge i{font-style:normal;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;background:#edf1f0;color:#8b968f;border:1px solid #e0e7e4}
+.gauge i.mvp{background:var(--teal);color:#fff;border-color:var(--teal)}
+.gauge-label{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:14px}
+.gauge-label b{color:var(--teal-dark)}
+.lv{display:grid;grid-template-columns:34px 1fr 120px;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:#fff;font-size:9.6px}
+.lv+.lv{margin-top:6px}
+.lv i{font-style:normal;width:30px;height:22px;border-radius:7px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:9.5px;margin-top:1px}
+.lv.road i{background:#e6ebe9;color:#67716d}
+.lv b{color:var(--ink)}
+.lv span{color:var(--muted)}
+.lv .ids{font-family:ui-monospace,Menlo,monospace;font-size:8px;color:var(--teal);font-weight:800;text-align:right;line-height:1.5}
+
+/* timeline */
+.week{display:grid;grid-template-columns:74px 1fr;gap:10px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;font-size:9.8px}
+.week+.week{margin-top:7px}
+.week .wk{font-weight:900;color:var(--teal-dark);font-size:10px}
+.week .wk small{display:block;font-weight:700;color:#8a978f;font-size:8px}
+.week ul{padding-left:14px;color:#42544d}
+.week li+li{margin-top:2px}
+.week.now{border-color:var(--teal);background:#f4fbf9}
+
+/* market table highlight */
+td.win{background:#f0faf7;font-weight:800;color:var(--teal-dark)}
+
+/* effects */
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi .card b{display:block;font-size:19px;color:var(--teal-dark);letter-spacing:-.03em}
+.kpi .card em{font-style:normal;font-size:8.6px;color:var(--coral);font-weight:900}
+
+footer.doc{position:absolute;left:14mm;right:14mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8px;color:#9aa8a1;border-top:1px solid var(--line);padding-top:5px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ P.01 표지 ═══════════ -->
+<section class="sheet cover">
+  <div>
+    <span class="cover-tag">2026-세종-0002 · 입찰 제안서 · 협상에 의한 계약(가상)</span>
+    <h1>같은 신고는 모으고,<br><span>누구나 3단계로 신고하게</span></h1>
+    <p class="sub">AI 영상·신고 기반 생활 인프라 유지관리 플랫폼 구축 사업에 대하여, 접근성 중심 신고 경험과 유사 신고 통합 기술을 갖춘 플랫폼 「모아」를 제안합니다.</p>
+    <div class="cover-scene">
+      “앱 설치도 로그인도 없이, <em>사진 촬영 → 위치 확인 → 신고 완료</em> 3단계.<br>
+      같은 불편은 <em>‘나도 불편해요’</em> 한 번으로 모이고,<br>
+      접수번호가 담긴 링크 하나로 <em>처리 상태를 끝까지 확인</em>합니다.”
+    </div>
+  </div>
+  <div>
+    <div class="cover-meta">
+      <div><small>사업명</small><b>AI 영상·신고 기반 생활 인프라 유지관리 플랫폼 구축</b></div>
+      <div><small>발주기관</small><b>세종도시관리공단 (가상)</b></div>
+      <div><small>제안팀</small><b>고려대 세종 산업체 실습 4팀 「모아」<br>가동진 · 김성현 · 김재용 · 심송언</b></div>
+      <div><small>제출일</small><b>2026. 07. 17.</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ P.02 제안 요약 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 02</span></div>
+  <div class="sec-head"><span class="sec-no">요약</span><div><h2>제안 요약 — 한 장면으로 보는 「모아」</h2><p>본 제안의 전부는 아래 한 장면으로 요약됩니다.</p></div></div>
+
+  <div class="statement">75세 시민도, 외국인 주민도, 바쁜 직장인도 — QR 접속 후 <u>3단계 안에</u> 신고를 마치고, 같은 불편은 <u>중복 없이 하나로 모여</u> 담당자에게 우선순위대로 전달되며, 신고자는 <u>로그인 없이</u> 처리 상태를 끝까지 확인한다.</div>
+
+  <h3 class="block">3대 핵심 차별점</h3>
+  <div class="pillars">
+    <div class="pillar"><div class="no">1</div><h4>‘나도 불편해요’ 유사 신고 통합</h4><p>반경·유형·시간 조건으로 유사 신고를 하나의 대표 문제로 통합. 중복 민원은 업무가 아니라 <b>우선순위 근거 데이터</b>가 됩니다. 신고자가 통합 여부를 직접 선택하고, 담당자는 오통합을 즉시 분리할 수 있습니다.</p></div>
+    <div class="pillar"><div class="no">2</div><h4>접근성이 MVP에 들어간 신고 경험</h4><p>큰 글자 · 고대비 · 사진 촬영 가이드를 <b>MVP 핵심 범위에 포함</b>해, 디지털 취약층이 실제로 쓸 수 있는 신고 경험을 시연 단계에서 증명합니다. 로그인 없음 · 3단계 진행 표시가 기본값입니다.</p></div>
+    <div class="pillar"><div class="no">3</div><h4>데이터가 쌓일수록 좋아지는 플랫폼</h4><p>담당자의 검수·수정 결과를 학습 라벨로 축적하고, 다양한 현장 사진 데이터를 수집해 <b>분류 모델을 파인튜닝</b>합니다. 운영할수록 정확해지고, 검수 비용은 줄어듭니다.</p></div>
+  </div>
+
+  <h3 class="block">수행 원칙 — 완성도 ‘10’ 중 동작하는 ‘5’를 시연</h3>
+  <p class="body">RFP의 전체 요구사항을 완성형 ‘10’으로 정의하고, 사업 기간 내에는 핵심 절반인 ‘5’를 <b>동작하는 MVP</b>로 구현·시연합니다. 나머지 6~10 구간은 단계별 확장 로드맵(11p)으로 제시하며, 모든 기능은 RFP 요구사항 ID와 연결(12p)해 기술했습니다.</p>
+  <div class="gauge">
+    <i class="mvp">1</i><i class="mvp">2</i><i class="mvp">3</i><i class="mvp">4</i><i class="mvp">5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i>
+  </div>
+  <div class="gauge-label"><b>■ MVP — 본 사업 기간 내 동작 시연 (1~5)</b><span>□ 확장 로드맵 — 단계별 고도화 (6~10)</span></div>
+
+  <h3 class="block">멘토링 피드백 반영 현황 (7/15 멘토링 · 아이디어 노트 서면 피드백)</h3>
+  <div class="fb-list">
+    <div class="fb-item"><b>접근성이 Phase 2로 밀림</b><span>큰 글자·고대비·촬영 가이드 세트를 <b>MVP 핵심(레벨 4)으로 격상</b>. 접근성 중심 신고 경험을 시연 범위에 포함 <span class="where">→ 6p, 11p</span></span></div>
+    <div class="fb-item"><b>50m·시간 조건 근거 미정의</b><span>GPS 오차·시설물 간격 기반 반경 근거, 72시간 시간창 근거, 운영 데이터 기반 보정 계획 명시 <span class="where">→ 5p</span></span></div>
+    <div class="fb-item"><b>오통합 분리 절차 필요</b><span>“자동 통합은 보수적으로, 분리는 쉽게” 원칙의 4단계 분리 절차와 분리 이력의 파라미터 보정 활용 정의 <span class="where">→ 5p</span></span></div>
+    <div class="fb-item"><b>통합 여부 신고자 선택</b><span>유사 신고 후보를 카드로 제시하고 ‘기존 문제에 추가’ / ‘새 신고로 접수’ 선택 UX 설계 <span class="where">→ 4~5p</span></span></div>
+    <div class="fb-item"><b>로그인 없는 상태 조회 방식</b><span>접수번호 + 조회 전용 서명 토큰 URL 방식 설계(만료 정책 포함), 무작위 열람 차단 <span class="where">→ 6p</span></span></div>
+    <div class="fb-item"><b>악용 방지·데이터 보관 정책</b><span>익명 신고 악용 방지 4중 장치, 사진·위치·연락처 보관 및 삭제 정책 명시 <span class="where">→ 6p</span></span></div>
+    <div class="fb-item"><b>웹앱 → 네이티브 진화 경로</b><span>웹앱 → PWA → TWA → 네이티브의 표준 진화 경로를 기술 전략에 반영 <span class="where">→ 7p</span></span></div>
+  </div>
+  <footer class="doc"><span>고려대 세종 산업체 실습 4팀 「모아」</span><span>본 문서의 발주기관·예산은 학습용 가상 정보입니다</span></footer>
+</section>
+
+<!-- ═══════════ P.03 문제 정의 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 03</span></div>
+  <div class="sec-head"><span class="sec-no">01</span><div><h2>사업 이해와 문제 정의</h2><p>기존 신고 체계는 시민에게 복잡하고, 담당자에게는 중복 업무를 만든다.</p></div></div>
+
+  <h3 class="block">RFP가 말하는 현재의 문제 (공고 1.2 문제점 분석)</h3>
+  <table>
+    <thead><tr><th style="width:70px">단계</th><th>RFP 진단</th><th>현장에서 벌어지는 일</th></tr></thead>
+    <tbody>
+      <tr><td><b>접수</b></td><td>신고 경로 분산으로 누락·중복 발생</td><td>같은 포트홀이 전화·웹·방문으로 각각 접수되어 3건의 별개 민원이 된다</td></tr>
+      <tr><td><b>분류</b></td><td>수기 분류로 처리 지연·배정 오류</td><td>담당자가 사진을 열어보고 유형을 판단해 부서를 수동 배정한다</td></tr>
+      <tr><td><b>우선순위</b></td><td>위험도 높은 건이 후순위로 밀림</td><td>접수 순서대로 처리되어 침수 위험 포트홀이 단순 민원 뒤로 밀린다</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block">세 주체의 관점에서 다시 정의한 문제</h3>
+  <div class="grid3">
+    <div class="card"><small>CITIZEN — 시민</small><h4>신고 문턱이 높다</h4><p>앱 설치, 회원가입, 긴 양식, 신고 유형 직접 선택. 고령층·외국인 등 디지털 취약층은 신고를 포기하거나 전화·방문에 의존한다.</p></div>
+    <div class="card"><small>OFFICER — 담당자</small><h4>유사 신고가 흩어진다</h4><p>같은 위치의 같은 문제가 별개 민원으로 쌓여, 담당자는 처리보다 중복 확인에 시간을 쓴다. 중복 건수가 많다는 사실 자체는 활용되지 못한다.</p></div>
+    <div class="card"><small>SYSTEM — 시스템</small><h4>중요한 문제가 묻힌다</h4><p>접수 순서 중심 처리로 위험도·반복성이 반영되지 않는다. 데이터는 쌓이지만 분류 개선이나 예방 정비로 이어지지 않는다.</p></div>
+  </div>
+
+  <h3 class="block">문제의 재정의</h3>
+  <div class="statement">신고의 문턱을 낮추는 것만으로는 부족하다. 낮아진 문턱으로 늘어난 신고가 <u>중복 업무가 아니라 우선순위 데이터가 되도록</u>, 접수–통합–배정–확인의 전 과정을 하나의 흐름으로 다시 설계해야 한다.</div>
+
+  <div style="margin-top:14px" class="tealbox"><b>제안 방향 3원칙</b> — ① 시민의 입력은 최소화한다(사진+위치면 충분) ② 반복 신고는 하나의 문제로 모아 심각도 신호로 쓴다 ③ 담당자는 먼저 처리해야 할 문제부터 본다</div>
+  <footer class="doc"><span>01 · 사업 이해와 문제 정의</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.04 해결 방안 — 서비스 개요 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 04</span></div>
+  <div class="sec-head"><span class="sec-no">02</span><div><h2>해결 방안 — 서비스 「모아」</h2><p>시민에게는 3단계 신고 경험을 제공하고, 시스템은 8단계 처리 파이프라인을 수행한다.</p></div></div>
+
+  <h3 class="block">전체 사용자 흐름 — 시민은 3단계만 보고, 나머지는 시스템이 한다</h3>
+  <div class="flow">
+    <article class="flow-card"><span class="step">STEP 01 · 시민</span><h4>웹앱 접속</h4><p>QR·링크로 접속. 앱 설치, 회원가입 없음</p></article>
+    <article class="flow-card"><span class="step">STEP 02 · 시민</span><h4>사진 촬영</h4><p>촬영 가이드 제공, 자동 압축 업로드</p></article>
+    <article class="flow-card"><span class="step">STEP 03 · 시민</span><h4>위치 확인 → 완료</h4><p>GPS 자동 입력 + 지도 수정. 접수번호 발급</p></article>
+    <article class="flow-card"><span class="step">STEP 04 · AI</span><h4>유형 자동 분류</h4><p>도로 파손·가로등·쓰레기 등 1차 판별</p></article>
+    <article class="flow-card core"><span class="step">STEP 05 · AI</span><h4>유사 신고 통합</h4><p>반경·유형·시간 조건으로 대표 문제에 연결, 신고자가 최종 선택</p></article>
+    <article class="flow-card"><span class="step">STEP 06 · AI</span><h4>우선순위·배정</h4><p>위험도+빈도+공감 수로 산정, 유형·구역별 부서 자동 배정</p></article>
+    <article class="flow-card"><span class="step">STEP 07 · 담당자</span><h4>검수·보정</h4><p>오분류 수정, 오통합 분리, 우선순위 조정</p></article>
+    <article class="flow-card"><span class="step">STEP 08 · 시민</span><h4>상태 확인</h4><p>접수번호·토큰으로 로그인 없이 조회</p></article>
+  </div>
+
+  <h3 class="block">화면 구성 — 시민이 만나는 3개의 화면 <span class="a11y-chip">A+ 큰글자</span><span class="a11y-chip">◐ 고대비</span></h3>
+  <div class="screens">
+    <div class="phone">
+      <div class="bar">① 사진 촬영 <span>A+ ◐</span></div>
+      <div class="scr">
+        <div class="steps3"><i class="on">1 사진</i><i>2 위치</i><i>3 완료</i></div>
+        <div class="ph-box">📷 <b>문제와 주변이 함께 보이게 촬영해 주세요</b>예시 사진 · 재촬영 안내 제공</div>
+        <div class="ph-btn">사진 촬영하기</div>
+        <div class="ph-note">사진은 기기에서 자동 압축 후 업로드 (3.2MB → 0.4MB)</div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="bar">② 위치 확인 <span>A+ ◐</span></div>
+      <div class="scr">
+        <div class="steps3"><i class="done">1 사진</i><i class="on">2 위치</i><i>3 완료</i></div>
+        <div class="ph-map"></div>
+        <div class="ph-note" style="text-align:left;margin-top:7px">확인된 위치 · <b style="color:#33413c">도움6로 24 인근</b> (지도에서 수정 가능)</div>
+        <div class="ph-row"><div class="ph-btn ghost">현재 위치</div><div class="ph-btn">이 위치로 신고</div></div>
+        <div class="ph-note">큰 글자·고대비는 우측 상단 토글(A+ ◐)로 즉시 전환</div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="bar">③ 신고 완료 <span>A+ ◐</span></div>
+      <div class="scr">
+        <div class="steps3"><i class="done">1 사진</i><i class="done">2 위치</i><i class="on">3 완료</i></div>
+        <div class="ph-receipt"><b>접수번호 SJ-2026-0716-1234</b><br>AI 예상 유형: 도로 파손 · 우선순위 높음<br>이 화면의 링크로 언제든 상태 조회</div>
+        <div class="ph-sim">
+          <b>📍 30m 근처에 비슷한 신고 2건이 있습니다</b>
+          같은 문제라면 함께 묶어 더 빨리 처리됩니다
+          <div class="btns"><i>🙋 기존 문제에 추가</i><i class="alt">새 신고로 접수</i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="body" style="margin-top:10px">담당자용 관리 화면은 <b>대표 문제 카드</b> 중심으로 구성합니다 — 우선순위 정렬 목록, 통합된 개별 신고의 사진 비교, 오분류 재분류(COR-001), 오통합 분리, 처리 상태 변경을 한 화면에서 수행합니다.</p>
+  <footer class="doc"><span>02 · 해결 방안 — 서비스 개요와 화면 구성</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.05 핵심 기능 1 — 유사 신고 통합 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 05</span></div>
+  <div class="sec-head"><span class="sec-no">02</span><div><h2>핵심 기능 ① 유사 신고 통합과 우선순위</h2><p>중복 신고를 지우지 않고, 문제의 심각성을 증명하는 데이터로 쓴다.</p></div></div>
+
+  <h3 class="block">통합 판정 기준과 그 근거</h3>
+  <table>
+    <thead><tr><th style="width:92px">조건</th><th style="width:120px">초기값</th><th>설정 근거</th></tr></thead>
+    <tbody>
+      <tr><td><b>거리</b></td><td>반경 50m 이내</td><td>스마트폰 GPS의 도심 오차(통상 10~30m, 건물 음영 시 확대)를 감안해 오차 상한의 약 1.5~2배로 설정. 가로등·횡단보도 등 시설물 설치 간격(약 30~50m)과도 정합</td></tr>
+      <tr><td><b>유형</b></td><td>AI 분류 동일 + 신뢰도 70% 이상</td><td>신뢰도가 낮은 분류 결과로 자동 통합하면 오통합 위험이 커지므로, 임계값 미달 건은 통합 후보에서 제외하고 관리자 우선 검수 큐로 전달</td></tr>
+      <tr><td><b>시간</b></td><td>최근 72시간 이내 접수 건</td><td>동일 문제에 대한 재신고가 집중되는 초기 구간을 가정한 값으로, 통상적인 현장 확인·처리 리드타임(2~3일)을 함께 고려</td></tr>
+    </tbody>
+  </table>
+  <small class="note">※ 세 값은 모두 운영 파라미터로 설계합니다. 하드코딩하지 않고 관리자 설정으로 두어, 운영 데이터(분리율·재통합률)를 근거로 지속 보정합니다.</small>
+
+  <div style="margin-top:12px" class="tealbox"><b>설계 원칙 — “자동 통합은 보수적으로, 분리는 쉽게”</b> · 조건을 충족해도 시스템이 강제 통합하지 않습니다. 신고자에게 유사 신고 후보를 보여주고 <b>‘기존 문제에 추가’ 또는 ‘새 신고로 접수’를 직접 선택</b>하게 하며(4p 화면 ③), 담당자는 언제든 통합을 해제할 수 있습니다.</div>
+
+  <h3 class="block">오통합 분리 절차 — 잘못 묶였을 때</h3>
+  <div class="merge-steps">
+    <div class="merge-step"><i>1</i><span><b>비교 확인</b> — 담당자가 대표 문제 카드에서 통합된 개별 신고의 사진·위치·시각을 나란히 비교</span></div>
+    <div class="merge-step"><i>2</i><span><b>즉시 분리</b> — ‘분리’ 버튼 한 번으로 해당 신고를 독립된 새 문제 카드로 전환 (우선순위·배정 자동 재산정)</span></div>
+    <div class="merge-step"><i>3</i><span><b>사유 기록</b> — 분리 사유를 태그로 기록 (위치 상이 / 유형 상이 / 별개 문제) — 클릭 1회 수준의 최소 입력</span></div>
+    <div class="merge-step"><i>4</i><span><b>규칙 보정</b> — 분리 이력을 통합 파라미터(반경·시간·임계값) 보정의 근거 데이터로 축적 → 통합 정확도가 운영할수록 상승</span></div>
+  </div>
+
+  <h3 class="block">우선순위 산정 — 담당자가 “먼저 할 일”을 보게 한다</h3>
+  <div class="grid2">
+    <div>
+      <div class="formula">우선순위 = 유형별 기본 위험도 + 누적 신고 빈도 + ‘나도 불편해요’ 공감 수</div>
+      <small class="note">※ 확장 단계에서 경과 시간, 취약지역(어린이보호구역 등) 가중치를 추가합니다.</small>
+    </div>
+    <div class="card" style="background:#fff"><small>WHY IT WORKS</small><h4>중복이 많을수록 순위가 오른다</h4><p>기존 체계에서 중복 신고는 ‘지워야 할 업무’였지만, 「모아」에서는 통합된 신고 건수와 공감 수가 그대로 <b>심각성의 증거</b>가 되어 우선순위를 끌어올립니다. 시민의 반복 신고가 처음으로 의미를 갖게 됩니다.</p></div>
+  </div>
+  <footer class="doc"><span>02 · 핵심 기능 ① 유사 신고 통합과 우선순위</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.06 핵심 기능 2 — 접근성 & 신뢰 설계 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 06</span></div>
+  <div class="sec-head"><span class="sec-no">02</span><div><h2>핵심 기능 ② 접근성과 신뢰 설계</h2><p>접근성은 부가 기능이 아니라 MVP의 핵심 범위다.</p></div></div>
+
+  <div class="callout"><b>멘토 피드백 반영 — 접근성의 MVP 격상.</b> 초기 계획에서는 접근성 기능이 Phase 2였으나, “차별점인 접근성이 뒤로 밀려 있다”는 피드백에 따라 <b>큰 글자 · 고대비 · 사진 촬영 가이드 세트를 MVP 핵심 범위(레벨 4)로 격상</b>했습니다. 시연에서 접근성 중심 신고 경험을 직접 보여드립니다.</div>
+
+  <h3 class="block">MVP에 포함되는 접근성 기본 세트</h3>
+  <div class="grid3">
+    <div class="card"><small>A11Y · MVP</small><h4>🔎 큰 글자 · 고대비 모드</h4><p>화면 우상단 토글 한 번으로 큰 글자·큰 버튼, 검정 배경+노랑 강조의 고대비 화면 전환. 저시력·고령 사용자 기준으로 대비를 검증합니다.</p></div>
+    <div class="card"><small>A11Y · MVP</small><h4>📸 사진 촬영 가이드</h4><p>“문제와 주변이 함께 보이게”라는 예시 이미지·문구를 촬영 전 제시하고, 흐리거나 너무 가까운 사진은 재촬영을 안내합니다. 분류 정확도와 직결되는 기능입니다.</p></div>
+    <div class="card"><small>A11Y · MVP</small><h4>① 3단계 진행 표시 · 로그인 없음</h4><p>사진 → 위치 → 완료의 현재 단계를 항상 상단에 표시하고, 회원가입·로그인을 요구하지 않습니다. 연락처는 알림을 원할 때만 선택 입력합니다.</p></div>
+  </div>
+  <p class="body" style="margin-top:8px">음성 안내·다국어·임시 저장(저속 인터넷 대응)은 확장 로드맵 6~7단계에서 이어집니다. 접근성의 뼈대(큰 글자·고대비·가이드·3단계·무로그인)를 MVP에서 완성하고, 감각·언어 확장을 덧붙이는 순서입니다.</p>
+
+  <h3 class="block">로그인 없는 처리 상태 조회 — 접수번호 + 조회 전용 토큰</h3>
+  <div class="grid2">
+    <div class="card" style="background:#fff"><small>HOW</small><h4>조회 방식</h4><p>신고 완료 시 <b>접수번호(SJ-2026-0716-1234)</b>와 서명된 난수 토큰이 담긴 <b>조회 전용 URL</b>을 발급합니다. 조회는 접수번호+토큰 조합으로만 가능해 타인 신고의 무작위 열람이 차단됩니다. 토큰에는 개인정보가 포함되지 않으며, 처리 완료 후 6개월(사진·위치 보관 기간)까지 유효하고 이후 자동 무효화됩니다.</p></div>
+    <div class="card" style="background:#fff"><small>FALLBACK</small><h4>URL을 잃어버리면</h4><p>연락처를 남긴 신고자는 문자로 조회 링크를 다시 받을 수 있고, 남기지 않은 경우 완료 화면 저장·북마크를 안내합니다. 상태는 접수 → 배정 → 처리 중 → 완료 4단계로 표시됩니다(SFR-006).</p></div>
+  </div>
+
+  <h3 class="block">익명 신고 악용 방지 — 문턱은 낮추되, 남용은 막는다</h3>
+  <table>
+    <thead><tr><th style="width:110px">장치</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><b>사진 필수</b></td><td>사진 없는 신고는 접수 불가 — 텍스트만으로는 허위 신고를 만들기 쉽지만, 현장 사진은 위조 비용이 높다</td></tr>
+      <tr><td><b>횟수 제한</b></td><td>동일 기기·IP 단위 시간당 신고 횟수 제한(rate limit), ‘나도 불편해요’는 기기당 문제별 1회</td></tr>
+      <tr><td><b>검수 큐</b></td><td>AI 분류 신뢰도가 낮거나 위치-사진 정합성이 의심되는 건은 자동 게시 대신 관리자 우선 검수 큐로 전달</td></tr>
+      <tr><td><b>사후 차단</b></td><td>담당자가 ‘스팸/허위’ 처리한 출처(기기·IP)는 이후 신고에 가중 제한 적용</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block">사진·위치 정보의 보관과 삭제 정책 (SER-001·003)</h3>
+  <table>
+    <thead><tr><th style="width:110px">데이터</th><th style="width:150px">보관 기간</th><th>처리 원칙</th></tr></thead>
+    <tbody>
+      <tr><td><b>연락처(선택)</b></td><td>처리 완료 통보 후 30일</td><td>알림 목적으로만 사용 후 파기 — 신고자 정보 최소 수집 원칙(SER-003)</td></tr>
+      <tr><td><b>사진·위치</b></td><td>처리 완료 후 6개월</td><td>위치 수집 시 동의 획득(SER-001). 재확인 대응 기간 경과 후 파기 또는 비식별화, 학습 활용은 <b>별도 동의 건에 한정</b></td></tr>
+      <tr><td><b>학습 데이터</b></td><td>비식별화 후 보관</td><td>얼굴·번호판 비식별 처리(SER-002, 로드맵 9단계) 후 라벨 데이터로 축적(DAR-002)</td></tr>
+    </tbody>
+  </table>
+  <footer class="doc"><span>02 · 핵심 기능 ② 접근성과 신뢰 설계</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.07 기술 구성 & 데이터 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 07</span></div>
+  <div class="sec-head"><span class="sec-no">03</span><div><h2>기술 구성과 데이터 활용 계획</h2><p>가볍게 시작해 표준 경로로 성장하는 아키텍처.</p></div></div>
+
+  <h3 class="block">시스템 아키텍처 — 3계층 구성 (AWS 서버리스 기반)</h3>
+  <div class="arch">
+    <article class="arch-col"><small>FRONTEND</small><h4>React 모바일 웹앱</h4><ul><li>모바일 우선 반응형(COR-002)</li><li>카메라 촬영 · GPS 위치 입력</li><li>큰 글자·고대비 접근성 토글</li><li>클라이언트 사진 자동 압축(PER-002)</li><li>S3 + CloudFront 정적 배포</li></ul></article>
+    <article class="arch-col"><small>BACKEND</small><h4>신고 처리 API</h4><ul><li>API Gateway + Lambda 서버리스</li><li>신고·문제 데이터 DynamoDB 관리(DAR-001)</li><li>거리 기반 유사 신고 판정 로직</li><li>우선순위 산정·부서 자동 배정(SFR-003·004)</li><li>접수번호·토큰 발급과 상태 조회</li></ul></article>
+    <article class="arch-col"><small>AI & DATA</small><h4>이미지 분류·데이터 축적</h4><ul><li>관리형 이미지 인식 API 연계(SIR-001)</li><li>수초 이내 분류 응답(PER-001)</li><li>지도·행정구역 API 연계(SIR-002)</li><li>검수 결과를 학습 라벨로 축적(DAR-002)</li><li>표본 정확도 점검 체계(QUR-002)</li></ul></article>
+  </div>
+  <small class="note">※ 서버리스 구성은 신고량 변동(집중 시기)에 자동 확장으로 대응하고, 유휴 시간 비용을 최소화해 40,000천원 규모 사업에 적합한 운영비 구조를 만듭니다.</small>
+
+  <h3 class="block">기술 진화 경로 — 웹앱에서 시작하는 표준 성장 전략</h3>
+  <div class="evolve">
+    <div class="evo now"><b>① 모바일 웹앱</b><span>본 사업 · QR 접속, 설치 없음</span></div>
+    <div class="evo"><b>② PWA</b><span>홈 화면 추가 · 오프라인 대응</span></div>
+    <div class="evo"><b>③ TWA</b><span>스토어 배포 · 웹 코드 재사용</span></div>
+    <div class="evo"><b>④ 네이티브</b><span>대규모 사용자 · 성능 최적화</span></div>
+  </div>
+  <p class="body" style="margin-top:8px">초기 서비스는 웹앱으로 시작해 사용자 증가에 따라 PWA → TWA → 네이티브로 전환하는 것이 검증된 표준 절차입니다. 사용자는 단계 전환을 인식하지 못한 채 동일한 경험을 유지하며, 코드 자산은 단계 간 재사용됩니다. 웹앱 선택은 접근성 기능이 아니라 <b>비용·속도·확장을 모두 고려한 기술 전략</b>입니다.</p>
+
+  <h3 class="block">데이터 활용 계획 — 운영할수록 정확해지는 플라이휠</h3>
+  <div class="flywheel">
+    <div class="fly">신고 이미지<br>수집</div>
+    <div class="fly">외부 API<br>1차 분류</div>
+    <div class="fly">담당자<br>검수·수정</div>
+    <div class="fly">정제 라벨<br>데이터 축적</div>
+    <div class="fly">자체 모델<br>파인튜닝</div>
+  </div>
+  <div class="grid2" style="margin-top:10px">
+    <div class="card"><small>DATA MOAT</small><h4>검수가 곧 학습 데이터</h4><p>담당자의 오분류 수정(SFR-005)은 그 자체로 고품질 라벨링 작업입니다. 별도 라벨링 비용 없이 지역 특화 학습 데이터셋이 쌓이고, 이는 후발 주자가 복제하기 어려운 자산이 됩니다.</p></div>
+    <div class="card"><small>FINE-TUNING</small><h4>다양한 현장 사진의 힘</h4><p>계절·시간대·촬영 각도가 다양한 실제 신고 사진이 축적될수록 파인튜닝 효과가 커집니다. 별도 동의를 받은 신고자에게 추가 사진 제공을 요청하는 참여 프로그램으로 데이터 다양성을 확보합니다.</p></div>
+  </div>
+  <footer class="doc"><span>03 · 기술 구성과 데이터 활용 계획</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.08 시장 분석 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 08</span></div>
+  <div class="sec-head"><span class="sec-no">04</span><div><h2>시장 분석</h2><p>모든 지자체가 같은 문제를 갖고 있고, 기존 대안에는 빈틈이 있다.</p></div></div>
+
+  <h3 class="block">시장 구조 — 세종에서 시작해 전국으로</h3>
+  <div class="grid3">
+    <div class="card"><small>TAM · 전체 시장</small><h4>전국 지자체 + 산하 공단</h4><p>기초·광역 지자체 243곳과 시설관리공단·도시관리공단 등 산하기관. 생활 인프라 민원은 모든 지자체의 공통 업무이며, 안전신문고 기준 연간 수백만 건의 생활 신고가 발생합니다. <b>※ 추정</b></p></div>
+    <div class="card"><small>SAM · 유효 시장</small><h4>스마트시티 선도 도시</h4><p>스마트시티 시범·챌린지 사업 참여 지자체와 신도시형 도시. 디지털 민원 혁신 예산이 이미 편성되어 있고, AI 도입 의지가 높은 구간입니다.</p></div>
+    <div class="card"><small>SOM · 초기 목표</small><h4>세종 → 인접 중형 도시</h4><p>본 사업(세종도시관리공단)을 레퍼런스로 확보한 뒤, 유사 규모 도시관리공단으로 확산합니다. 공단 간 벤치마킹 네트워크가 영업 채널이 됩니다.</p></div>
+  </div>
+
+  <h3 class="block">기존 대안과의 비교 — 「모아」가 이기는 지점</h3>
+  <table>
+    <thead><tr><th style="width:110px">기준</th><th>안전신문고 (전국 앱)</th><th>전화 · 방문 민원</th><th>「모아」</th></tr></thead>
+    <tbody>
+      <tr><td><b>시작 문턱</b></td><td>앱 설치 + 본인 인증 필요</td><td>업무시간 내 통화·방문</td><td class="win">QR 접속 즉시, 설치·로그인 없음</td></tr>
+      <tr><td><b>신고 과정</b></td><td>유형을 직접 선택, 긴 양식</td><td>구두 설명, 위치 특정 어려움</td><td class="win">사진+위치 3단계, AI가 유형 분류</td></tr>
+      <tr><td><b>중복 신고</b></td><td>개별 접수 — 담당자가 수동 확인</td><td>개별 접수</td><td class="win">유사 신고 통합 + ‘나도 불편해요’</td></tr>
+      <tr><td><b>우선순위</b></td><td>접수 순서 중심</td><td>접수 순서 중심</td><td class="win">위험도+빈도+공감 기반 자동 산정</td></tr>
+      <tr><td><b>접근성</b></td><td>표준 앱 UI</td><td>높음(대면) · 단 처리 추적 없음</td><td class="win">큰 글자·고대비·가이드 MVP 내장</td></tr>
+      <tr><td><b>지역 데이터</b></td><td>전국 단위 — 지역 특화 어려움</td><td>데이터화 안 됨</td><td class="win">지역 특화 라벨 데이터 축적·파인튜닝</td></tr>
+    </tbody>
+  </table>
+  <small class="note">※ 안전신문고는 전국 표준 창구로서의 역할이 있으며, 「모아」는 이를 대체하는 것이 아니라 지자체·공단 단위의 <b>현장 처리 효율화 계층</b>을 담당합니다. 확장 로드맵의 다채널 통합 단계에서 기존 창구 접수 건을 관리 화면으로 모으는 연계를 제안합니다.</small>
+
+  <h3 class="block">왜 지금인가</h3>
+  <div class="grid3">
+    <div class="card"><small>TIMING 1</small><h4>AI 분류 기술의 상용화</h4><p>관리형 이미지 인식 API로 초기 구축 비용 없이 수초 내 분류가 가능해졌습니다. 5년 전에는 모델 개발부터 필요했던 일입니다.</p></div>
+    <div class="card"><small>TIMING 2</small><h4>고령화와 디지털 격차</h4><p>고령 인구 비중이 커질수록 ‘앱 설치형’ 민원 창구의 사각지대가 넓어집니다. 접근성 중심 설계의 가치가 매년 커집니다.</p></div>
+    <div class="card"><small>TIMING 3</small><h4>데이터 행정 요구</h4><p>감(感)이 아닌 데이터 기반 유지보수 계획 수립 요구가 커지고 있습니다. 통합 신고 데이터는 예방 정비의 근거가 됩니다.</p></div>
+  </div>
+  <footer class="doc"><span>04 · 시장 분석</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.09 수익모델 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 09</span></div>
+  <div class="sec-head"><span class="sec-no">05</span><div><h2>수익모델</h2><p>구축으로 시작해, 구독으로 성장하고, 데이터로 깊어진다.</p></div></div>
+
+  <h3 class="block">본 사업 — 사업비 구성 (추정 사업비 40,000천원 · 가상)</h3>
+  <table>
+    <thead><tr><th style="width:130px">항목</th><th style="width:90px">배분(안)</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td><b>설계·개발</b></td><td>28,000천원 (70%)</td><td>시민 웹앱, 관리자 화면, 신고 처리 API, 유사 신고 통합·우선순위 로직 구현</td></tr>
+      <tr><td><b>AI·데이터</b></td><td>6,000천원 (15%)</td><td>이미지 분류 API 연계, 분류 정확도 표본 점검, 라벨 축적 체계 구축</td></tr>
+      <tr><td><b>인프라·운영</b></td><td>4,000천원 (10%)</td><td>클라우드 인프라 구성, 배포 자동화, 사업 기간 내 운영·모니터링</td></tr>
+      <tr><td><b>예비비</b></td><td>2,000천원 (5%)</td><td>범위 조정 협의(공고 8장)에 따른 대응 여력</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block">사업화 수익모델 — B2G SaaS 3단 구조</h3>
+  <div class="grid3">
+    <div class="card"><small>REVENUE 1 · 기반</small><h4>구축비 + 커스터마이징</h4><p>지자체·공단별 초기 구축과 조직도·구역 데이터 연동, 기존 시스템 연계 커스터마이징. 첫 계약의 진입 수익이자 구독 전환의 관문입니다.</p></div>
+    <div class="card"><small>REVENUE 2 · 성장</small><h4>월 구독 (SaaS 운영료)</h4><p>인구·신고량 기준 티어형 구독 — 운영, 유지보수, 모델 업데이트 포함. 예: 소형 공단 월 150만원 ~ 광역 단위 월 500만원 수준. <b>※ 추정 가격 가설</b></p></div>
+    <div class="card"><small>REVENUE 3 · 심화</small><h4>데이터 · 모델 부가 서비스</h4><p>축적 데이터 기반 인프라 노후 분석 리포트(연 단위), 파인튜닝 분류 모델 API 제공, 예방 정비 우선순위 컨설팅.</p></div>
+  </div>
+
+  <div style="margin-top:12px" class="tealbox"><b>구조적 마진 개선</b> — 고객이 늘수록 라벨 데이터가 쌓이고 → 분류 정확도가 오르고 → 담당자 검수 부담과 운영 원가가 내려갑니다. 데이터 플라이휠(7p)이 그대로 수익성 개선 엔진이 됩니다. 신규 지자체 도입 시에도 기축적 모델로 초기 정확도를 높게 시작할 수 있어, 도입 장벽이 계약마다 낮아집니다.</div>
+
+  <h3 class="block">확산 시나리오 (사업화 가정)</h3>
+  <table>
+    <thead><tr><th style="width:90px">단계</th><th style="width:170px">고객</th><th>목표</th></tr></thead>
+    <tbody>
+      <tr><td><b>Y1</b></td><td>세종도시관리공단 (본 사업)</td><td>레퍼런스 확보 · 운영 데이터로 통합 파라미터와 분류 모델 검증</td></tr>
+      <tr><td><b>Y2</b></td><td>인접 중형 도시 공단 2~3곳</td><td>구독 전환 · 공단 벤치마킹 네트워크를 통한 확산</td></tr>
+      <tr><td><b>Y3</b></td><td>광역 단위 + 부가 서비스</td><td>데이터 리포트·모델 API 등 심화 수익 개시</td></tr>
+    </tbody>
+  </table>
+  <small class="note">※ 본 페이지의 가격·확산 수치는 학습용 사업화 가설이며, 실제 계약 조건은 발주기관 협의에 따릅니다.</small>
+  <footer class="doc"><span>05 · 수익모델</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.10 실행계획 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 10</span></div>
+  <div class="sec-head"><span class="sec-no">06</span><div><h2>실행계획</h2><p>4주 안에 ‘동작하는 5’를 — 일정, 협업 체계, 리스크 관리.</p></div></div>
+
+  <h3 class="block">주차별 추진 일정 (2026. 07. 06 ~ 07. 31)</h3>
+  <div class="week"><div class="wk">1주차<small>7/6–7/10 · 완료</small></div><ul><li>RFP 분석, 문제 정의·핵심 가설 수립, 초기 아이디어 노트 제출</li><li>신고 3단계 흐름의 <b>인터랙티브 화면 프로토타입</b> 제작 (사진 압축·위치 선택·완료 화면 동작 검증)</li></ul></div>
+  <div class="week now"><div class="wk">2주차<small>7/13–7/17 · 진행 중</small></div><ul><li>멘토링 피드백 반영 범위 조정 — 접근성 MVP 격상, 통합 기준 근거 정의</li><li>입찰 제안서 제출(7/17), 화면 구성 확정, 팀 레포 협업 체계(GitHub Flow + Jira) 가동</li></ul></div>
+  <div class="week"><div class="wk">3주차<small>7/20–7/24</small></div><ul><li>MVP 핵심 개발 — 신고 3단계 흐름, 이미지 분류 연동, 유사 신고 통합·우선순위 로직</li><li>접근성 토글(큰 글자·고대비)·촬영 가이드 기본 구현 착수</li><li>관리자 검수 화면(재분류·분리), 접수번호·토큰 조회 · <b>중간 점검 시연</b></li></ul></div>
+  <div class="week"><div class="wk">4주차<small>7/27–7/31</small></div><ul><li>접근성 세트 검증·마감(고령 사용자 테스트 포함), 분류 정확도 표본 점검(QUR-002)</li><li>안정화·시연 시나리오 리허설, 발표자료·발표 영상 제작, 최종 발표</li></ul></div>
+
+  <h3 class="block">팀 구성과 협업 체계</h3>
+  <div class="grid2">
+    <div class="card"><small>TEAM</small><h4>4인 풀스택 팀 · 역할 분담</h4><p>프론트엔드(시민 웹앱·접근성), 백엔드(신고 API·통합 로직), AI·데이터(분류 연동·정확도 점검), 관리자 화면·QA로 역할을 분담하되, 전원이 코드 리뷰에 참여해 병목을 방지합니다.</p></div>
+    <div class="card"><small>PROCESS</small><h4>현업 방식의 GitHub + Jira 협업</h4><p>Jira 스프린트(1주 단위)로 백로그를 관리하고, 이슈 키 기반 브랜치 → Pull Request → 상호 리뷰 → 머지의 GitHub Flow를 적용합니다. main 브랜치는 보호하고 모든 변경은 PR로만 반영합니다.</p></div>
+  </div>
+
+  <h3 class="block">리스크 관리</h3>
+  <table>
+    <thead><tr><th style="width:150px">리스크</th><th>대응</th></tr></thead>
+    <tbody>
+      <tr><td><b>AI 분류 정확도 미달</b></td><td>신뢰도 임계값 미달 건은 관리자 우선 검수 큐로 우회(COR-001) — 오분류가 시민 경험을 해치지 않는 구조. 표본 데이터로 정확도를 주기 점검(QUR-002)</td></tr>
+      <tr><td><b>GPS 오차로 인한 오통합</b></td><td>지도에서 위치 수정 UX 제공 + 통합은 신고자 선택·담당자 분리로 이중 방어(5p)</td></tr>
+      <tr><td><b>범위 초과 (4주 제약)</b></td><td>MVP 5단계 정의로 범위를 고정하고, 초과 요구는 멘토(발주처 역할) 협의로 로드맵에 이관(공고 8장 절차)</td></tr>
+      <tr><td><b>팀 작업 통합 지연</b></td><td>일일 스탠드업 + PR 단위 소규모 머지로 마지막 주 통합 리스크 분산. main은 항상 시연 가능 상태 유지</td></tr>
+    </tbody>
+  </table>
+  <footer class="doc"><span>06 · 실행계획</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.11 MVP & 로드맵 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 11</span></div>
+  <div class="sec-head"><span class="sec-no">07</span><div><h2>MVP 범위(1~5)와 확장 로드맵(6~10)</h2><p>본 사업에서 시연할 ‘동작하는 5’와 완성형 ‘10’까지의 경로.</p></div></div>
+
+  <div class="gauge">
+    <i class="mvp">1</i><i class="mvp">2</i><i class="mvp">3</i><i class="mvp">4</i><i class="mvp">5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i>
+  </div>
+  <div class="gauge-label"><b>■ MVP — 사업 기간 내 동작 시연</b><span>□ 확장 로드맵</span></div>
+
+  <div class="lv"><i>1</i><span><b>3단계 신고 흐름</b> — 로그인 없는 사진+위치 신고, 3단계 진행 표시, 모바일 우선 React 웹앱, 사진 자동 압축</span><span class="ids">SFR-001 · SER-001<br>SER-003 · COR-002 · PER-002</span></div>
+  <div class="lv"><i>2</i><span><b>AI 유형 분류 + 오분류 보정</b> — 이미지 인식 API 연계 자동 분류, 신뢰도 임계값 설계, 관리자 수동 재분류 경로</span><span class="ids">SFR-002 · SFR-005 · SIR-001<br>QUR-001 · COR-001 · PER-001</span></div>
+  <div class="lv"><i>3</i><span><b>유사 신고 통합 + 우선순위·배정</b> — 반경·유형·시간 조건 통합, ‘나도 불편해요’, 신고자 통합 선택, 오통합 분리, 위험도+빈도+공감 우선순위, 유형·구역 기반 부서 자동 배정</span><span class="ids">SFR-003 · SFR-004<br>DAR-003 · SIR-002</span></div>
+  <div class="lv"><i>4</i><span><b>접근성 기본 세트 ★멘토 피드백 반영 격상</b> — 큰 글자·고대비 토글, 사진 촬영 가이드, 접근성 중심 신고 경험의 실제 시연</span><span class="ids">COR-002</span></div>
+  <div class="lv"><i>5</i><span><b>처리 상태 관리 + 검수 화면</b> — 접수→배정→처리 중→완료 상태 추적, 접수번호·조회 토큰 무로그인 조회, 대표 문제 카드 관리자 화면(검수·분리·상태 변경)</span><span class="ids">SFR-006 · QUR-001<br>DAR-001 · SER-003</span></div>
+
+  <div style="height:8px"></div>
+  <div class="lv road"><i>6</i><span><b>알림 + 음성 안내</b> — 연락처 선택 입력 시 처리 결과 문자 알림, 신고 절차 음성 안내</span><span class="ids">SFR-008</span></div>
+  <div class="lv road"><i>7</i><span><b>다국어 + 오프라인 대응</b> — 영어·중국어·베트남어 신고 화면, 임시 저장·재전송(저속 인터넷·연결 끊김 대응)</span><span class="ids">COR-002 확장</span></div>
+  <div class="lv road"><i>8</i><span><b>지도·통계 대시보드</b> — 대표 문제 지도 표시, 유형·구역별 통계, 처리 성과 리포트</span><span class="ids">SFR-007</span></div>
+  <div class="lv road"><i>9</i><span><b>비식별화 + 다채널 통합</b> — 얼굴·번호판 자동 비식별 처리, 전화·주민센터·키오스크 접수 건의 관리 화면 통합</span><span class="ids">SER-002</span></div>
+  <div class="lv road"><i>10</i><span><b>자체 분류 모델 전환</b> — 축적된 검수 라벨 데이터로 파인튜닝한 자체 모델 운영, 외부 API 의존 탈피, 정확도 상시 모니터링</span><span class="ids">DAR-002 · QUR-002</span></div>
+
+  <div style="margin-top:12px" class="callout"><b>범위 재조정의 원칙</b> — 초기 계획 대비 접근성 세트를 MVP로 올리는 대신, 알림·음성 안내를 6단계로 내렸습니다. “많은 기능”보다 <b>“차별점이 실제로 동작하는 장면”</b>을 시연하는 것이 본 사업 평가와 확산의 관건이라고 판단했기 때문입니다.</div>
+  <footer class="doc"><span>07 · MVP 범위와 확장 로드맵</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.12 요구사항 대응표 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 12</span></div>
+  <div class="sec-head"><span class="sec-no">08</span><div><h2>RFP 요구사항 대응표</h2><p>과업 내용(공고 3장)의 전체 요구사항 ID별 대응 계획.</p></div></div>
+
+  <table>
+    <thead><tr><th style="width:64px">ID</th><th style="width:110px">요구사항명</th><th>「모아」의 대응</th><th style="width:70px">구현 단계</th></tr></thead>
+    <tbody>
+      <tr><td class="req">SFR-001</td><td>사진·위치 신고</td><td>로그인 없는 3단계 신고 흐름 (사진 촬영 → 위치 확인 → 완료)</td><td><span class="tag core">MVP 1</span></td></tr>
+      <tr><td class="req">SFR-002</td><td>이미지 자동 분류</td><td>이미지 인식 API 연계, 도로 파손·가로등·쓰레기 등 유형 자동 판별</td><td><span class="tag core">MVP 2</span></td></tr>
+      <tr><td class="req">SFR-003</td><td>우선순위 산정</td><td>기본 위험도 + 누적 신고 빈도 + ‘나도 불편해요’ 공감 수 기반 산정</td><td><span class="tag core">MVP 3</span></td></tr>
+      <tr><td class="req">SFR-004</td><td>담당 자동 배정</td><td>유형 × 행정구역 매핑 기반 담당 부서 자동 배정</td><td><span class="tag core">MVP 3</span></td></tr>
+      <tr><td class="req">SFR-005</td><td>오분류 보정</td><td>관리자 검수 화면에서 재분류 — 수정 결과는 학습 라벨로 축적</td><td><span class="tag core">MVP 2</span></td></tr>
+      <tr><td class="req">SFR-006</td><td>처리 상태 관리</td><td>접수→배정→처리 중→완료 추적, 접수번호+토큰 무로그인 조회</td><td><span class="tag core">MVP 5</span></td></tr>
+      <tr><td class="req">SFR-007</td><td>지도·통계 대시보드 <i>(선택)</i></td><td>대표 문제 지도·유형·구역별 통계 시각화</td><td><span class="tag road">로드맵 8</span></td></tr>
+      <tr><td class="req">SFR-008</td><td>시민 알림 <i>(선택)</i></td><td>연락처 선택 입력 시 처리 결과 문자 알림</td><td><span class="tag road">로드맵 6</span></td></tr>
+      <tr><td class="req">DAR-001</td><td>신고 데이터</td><td>사진·위치·유형·상태·통합 관계를 신고/문제 2계층 모델로 관리</td><td><span class="tag core">MVP 5</span></td></tr>
+      <tr><td class="req">DAR-002</td><td>분류 학습 데이터</td><td>검수·수정 결과를 라벨로 축적, 별도 동의 기반 추가 사진 수집</td><td><span class="tag hot">MVP 착수<br>로드맵 10 완성</span></td></tr>
+      <tr><td class="req">DAR-003</td><td>시설·구역 정보</td><td>행정구역·담당 부서·시설물 데이터 관리 (통합·배정 로직의 기준 데이터)</td><td><span class="tag core">MVP 3</span></td></tr>
+      <tr><td class="req">SIR-001</td><td>이미지 분류 모델 연계</td><td>관리형 이미지 인식 API 연계 → 로드맵에서 자체 모델 전환</td><td><span class="tag core">MVP 2</span></td></tr>
+      <tr><td class="req">SIR-002</td><td>지도·행정구역 API</td><td>지도 API 연계 — 위치 표시·수정, 행정구역 판별</td><td><span class="tag core">MVP 3</span></td></tr>
+      <tr><td class="req">PER-001</td><td>분류 응답시간</td><td>관리형 API + 서버리스 구성으로 수초 이내 분류 응답</td><td><span class="tag core">MVP 2</span></td></tr>
+      <tr><td class="req">PER-002</td><td>업로드 안정성</td><td>클라이언트 사진 자동 압축 + 객체 스토리지 직접 업로드</td><td><span class="tag core">MVP 1</span></td></tr>
+      <tr><td class="req">SER-001</td><td>위치정보 동의</td><td>위치 수집 시 동의 절차, 목적·보관 기간 고지</td><td><span class="tag core">MVP 1</span></td></tr>
+      <tr><td class="req">SER-002</td><td>이미지 비식별</td><td>얼굴·번호판 자동 비식별 처리</td><td><span class="tag road">로드맵 9</span></td></tr>
+      <tr><td class="req">SER-003</td><td>신고자 보호</td><td>무로그인·최소 수집(연락처 선택), 보관·삭제 정책, 토큰 조회 설계</td><td><span class="tag core">MVP 1·5</span></td></tr>
+      <tr><td class="req">QUR-001</td><td>검수 절차</td><td>분류·통합·배정 전 항목에 사람 검수·보정 절차 내장</td><td><span class="tag core">MVP 2·5</span></td></tr>
+      <tr><td class="req">QUR-002</td><td>분류 정확도 점검</td><td>표본 데이터셋 기반 정확도 주기 점검, 파라미터·모델 보정에 반영</td><td><span class="tag hot">MVP 착수<br>로드맵 10 고도화</span></td></tr>
+      <tr><td class="req">COR-001</td><td>수동 재분류</td><td>관리자 화면에 수동 재분류 경로 필수 제공 (검수 큐 포함)</td><td><span class="tag core">MVP 2</span></td></tr>
+      <tr><td class="req">COR-002</td><td>모바일 우선</td><td>모바일 우선 반응형 + 접근성 기본 세트(큰 글자·고대비·가이드)</td><td><span class="tag core">MVP 1·4</span></td></tr>
+    </tbody>
+  </table>
+  <small class="note">※ 전체 22개 요구사항 중 19개(구현 17 + 착수 2)를 MVP에서 구현·착수하고, 선택 요구사항(SFR-007·008)과 고도화 항목(SER-002, DAR-002·QUR-002 완성)은 확장 로드맵에서 완결합니다.</small>
+  <footer class="doc"><span>08 · RFP 요구사항 대응표</span><span>「모아」 입찰 제안서</span></footer>
+</section>
+
+<!-- ═══════════ P.13 기대 효과 ═══════════ -->
+<section class="sheet">
+  <div class="run"><span><b>입찰 제안서</b> · AI 생활 인프라 유지관리 플랫폼 「모아」</span><span class="pg">2026-세종-0002 · 13</span></div>
+  <div class="sec-head"><span class="sec-no">09</span><div><h2>기대 효과</h2><p>시민에게는 쉬운 신고를, 담당자에게는 덜어진 업무를, 기관에는 데이터 자산을.</p></div></div>
+
+  <h3 class="block">측정 가능한 성과 지표 (MVP 시연 시 측정 방법과 함께 제시)</h3>
+  <div class="kpi">
+    <div class="card"><em>CITIZEN</em><b>3단계 · 1분 내</b><p>신고 완료까지의 화면 단계와 소요 시간. 고령 사용자 테스트로 실측해 시연에서 제시합니다.</p></div>
+    <div class="card"><em>OFFICER</em><b>중복 확인 업무 ↓</b><p>유사 신고 통합률(통합 건수/전체 신고)과 담당자 검수 소요 시간을 운영 지표로 측정합니다.</p></div>
+    <div class="card"><em>AGENCY</em><b>위험 대응 순서 개선</b><p>고위험 문제의 접수→배정 소요 시간 단축을 우선순위 도입 전후로 비교합니다.</p></div>
+  </div>
+
+  <h3 class="block">단계별로 커지는 가치</h3>
+  <table>
+    <thead><tr><th style="width:110px">시점</th><th>기관이 얻는 것</th></tr></thead>
+    <tbody>
+      <tr><td><b>도입 직후</b></td><td>신고 문턱 하락으로 사각지대 민원 발굴 — 특히 디지털 취약층·고령 시민의 신고 접근성 개선</td></tr>
+      <tr><td><b>운영 3개월</b></td><td>유사 신고 통합으로 중복 처리 업무 감소, 우선순위 기반 배정으로 위험 건 우선 대응 체계 정착</td></tr>
+      <tr><td><b>운영 1년+</b></td><td>지역 특화 라벨 데이터 축적 → 분류 정확도 향상 → 유형·구역별 발생 패턴 데이터로 <b>예방 정비 계획</b> 수립 근거 확보</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="block">맺음말</h3>
+  <div class="statement">「모아」는 신고 앱이 아니라, 시민의 불편이 데이터가 되어 도시를 고치는 순서를 바꾸는 플랫폼입니다.<br><br>본 사업 기간 내 ‘동작하는 5’를 시연으로 증명하고, 축적되는 데이터와 함께 ‘10’까지 성장하는 경로를 세종에서 시작하겠습니다.</div>
+
+  <div style="margin-top:16px" class="grid2">
+    <div class="card"><small>TEAM</small><h4>고려대 세종 산업체 실습 4팀 「모아」</h4><p>가동진 · 김성현 · 김재용 · 심송언<br>GitHub — github.com/nxtcloud-edu/2026-07-kosj-industry-practice-team04</p></div>
+    <div class="card"><small>NOTICE</small><h4>학습용 가상 공고 안내</h4><p>본 제안서는 2026-세종-0002 학습용 가상 공고에 대한 산업체 실습 제출물이며, 발주기관·사업비·시장 수치 중 일부는 학습 목적의 추정·가설입니다.</p></div>
+  </div>
+  <footer class="doc"><span>09 · 기대 효과</span><span>「모아」 입찰 제안서 · 2026. 07. 17.</span></footer>
+</section>
+
+</body>
+</html>
