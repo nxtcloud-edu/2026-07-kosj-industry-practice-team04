@@ -43,8 +43,9 @@ cd frontend && npm install && npm run dev
 
 - [1주차 · 초기 아이디어 노트](docs/1주차_초기아이디어노트.html)
 - [2주차 · 입찰 제안서 (PDF)](docs/2주차_입찰제안서_모아.pdf)
-- [협업 가이드 (GitHub Flow + Jira)](docs/COLLABORATION.md)
-- [Jira 백로그 임포트 CSV](docs/jira/jira_backlog_import.csv)
+- [협업 가이드 (GitHub Flow + Issues/Projects)](docs/COLLABORATION.md)
+- [팀원용 Git 협업 퀵스타트](docs/GIT_QUICKSTART.md)
+- [MVP 백로그 (이슈 등록용)](docs/BACKLOG.md)
 
 ## 팀원 및 역할
 
@@ -59,6 +60,6 @@ cd frontend && npm install && npm run dev
 
 ## 협업 규칙 (요약)
 
-- `main` 직접 push 금지 — 모든 변경은 **이슈 키 브랜치 → PR → 리뷰 1인 승인 → Squash merge**
-- 브랜치명: `MOA-12-photo-upload` (Jira 이슈 키 포함)
-- 커밋: `feat: 사진 촬영 화면 추가 (MOA-12)` — 자세한 규칙은 [COLLABORATION.md](docs/COLLABORATION.md)
+- `main` 직접 push 금지 — 모든 변경은 **이슈 브랜치 → PR → 리뷰 1인 승인 → Squash merge**
+- 브랜치명: `12-photo-upload` (이슈 번호 포함) · 커밋: `feat: 사진 촬영 화면 추가 (#12)`
+- PR 본문에 `Closes #12` → 머지 시 이슈 자동 닫힘 — 자세한 규칙은 [COLLABORATION.md](docs/COLLABORATION.md)
