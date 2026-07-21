@@ -1,0 +1,38 @@
+/* 최소 전역 스타일 (관리자 콘솔 기반).
+   시민 화면 PR(FE)에서 웜 틸 디자인 시스템 styles.css로 확장·교체 예정. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Malgun Gothic', -apple-system, sans-serif;
+  background: #0e1726;
+  color: #e8eef4;
+  line-height: 1.6;
+  letter-spacing: -0.012em;
+  word-break: keep-all;
+}
+button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+:focus-visible { outline: 3px solid #2dd4bf; outline-offset: 2px; border-radius: 6px; }
+
+/* 공통 프리미티브 — admin.css가 색만 덮어쓴다 */
+.spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.18); border-top-color: #2dd4bf;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.notice { padding: 12px 14px; border-radius: 11px; font-size: 13.5px; font-weight: 700; }
+
+/* 시민 화면 PR 전까지의 임시 홈 */
+.home-placeholder {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; text-align: center; padding: 24px;
+}
+.home-placeholder h1 { font-size: 26px; color: #2dd4bf; }
+.home-placeholder p { color: #9fb3cd; }
+.home-cta {
+  margin-top: 6px; padding: 12px 22px; border-radius: 12px;
+  background: #2dd4bf; color: #062823; font-weight: 800; font-size: 15px;
+}
+.home-cta:hover { filter: brightness(1.05); }
