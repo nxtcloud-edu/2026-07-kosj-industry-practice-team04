@@ -47,6 +47,7 @@ cd frontend && npm install && npm run dev
 - [협업 가이드 (GitHub Flow + Issues/Projects)](docs/COLLABORATION.md)
 - [팀원용 Git 협업 퀵스타트](docs/GIT_QUICKSTART.md)
 - [MVP 백로그 (이슈 등록용)](docs/BACKLOG.md)
+- **[🔗 팀 통합 참고 (AI/Admin PR 반영 시)](docs/INTEGRATION_NOTES.md)**
 
 ## 팀원 및 역할
 
