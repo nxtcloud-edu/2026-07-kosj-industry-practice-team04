@@ -1,0 +1,382 @@
+/* ═══════════════════════════════════════════════════════════════
+   「모아」 관리자 화면 — 짙은 네이비 업무 대시보드
+   · 시민 화면(웜 틸·종이 질감)과 대비되는 고밀도 데스크톱 UI
+   · 배경 #0e1726 · 패널 #16233a · 경계 #24344d
+   · 포인트: teal #2dd4bf · yellow #f2b94b · 위험 #f87171
+   ═══════════════════════════════════════════════════════════════ */
+
+.admin-shell {
+  min-height: 100vh;
+  background: #0e1726;
+  color: #e8eef4;
+  font-size: 14px;
+  padding-bottom: 56px;
+}
+
+/* ── 상단바 ── */
+.admin-topbar {
+  background: #101d31;
+  border-bottom: 1px solid #24344d;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.admin-topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.admin-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.admin-title .admin-title-mark { color: #2dd4bf; }
+.admin-title .admin-title-sub { color: #8fa3bd; font-weight: 700; font-size: 13.5px; }
+.admin-top-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ── 본문 컨테이너 (데스크톱 우선) ── */
+.admin-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: grid;
+  gap: 16px;
+}
+
+/* ── 버튼 ── */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 7px 14px;
+  border-radius: 9px;
+  background: #1d2f4a;
+  color: #dbe7f3;
+  font-weight: 700;
+  font-size: 13.5px;
+  border: 1px solid #2c4165;
+  transition: 0.15s ease;
+  white-space: nowrap;
+}
+.admin-btn:hover:not(:disabled) { background: #24395a; border-color: #3a557f; }
+.admin-btn:disabled { opacity: 0.45; }
+.admin-btn.teal { background: rgba(45, 212, 191, 0.1); border-color: rgba(45, 212, 191, 0.45); color: #2dd4bf; }
+.admin-btn.teal:hover:not(:disabled) { background: rgba(45, 212, 191, 0.2); border-color: #2dd4bf; }
+.admin-btn.yellow { background: rgba(242, 185, 75, 0.1); border-color: rgba(242, 185, 75, 0.45); color: #f2b94b; }
+.admin-btn.yellow:hover:not(:disabled) { background: rgba(242, 185, 75, 0.2); border-color: #f2b94b; }
+.admin-btn.danger { background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.45); color: #f87171; }
+.admin-btn.danger:hover:not(:disabled) { background: rgba(248, 113, 113, 0.2); border-color: #f87171; }
+.admin-btn.ghost { background: transparent; border-color: #2c4165; color: #9fb3cd; }
+.admin-btn.ghost:hover:not(:disabled) { color: #dbe7f3; border-color: #3a557f; background: rgba(44, 65, 101, 0.3); }
+
+/* ── 통계 칩 ── */
+.admin-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+.admin-stat {
+  background: #16233a;
+  border: 1px solid #24344d;
+  border-radius: 12px;
+  padding: 10px 16px;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-stat span { font-size: 12px; color: #8fa3bd; font-weight: 700; }
+.admin-stat b { font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.admin-stat.total b { color: #2dd4bf; }
+.admin-stat.review b { color: #f2b94b; }
+
+/* ── 필터 탭 · 정렬 ── */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.admin-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.admin-tab {
+  min-height: 36px;
+  padding: 6px 15px;
+  border-radius: 999px;
+  background: #16233a;
+  border: 1px solid #24344d;
+  color: #9fb3cd;
+  font-weight: 700;
+  font-size: 13px;
+  transition: 0.15s ease;
+}
+.admin-tab:hover { border-color: #3a557f; color: #dbe7f3; }
+.admin-tab.active { background: #2dd4bf; border-color: #2dd4bf; color: #062823; font-weight: 900; }
+.admin-sort {
+  display: flex;
+  background: #16233a;
+  border: 1px solid #24344d;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.admin-sort button {
+  min-height: 30px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #9fb3cd;
+  transition: 0.15s ease;
+}
+.admin-sort button.active { background: #24395a; color: #fff; }
+
+/* ── 통합 파라미터 안내 줄 ── */
+.admin-params {
+  font-size: 12.5px;
+  color: #8fa3bd;
+  background: #16233a;
+  border: 1px dashed #2c4165;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+.admin-params b { color: #2dd4bf; font-weight: 800; }
+
+/* ── 우선순위 배지 ── */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.admin-badge.high { background: rgba(248, 113, 113, 0.16); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.45); }
+.admin-badge.mid { background: rgba(242, 185, 75, 0.14); color: #f2b94b; border: 1px solid rgba(242, 185, 75, 0.45); }
+.admin-badge.low { background: rgba(143, 163, 189, 0.14); color: #9fb3cd; border: 1px solid rgba(143, 163, 189, 0.4); }
+/* 검수 큐 배지 (별도) */
+.admin-badge.review { background: #f2b94b; color: #2c2005; border: 1px solid #f2b94b; }
+/* 스팸 표시 배지 */
+.admin-badge.spam { background: rgba(248, 113, 113, 0.9); color: #2b0707; border: 1px solid #f87171; }
+
+/* ── 문제 카드 그리드 ── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.admin-card {
+  background: #16233a;
+  border: 1px solid #24344d;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: 0.15s ease;
+}
+.admin-card:hover {
+  transform: translateY(-2px);
+  border-color: #2dd4bf;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+.admin-card-thumb { position: relative; height: 140px; background: #0b1420; }
+.admin-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.admin-thumb-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #44597a;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-card-thumb .admin-badge { position: absolute; top: 8px; left: 8px; }
+.admin-card-body { padding: 12px 14px 14px; display: grid; gap: 6px; }
+.admin-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.admin-card-type { font-size: 15px; font-weight: 900; }
+.admin-card-addr { font-size: 12.5px; color: #9fb3cd; line-height: 1.45; }
+.admin-card-meta { font-size: 12.5px; color: #c6d4e4; font-weight: 700; }
+.admin-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+  font-size: 12px;
+}
+.admin-dept { color: #8fa3bd; font-weight: 700; }
+.admin-status {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 11.5px;
+  background: #1d2f4a;
+  color: #c6d4e4;
+  border: 1px solid #2c4165;
+}
+.admin-status.s2 { background: rgba(242, 185, 75, 0.12); color: #f2b94b; border-color: rgba(242, 185, 75, 0.4); }
+.admin-status.s3 { background: rgba(45, 212, 191, 0.12); color: #2dd4bf; border-color: rgba(45, 212, 191, 0.4); }
+
+.admin-empty { grid-column: 1 / -1; text-align: center; color: #748aa8; padding: 40px 0; font-weight: 700; }
+
+/* ── 상세: 헤더 · 패널 ── */
+.admin-back { display: inline-flex; align-items: center; gap: 6px; color: #9fb3cd; font-weight: 700; font-size: 13px; }
+.admin-back:hover { color: #2dd4bf; }
+.admin-detail-head {
+  background: #16233a;
+  border: 1px solid #24344d;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: grid;
+  gap: 8px;
+}
+.admin-detail-head h2 {
+  font-size: 20px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.admin-detail-sub { color: #9fb3cd; font-size: 13.5px; }
+.admin-priority-note {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f2b94b;
+  background: rgba(242, 185, 75, 0.08);
+  border: 1px dashed rgba(242, 185, 75, 0.35);
+  padding: 7px 12px;
+  border-radius: 9px;
+  width: max-content;
+  max-width: 100%;
+}
+.admin-panel {
+  background: #16233a;
+  border: 1px solid #24344d;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: grid;
+  gap: 12px;
+}
+.admin-panel > h3 { font-size: 13px; font-weight: 900; color: #8fa3bd; letter-spacing: 0.02em; }
+
+/* ── 상태 변경 버튼 (SFR-006) ── */
+.admin-status-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.admin-status-btn {
+  min-height: 46px;
+  border-radius: 10px;
+  background: #1d2f4a;
+  border: 1px solid #2c4165;
+  color: #9fb3cd;
+  font-weight: 800;
+  font-size: 14px;
+  transition: 0.15s ease;
+}
+.admin-status-btn:hover:not(:disabled) { border-color: #2dd4bf; color: #dbe7f3; }
+.admin-status-btn:disabled { opacity: 0.5; }
+.admin-status-btn.current { background: #2dd4bf; border-color: #2dd4bf; color: #062823; }
+@media (max-width: 720px) {
+  .admin-status-btns { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── 통합 신고 사진 비교 카드 ── */
+.admin-report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+.admin-report-card {
+  background: #101d31;
+  border: 1px solid #24344d;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.admin-report-card.spam { opacity: 0.65; border-color: rgba(248, 113, 113, 0.5); }
+.admin-report-photo { width: 100%; height: 200px; object-fit: cover; background: #0b1420; }
+.admin-report-body { padding: 12px 14px 14px; display: grid; gap: 8px; }
+.admin-report-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.admin-mono {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  color: #2dd4bf;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+.admin-conf {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #f2b94b;
+  background: rgba(242, 185, 75, 0.1);
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 185, 75, 0.3);
+  white-space: nowrap;
+}
+.admin-report-meta { font-size: 12px; color: #9fb3cd; }
+.admin-report-actions {
+  display: grid;
+  gap: 8px;
+  border-top: 1px dashed #24344d;
+  padding-top: 10px;
+  margin-top: 2px;
+}
+.admin-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.admin-inline .admin-select { flex: 1; min-width: 130px; }
+
+/* ── 셀렉트 ── */
+.admin-select {
+  background: #0e1726;
+  color: #e8eef4;
+  border: 1px solid #2c4165;
+  border-radius: 9px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  min-height: 38px;
+}
+.admin-select:focus { outline: none; border-color: #2dd4bf; box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18); }
+
+/* ── 처리 이력 타임라인 ── */
+.admin-timeline { list-style: none; display: grid; gap: 12px; margin: 0; padding: 0; }
+.admin-timeline li { position: relative; padding-left: 18px; font-size: 13px; color: #c6d4e4; }
+.admin-timeline li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2dd4bf;
+}
+.admin-timeline li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  top: 17px;
+  bottom: -13px;
+  width: 1px;
+  background: #24344d;
+}
+.admin-timeline time { display: block; font-size: 11px; color: #748aa8; }
+
+/* ── 알림 (styles.css .notice 다크 배경 재정의) ── */
+.admin-shell .notice { padding: 12px 14px; border-radius: 11px; font-size: 13.5px; font-weight: 700; }
+.admin-shell .notice.error { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.4); }
+.admin-shell .notice.warn { background: rgba(242, 185, 75, 0.1); color: #f2b94b; border: 1px solid rgba(242, 185, 75, 0.4); }
+.admin-shell .notice.info { background: rgba(45, 212, 191, 0.1); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); }
+
+/* ── 로딩 ── */
+.admin-loading { display: flex; justify-content: center; padding: 32px 0; }
+.admin-shell .spinner { border-color: rgba(45, 212, 191, 0.25); border-top-color: #2dd4bf; }

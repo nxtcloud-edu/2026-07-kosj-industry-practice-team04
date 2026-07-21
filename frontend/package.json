@@ -1,0 +1,20 @@
+{
+  "name": "moa-frontend",
+  "private": true,
+  "type": "module",
+  "description": "「모아」 프론트엔드 — 관리자 콘솔 (시민 화면은 FE 팀 PR에서 확장)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
