@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useImageCompression, { formatFileSize } from '../../hooks/useImageCompression.js';
 import './report.css';
 
 const MAX_PHOTOS = 10;
@@ -9,6 +10,7 @@ const MAX_PHOTOS = 10;
  *
  * - 모바일 후면 카메라 호출 (capture="environment")
  * - 생활불편 신고용 촬영 가이드
+ * - 선택 즉시 자동 압축 (PER-002, Issue #6)
  * - 최대 10장까지 다중 사진 등록
  * - 격자 미리보기 + 개별 삭제 / 전체 삭제
  * - URL.createObjectURL 사용 후 revokeObjectURL로 메모리 해제
@@ -21,6 +23,10 @@ export default function CameraCapture() {
   const [files, setFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [warning, setWarning] = useState('');
+  // 압축 결과 누적 (원본/압축 후 용량 표시용)
+  const [savedBytes, setSavedBytes] = useState({ before: 0, after: 0 });
+
+  const { compressImages, isCompressing } = useImageCompression();
 
   // previewUrls 동기화: files 변경 시 objectURL 생성 및 이전 URL 해제
   useEffect(() => {
@@ -38,28 +44,31 @@ export default function CameraCapture() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files]);
 
-  // 파일 선택 핸들러
+  // 파일 선택 핸들러 — 선택 즉시 자동 압축 후 등록 (Issue #6, PER-002)
   const handleFileChange = useCallback(
-    (e) => {
+    async (e) => {
       const selected = Array.from(e.target.files || []);
+      // input value 초기화 (같은 파일 재선택 가능) — 비동기 처리 전에 먼저 해둔다
+      e.target.value = '';
       if (selected.length === 0) return;
 
-      setFiles((prev) => {
-        const total = prev.length + selected.length;
-        if (total > MAX_PHOTOS) {
-          setWarning('사진은 최대 10장까지 등록할 수 있습니다.');
-          // 가능한 만큼만 추가
-          const allowed = MAX_PHOTOS - prev.length;
-          return allowed > 0 ? [...prev, ...selected.slice(0, allowed)] : prev;
-        }
-        setWarning('');
-        return [...prev, ...selected];
-      });
+      // 남은 자리만큼만 받는다
+      const room = MAX_PHOTOS - files.length;
+      if (room <= 0) {
+        setWarning(`사진은 최대 ${MAX_PHOTOS}장까지 등록할 수 있습니다.`);
+        return;
+      }
+      const accepted = selected.slice(0, room);
+      setWarning(accepted.length < selected.length ? `사진은 최대 ${MAX_PHOTOS}장까지 등록할 수 있습니다.` : '');
 
-      // input value 초기화 (같은 파일 재선택 가능)
-      e.target.value = '';
+      const { files: compressed, infos } = await compressImages(accepted);
+      setFiles((prev) => [...prev, ...compressed]);
+      setSavedBytes((prev) => ({
+        before: prev.before + infos.reduce((n, i) => n + i.originalSize, 0),
+        after: prev.after + infos.reduce((n, i) => n + i.compressedSize, 0),
+      }));
     },
-    []
+    [files.length, compressImages]
   );
 
   // 개별 삭제
@@ -72,12 +81,13 @@ export default function CameraCapture() {
   const handleDeleteAll = useCallback(() => {
     setFiles([]);
     setWarning('');
+    setSavedBytes({ before: 0, after: 0 });
   }, []);
 
   // 카메라 열기
   const openCamera = useCallback(() => {
     if (files.length >= MAX_PHOTOS) {
-      setWarning('사진은 최대 10장까지 등록할 수 있습니다.');
+      setWarning(`사진은 최대 ${MAX_PHOTOS}장까지 등록할 수 있습니다.`);
       return;
     }
     inputRef.current?.click();
@@ -111,6 +121,20 @@ export default function CameraCapture() {
         onChange={handleFileChange}
         aria-label="카메라로 사진 촬영"
       />
+
+      {/* 압축 진행 / 결과 (Issue #6) */}
+      {isCompressing && (
+        <p className="camera-compressing" role="status">
+          사진을 압축하는 중입니다…
+        </p>
+      )}
+      {!isCompressing && savedBytes.before > 0 && (
+        <p className="camera-compress-info">
+          자동 압축 완료 · {formatFileSize(savedBytes.before)} → {formatFileSize(savedBytes.after)}
+          {savedBytes.before > savedBytes.after &&
+            ` (${Math.round((1 - savedBytes.after / savedBytes.before) * 100)}% 절감)`}
+        </p>
+      )}
 
       {/* 경고 메시지 */}
       {warning && (

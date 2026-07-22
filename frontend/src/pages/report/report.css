@@ -1,3 +1,9 @@
+/* ═══════════════════════════════════════════════════════════
+   시민 신고 화면 공통 스타일
+   화면이 늘어나면 화면별 파일로 분리할 것 (camera.css / compress.css …)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ───────── 신고 시작 · 사진 촬영 (#5) ───────── */
 /* 시민 신고 화면 스타일 */
 
 /* 공통 레이아웃 */
@@ -263,3 +269,236 @@
 .preview-btn--confirm:hover {
   filter: brightness(1.08);
 }
+
+/* ───────── 이미지 자동 압축 (#6) ───────── */
+/* ===== 이미지 압축 화면 스타일 (Issue #6) ===== */
+
+/* 페이지 레이아웃 */
+.compressor-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+}
+
+/* 헤더 */
+.compressor-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compressor-page__back {
+  font-size: 22px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.compressor-page__back:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.compressor-page__title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 숨김 input */
+.compressor-input-hidden {
+  display: none;
+}
+
+/* 선택 버튼 */
+.compressor-select-btn {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 14px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.compressor-select-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.compressor-select-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 로딩 */
+.compressor-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  font-size: 14px;
+  color: #9fb3cd;
+  font-weight: 600;
+}
+
+/* 에러 */
+.compressor-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #3b1a1a;
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 전체 요약 */
+.compressor-summary {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #0f2b26;
+  border: 1px solid #134e45;
+  font-size: 14px;
+  font-weight: 700;
+  color: #5eead4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compressor-summary__ratio {
+  color: #2dd4bf;
+  font-weight: 800;
+}
+
+/* 격자 미리보기 */
+.compressor-grid {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.compressor-grid__item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #1e293b;
+}
+
+.compressor-grid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.compressor-grid__delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.compressor-grid__delete:hover {
+  background: rgba(92, 32, 32, 0.9);
+}
+
+/* 개별 압축 정보 */
+.compressor-grid__info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 5px 6px;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 10px;
+  font-weight: 600;
+  color: #a5f3fc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compressor-grid__ratio {
+  color: #2dd4bf;
+  font-weight: 800;
+}
+
+/* 액션 버튼 영역 */
+.compressor-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.compressor-actions__add,
+.compressor-actions__clear {
+  flex: 1;
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.compressor-actions__add {
+  background: #1e293b;
+  color: #e8eef4;
+  border: 1px solid #334155;
+}
+
+.compressor-actions__add:hover:not(:disabled) {
+  background: #334155;
+}
+
+.compressor-actions__add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.compressor-actions__clear {
+  background: #3b1a1a;
+  color: #f87171;
+  border: 1px solid #5c2020;
+}
+
+.compressor-actions__clear:hover {
+  background: #5c2020;
+}
+
+/* ───────── 촬영 화면 자동 압축 표시 (#6 통합) ───────── */
+.camera-compressing,
+.camera-compress-info {
+  margin: 10px 16px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+.camera-compressing { background: #fdf3dd; color: #7c5d16; }
+.camera-compress-info { background: #e2f2ee; color: #0b544f; }
