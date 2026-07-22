@@ -90,5 +90,10 @@ export function validateReportRequest(body) {
     errors.push({ field: 'address', message: '주소(address)는 문자열이어야 합니다.' });
   }
 
+  // 위치정보 수집 동의
+  if (body.locationConsent !== true) {
+    errors.push({ field: 'locationConsent', message: '위치정보 수집 동의(locationConsent)는 true여야 합니다.' });
+  }
+
   return { valid: errors.length === 0, errors };
 }

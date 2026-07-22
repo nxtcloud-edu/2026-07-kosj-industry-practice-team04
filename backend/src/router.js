@@ -1,12 +1,18 @@
 import { validateUploadRequest, validateReportRequest } from './schema.js';
 import { generatePresignedUrl } from './upload.js';
 import { submitReport } from './report-service.js';
-import { getReportByReceiptNo, getReportByToken } from './store.js';
+import { getReportByReceiptNo } from './store.js';
 
 /**
  * HTTP 라우터 (Issue #9)
  * ─────────────────────────────────────────────────────
  * node:http 기반 최소 라우터. 향후 Express/Fastify 도입 시 교체 가능.
+ *
+ * API 경로 (API_CONTRACT.md 기준):
+ *   POST /api/uploads/presign       — presigned URL 발급
+ *   POST /api/reports               — 신고 접수
+ *   GET  /api/status/:receiptNo     — 신고 조회 (token 필수)
+ *   GET  /api/health                — 헬스체크
  */
 
 /**
@@ -60,8 +66,8 @@ export async function handleRequest(req, res) {
   }
 
   try {
-    // ─── POST /api/upload/presigned ───────────────────────
-    if (method === 'POST' && pathname === '/api/upload/presigned') {
+    // ─── POST /api/uploads/presign ───────────────────────
+    if (method === 'POST' && pathname === '/api/uploads/presign') {
       const body = await parseBody(req);
       const { valid, errors } = validateUploadRequest(body);
       if (!valid) {
@@ -92,9 +98,9 @@ export async function handleRequest(req, res) {
       });
     }
 
-    // ─── GET /api/reports/:receiptNo ─────────────────────
-    if (method === 'GET' && pathname.startsWith('/api/reports/')) {
-      const receiptNo = pathname.replace('/api/reports/', '');
+    // ─── GET /api/status/:receiptNo ──────────────────────
+    if (method === 'GET' && pathname.startsWith('/api/status/')) {
+      const receiptNo = pathname.replace('/api/status/', '');
       const token = url.searchParams.get('token');
 
       if (!receiptNo) {
@@ -106,9 +112,9 @@ export async function handleRequest(req, res) {
         return json(res, 404, { success: false, errors: [{ field: 'receiptNo', message: '해당 접수번호의 신고를 찾을 수 없습니다.' }] });
       }
 
-      // 조회 토큰 검증 (시민 조회 시)
-      if (token && report.viewToken !== token) {
-        return json(res, 403, { success: false, errors: [{ field: 'token', message: '조회 토큰이 일치하지 않습니다.' }] });
+      // 조회 토큰 검증 — 토큰이 없거나 틀리면 403
+      if (!token || report.viewToken !== token) {
+        return json(res, 403, { success: false, errors: [{ field: 'token', message: '유효한 조회 토큰이 필요합니다.' }] });
       }
 
       return json(res, 200, {

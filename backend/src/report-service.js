@@ -43,7 +43,7 @@ export function submitReport(data) {
       longitude: data.longitude,
       address: data.address || null, // TODO: 역지오코딩 API 연동 후 자동 채움
     },
-    status: 'received', // received → processing → resolved
+    status: '접수', // 접수 → 배정 → 처리중 → 완료
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

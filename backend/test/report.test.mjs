@@ -56,10 +56,10 @@ test('GET /api/health 정상 응답', async () => {
   assert.equal(res.body.status, 'ok');
 });
 
-// ─── Presigned URL ────────────────────────────────────
+// ─── Presigned URL (POST /api/uploads/presign) ────────
 
-test('POST /api/upload/presigned 정상 발급', async () => {
-  const res = await request('POST', '/api/upload/presigned', {
+test('POST /api/uploads/presign 정상 발급', async () => {
+  const res = await request('POST', '/api/uploads/presign', {
     filename: 'photo.jpg',
     contentType: 'image/jpeg',
   });
@@ -70,8 +70,8 @@ test('POST /api/upload/presigned 정상 발급', async () => {
   assert.equal(res.body.data.expiresIn, 600);
 });
 
-test('POST /api/upload/presigned — filename 누락 시 400', async () => {
-  const res = await request('POST', '/api/upload/presigned', {
+test('POST /api/uploads/presign — filename 누락 시 400', async () => {
+  const res = await request('POST', '/api/uploads/presign', {
     contentType: 'image/jpeg',
   });
   assert.equal(res.status, 400);
@@ -79,8 +79,8 @@ test('POST /api/upload/presigned — filename 누락 시 400', async () => {
   assert.ok(res.body.errors.some((e) => e.field === 'filename'));
 });
 
-test('POST /api/upload/presigned — 지원하지 않는 형식', async () => {
-  const res = await request('POST', '/api/upload/presigned', {
+test('POST /api/uploads/presign — 지원하지 않는 형식', async () => {
+  const res = await request('POST', '/api/uploads/presign', {
     filename: 'doc.pdf',
     contentType: 'application/pdf',
   });
@@ -88,8 +88,8 @@ test('POST /api/upload/presigned — 지원하지 않는 형식', async () => {
   assert.ok(res.body.errors.some((e) => e.field === 'filename'));
 });
 
-test('POST /api/upload/presigned — 10MB 초과', async () => {
-  const res = await request('POST', '/api/upload/presigned', {
+test('POST /api/uploads/presign — 10MB 초과', async () => {
+  const res = await request('POST', '/api/uploads/presign', {
     filename: 'big.jpg',
     contentType: 'image/jpeg',
     fileSize: 11 * 1024 * 1024,
@@ -98,7 +98,7 @@ test('POST /api/upload/presigned — 10MB 초과', async () => {
   assert.ok(res.body.errors.some((e) => e.field === 'fileSize'));
 });
 
-// ─── 신고 접수 ────────────────────────────────────────
+// ─── 신고 접수 (POST /api/reports) ────────────────────
 
 test('POST /api/reports 정상 접수', async () => {
   const res = await request('POST', '/api/reports', {
@@ -106,17 +106,19 @@ test('POST /api/reports 정상 접수', async () => {
     latitude: 37.5665,
     longitude: 126.978,
     address: '서울특별시 중구 세종대로 110',
+    locationConsent: true,
   });
   assert.equal(res.status, 201);
   assert.equal(res.body.success, true);
   assert.ok(res.body.data.receiptNo.startsWith('MOA-'));
-  assert.ok(res.body.data.viewToken.length === 32); // hex 16 bytes = 32 chars
+  assert.equal(res.body.data.viewToken.length, 32);
 });
 
 test('POST /api/reports — photos 누락 시 400', async () => {
   const res = await request('POST', '/api/reports', {
     latitude: 37.5665,
     longitude: 126.978,
+    locationConsent: true,
   });
   assert.equal(res.status, 400);
   assert.ok(res.body.errors.some((e) => e.field === 'photos'));
@@ -128,6 +130,7 @@ test('POST /api/reports — 사진 11장 초과 시 400', async () => {
     photos,
     latitude: 37.5665,
     longitude: 126.978,
+    locationConsent: true,
   });
   assert.equal(res.status, 400);
   assert.ok(res.body.errors.some((e) => e.field === 'photos'));
@@ -138,6 +141,7 @@ test('POST /api/reports — 위도 범위 초과 시 400', async () => {
     photos: ['https://example.com/a.jpg'],
     latitude: 91,
     longitude: 126.978,
+    locationConsent: true,
   });
   assert.equal(res.status, 400);
   assert.ok(res.body.errors.some((e) => e.field === 'latitude'));
@@ -147,48 +151,87 @@ test('POST /api/reports — 경도 누락 시 400', async () => {
   const res = await request('POST', '/api/reports', {
     photos: ['https://example.com/a.jpg'],
     latitude: 37.5665,
+    locationConsent: true,
   });
   assert.equal(res.status, 400);
   assert.ok(res.body.errors.some((e) => e.field === 'longitude'));
 });
 
-// ─── 신고 조회 ────────────────────────────────────────
+test('POST /api/reports — locationConsent 없으면 400', async () => {
+  const res = await request('POST', '/api/reports', {
+    photos: ['https://example.com/a.jpg'],
+    latitude: 37.5665,
+    longitude: 126.978,
+  });
+  assert.equal(res.status, 400);
+  assert.ok(res.body.errors.some((e) => e.field === 'locationConsent'));
+});
 
-test('GET /api/reports/:receiptNo — 정상 조회', async () => {
-  // 먼저 접수
+test('POST /api/reports — locationConsent: false이면 400', async () => {
+  const res = await request('POST', '/api/reports', {
+    photos: ['https://example.com/a.jpg'],
+    latitude: 37.5665,
+    longitude: 126.978,
+    locationConsent: false,
+  });
+  assert.equal(res.status, 400);
+  assert.ok(res.body.errors.some((e) => e.field === 'locationConsent'));
+});
+
+// ─── 신고 조회 (GET /api/status/:receiptNo) ───────────
+
+test('GET /api/status/:receiptNo — 올바른 토큰으로 조회 시 200', async () => {
   const create = await request('POST', '/api/reports', {
     photos: ['https://example.com/photo.jpg'],
     latitude: 37.5665,
     longitude: 126.978,
     address: '서울시 중구',
+    locationConsent: true,
   });
   const { receiptNo, viewToken } = create.body.data;
 
-  // 조회
-  const res = await request('GET', `/api/reports/${receiptNo}?token=${viewToken}`);
+  const res = await request('GET', `/api/status/${receiptNo}?token=${viewToken}`);
   assert.equal(res.status, 200);
   assert.equal(res.body.success, true);
   assert.equal(res.body.data.receiptNo, receiptNo);
   assert.deepEqual(res.body.data.photos, ['https://example.com/photo.jpg']);
   assert.equal(res.body.data.location.latitude, 37.5665);
-  assert.equal(res.body.data.status, 'received');
+  assert.equal(res.body.data.status, '접수');
 });
 
-test('GET /api/reports/:receiptNo — 없는 접수번호 시 404', async () => {
-  const res = await request('GET', '/api/reports/MOA-00000000-00000');
+test('GET /api/status/:receiptNo — 없는 접수번호 시 404', async () => {
+  const res = await request('GET', '/api/status/MOA-00000000-00000?token=sometoken');
   assert.equal(res.status, 404);
 });
 
-test('GET /api/reports/:receiptNo — 잘못된 토큰 시 403', async () => {
+test('GET /api/status/:receiptNo — 토큰 없이 조회 시 403', async () => {
   const create = await request('POST', '/api/reports', {
     photos: ['https://example.com/photo.jpg'],
     latitude: 37.5665,
     longitude: 126.978,
+    locationConsent: true,
   });
   const { receiptNo } = create.body.data;
 
-  const res = await request('GET', `/api/reports/${receiptNo}?token=wrong-token`);
+  const res = await request('GET', `/api/status/${receiptNo}`);
   assert.equal(res.status, 403);
+  assert.equal(res.body.success, false);
+  assert.ok(res.body.errors.some((e) => e.field === 'token'));
+});
+
+test('GET /api/status/:receiptNo — 잘못된 토큰 시 403', async () => {
+  const create = await request('POST', '/api/reports', {
+    photos: ['https://example.com/photo.jpg'],
+    latitude: 37.5665,
+    longitude: 126.978,
+    locationConsent: true,
+  });
+  const { receiptNo } = create.body.data;
+
+  const res = await request('GET', `/api/status/${receiptNo}?token=wrong-token`);
+  assert.equal(res.status, 403);
+  assert.equal(res.body.success, false);
+  assert.ok(res.body.errors.some((e) => e.field === 'token'));
 });
 
 // ─── 404 ──────────────────────────────────────────────
