@@ -21,26 +21,26 @@ const SIMILAR_REPORTS = [
   {
     id: 1,
     type: '도로 파손',
-    address: '서울시 강남구 역삼로 123 앞 도로',
+    address: '세종특별자치시 도움6로 24 인근',
     date: '2026. 07. 20.',
     status: 'processing',
-    statusLabel: '처리 중',
+    statusLabel: '처리중',
   },
   {
     id: 2,
     type: '도로 파손',
-    address: '서울시 강남구 역삼로 98 인근',
+    address: '세종특별자치시 도움6로 26 인근',
     date: '2026. 07. 18.',
     status: 'resolved',
-    statusLabel: '처리 완료',
+    statusLabel: '완료',
   },
   {
     id: 3,
     type: '가로등 고장',
-    address: '서울시 강남구 테헤란로 25',
+    address: '세종특별자치시 도움6로 52 인근',
     date: '2026. 07. 21.',
     status: 'received',
-    statusLabel: '접수됨',
+    statusLabel: '접수',
   },
 ];
 
