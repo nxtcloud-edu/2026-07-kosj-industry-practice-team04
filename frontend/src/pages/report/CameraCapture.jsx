@@ -150,6 +150,13 @@ export default function CameraCapture() {
       {hasPhotos ? (
         /* 미리보기 영역 */
         <section className="preview-section">
+          <aside className="photo-quality-check" aria-labelledby="photo-quality-title">
+            <strong id="photo-quality-title">사진을 확인해 주세요</strong>
+            <ul>
+              <li>흐릿하거나 흔들렸다면 삭제하고 다시 촬영해 주세요.</li>
+              <li>문제만 너무 가깝게 찍혔다면 주변이 보이도록 다시 촬영해 주세요.</li>
+            </ul>
+          </aside>
           {/* 카운터 */}
           <p className="preview-counter">
             {files.length} / {MAX_PHOTOS}장
@@ -204,12 +211,30 @@ export default function CameraCapture() {
       ) : (
         /* 촬영 가이드 */
         <div className="camera-guide">
+          <section className="camera-examples" aria-labelledby="camera-example-title">
+            <h3 id="camera-example-title">이렇게 찍으면 확인하기 쉬워요</h3>
+            <div className="camera-examples__grid">
+              <figure className="camera-example camera-example--good">
+                <div className="camera-example__scene" role="img" aria-label="파손 지점과 주변 도로가 함께 보이는 좋은 촬영 예시">
+                  <span className="camera-example__road" />
+                  <span className="camera-example__problem">!</span>
+                </div>
+                <figcaption>좋아요 · 문제와 주변을 함께</figcaption>
+              </figure>
+              <figure className="camera-example camera-example--bad">
+                <div className="camera-example__scene" role="img" aria-label="문제 지점만 너무 가까이 찍은 나쁜 촬영 예시">
+                  <span className="camera-example__problem">!</span>
+                </div>
+                <figcaption>다시 찍어요 · 너무 가깝거나 흐림</figcaption>
+              </figure>
+            </div>
+          </section>
           <div className="camera-guide__box">
             <span className="camera-guide__icon" aria-hidden="true">📷</span>
             <p>신고하려는 문제 상황이 잘 보이도록 여러 방향에서 촬영해주세요.</p>
             <ul className="camera-guide__tips">
               <li>문제 장소와 주변 환경이 함께 보이도록 촬영</li>
-              <li>파손·위험·불편 요소를 가까이서 촬영</li>
+              <li>문제 요소는 식별되되 너무 가깝지 않게 촬영</li>
               <li>전체 상황을 알 수 있도록 다른 방향에서도 촬영</li>
               <li>흔들리지 않게 촬영</li>
             </ul>
