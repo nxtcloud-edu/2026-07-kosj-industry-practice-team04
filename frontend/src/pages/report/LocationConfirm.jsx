@@ -4,7 +4,7 @@ import useCurrentLocation from '../../hooks/useCurrentLocation.js';
 import './report.css';
 
 /**
- * 위치 확인 화면 (/report/location)  — PER-003
+ * 위치 확인 화면 (/report/location) — SER-001(위치정보 동의) · SIR-002(지도 API 연계)
  *
  * 1. 위치정보 수집 동의
  * 2. 현재 위치 가져오기 (Geolocation API)

@@ -30,14 +30,54 @@
 - **Backend**: AWS 서버리스 (API Gateway + Lambda + DynamoDB + S3)
 - **AI**: 관리형 이미지 인식 API → 검수 라벨 축적 → 자체 모델 파인튜닝(로드맵)
 
-## 실행 방법
+## 실행 방법 — main에서 지금 볼 수 있는 것
 
-> 3주차 MVP 개발 시작 후 업데이트 예정
+> Node.js 20 이상 필요
+
+### ① 관리자 콘솔 (데모 데이터로 전체 동작) ⭐
+
+터미널 **2개**를 띄웁니다.
 
 ```bash
-# frontend
-cd frontend && npm install && npm run dev
+# 터미널 1 — 데모 API (:4000)
+cd backend
+node dev/mock-server.js
+
+# 터미널 2 — 프론트엔드 (:5173)
+cd frontend
+npm install     # 최초 1회
+npm run dev
 ```
+
+→ **http://localhost:5173/admin** 접속
+
+볼 수 있는 것:
+- **대표 문제 목록** — 우선순위 내림차순 (도로 파손 10점 `높음` · 가로등 4점 · 쓰레기 3점)
+- **검수 큐 필터** — AI 신뢰도 58%인 쓰레기 신고에 `검수 필요` 배지
+- **문제 상세** — 통합된 신고 2건 사진 비교, 우선순위 산정 근거(`위험도 + 신고 2건 + 공감 3`)
+- **실제로 동작하는 기능** — 상태 변경(접수→배정→처리중→완료) · 수동 재분류 · 스팸 처리 · **오통합 분리**(분리하면 우선순위가 자동 재계산됩니다)
+
+데이터 초기화: `curl -X POST http://localhost:4000/api/dev/reset` (또는 목 서버 재시작)
+
+> `dev/mock-server.js`는 **임시 데모용**입니다. 판정 로직은 실제 코드(`src/domain.js`)를 그대로 쓰므로 우선순위·부서 배정은 진짜로 계산됩니다. 신고 접수 API(#9)가 머지되면 이 파일은 삭제합니다.
+
+### ② AI 분류기 — 테스트 · 정확도 점검
+
+```bash
+cd backend
+npm test        # 단위 테스트 29개 (분류기 9 + 도메인 규칙 20)
+npm run eval    # 표본 정확도 점검 — 정확도·유형별 재현율·검수 큐 회부율 (QUR-002)
+```
+
+### 아직 안 되는 것
+
+| 기능 | 상태 |
+|---|---|
+| 시민 신고 화면 (사진→위치→완료) | PR #35·#36·#38·#39 리뷰 중 |
+| 실제 신고 접수 API·DB | PR #37 리뷰 중 |
+| 배포 | #2 진행 예정 |
+
+시민 화면 PR이 머지되면 `http://localhost:5173/` 에서 신고 흐름을 볼 수 있게 됩니다.
 
 ## 문서
 
@@ -47,6 +87,7 @@ cd frontend && npm install && npm run dev
 - [협업 가이드 (GitHub Flow + Issues/Projects)](docs/COLLABORATION.md)
 - [팀원용 Git 협업 퀵스타트](docs/GIT_QUICKSTART.md)
 - [MVP 백로그 (이슈 등록용)](docs/BACKLOG.md)
+- **[📄 API 계약 v1 (프론트·백엔드 공통 기준)](docs/API_CONTRACT.md)**
 - **[🔗 팀 통합 참고 (AI/Admin PR 반영 시)](docs/INTEGRATION_NOTES.md)**
 
 ## 팀원 및 역할

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
 /**
- * 현재 위치를 가져오는 커스텀 훅 (PER-003)
+ * 현재 위치를 가져오는 커스텀 훅 (SER-001 위치정보 동의 후 호출)
  *
  * - HTML5 Geolocation API 사용
  * - 로딩·에러 상태 관리
