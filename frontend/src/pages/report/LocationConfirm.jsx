@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCurrentLocation from '../../hooks/useCurrentLocation.js';
-import { createReport, presignUpload } from '../../api.js';
+import { createReport, nearbyIssues, presignUpload } from '../../api.js';
 import { clearDraft, getDraft } from '../../reportDraft.js';
 import './report.css';
 
@@ -21,6 +21,8 @@ export default function LocationConfirm() {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [photoUrls, setPhotoUrls] = useState([]);
+  const [candidates, setCandidates] = useState(null);
 
   // TODO: 실제 주소 API(카카오 로컬, 행정안전부 등) 연동 시 이 함수 교체
   const addressPlaceholder = position
@@ -46,7 +48,7 @@ export default function LocationConfirm() {
     [setPosition]
   );
 
-  // 신고 접수 — 동의 사실을 함께 전송해 서버에 기록한다 (SER-001, Issue #33)
+  // 위치·사진을 준비한 뒤 유사 신고 후보를 먼저 제시한다 (Issue #14).
   const handleNext = useCallback(async () => {
     if (!position || !agreed || submitting) return;
     setSubmitting(true);
@@ -66,22 +68,47 @@ export default function LocationConfirm() {
         photoUrls.push(publicUrl);
       }
 
-      // ② 신고 접수 — locationConsent 없이는 서버가 400으로 거부한다
-      const { receiptNo, viewToken } = await createReport({
-        photos: photoUrls,
-        latitude: position.latitude,
-        longitude: position.longitude,
-        address: addressPlaceholder,
-        locationConsent: agreed,
-      });
+      setPhotoUrls(photoUrls);
 
-      clearDraft();
-      navigate('/report/complete', { state: { receiptNo, viewToken } });
+      // 이미지 분류 연동 전에는 '기타'로 조회한다. 분류 결과가 draft에 추가되면
+      // 해당 유형을 넘기도록 교체한다.
+      try {
+        const result = await nearbyIssues(position.latitude, position.longitude, '기타');
+        setCandidates(result.candidates ?? []);
+      } catch {
+        // 후보 조회 장애가 새 신고 자체를 막아서는 안 된다.
+        setCandidates([]);
+        setSubmitError('유사 신고를 확인하지 못했습니다. 새 신고로는 계속 접수할 수 있습니다.');
+      }
+      setSubmitting(false);
     } catch (e) {
       setSubmitError(e.message || '신고 접수에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       setSubmitting(false);
     }
   }, [position, agreed, submitting, addressPlaceholder, navigate]);
+
+  const submitChoice = useCallback(async (attachIssueId = null) => {
+    if (!position || !agreed || submitting) return;
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const { receiptNo, viewToken, merged } = await createReport({
+        photos: photoUrls,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        address: addressPlaceholder,
+        locationConsent: agreed,
+        ...(attachIssueId ? { attachIssueId } : {}),
+      });
+
+      clearDraft();
+      navigate('/report/complete', { state: { receiptNo, viewToken, merged } });
+    } catch (e) {
+      setSubmitError(e.message || '신고 접수에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      setSubmitting(false);
+    }
+  }, [position, agreed, submitting, photoUrls, addressPlaceholder, navigate]);
 
   return (
     <div className="location-page">
@@ -209,14 +236,57 @@ export default function LocationConfirm() {
         </p>
       )}
 
-      {/* 신고 접수 */}
-      <button
-        className="location-next-btn"
-        onClick={handleNext}
-        disabled={!position || !agreed || submitting}
-      >
-        {submitting ? '접수 중…' : '이 위치로 신고하기'}
-      </button>
+      {candidates === null ? (
+        <button
+          className="location-next-btn"
+          onClick={handleNext}
+          disabled={!position || !agreed || submitting}
+        >
+          {submitting ? '유사 신고 확인 중…' : '이 위치로 신고하기'}
+        </button>
+      ) : (
+        <section className="similar-choice" aria-labelledby="similar-choice-title">
+          <h3 id="similar-choice-title">주변에 비슷한 신고가 있나요?</h3>
+          <p>같은 문제라면 기존 문제에 추가해 담당자가 한 번에 확인할 수 있어요.</p>
+
+          {candidates.length > 0 ? (
+            <div className="similar-choice__list">
+              {candidates.map((candidate) => (
+                <article className="similar-choice__card" key={candidate.id}>
+                  {candidate.thumbnail && (
+                    <img src={candidate.thumbnail} alt="" className="similar-choice__thumb" />
+                  )}
+                  <div className="similar-choice__content">
+                    <strong>{candidate.type}</strong>
+                    <span>{candidate.address}</span>
+                    <small>
+                      약 {Math.round(candidate.distance ?? 0)}m · 신고 {candidate.reportCount ?? 1}건 · {candidate.status}
+                    </small>
+                    <button
+                      type="button"
+                      onClick={() => submitChoice(candidate.id)}
+                      disabled={submitting}
+                    >
+                      기존 문제에 추가
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="similar-choice__empty">반경 50m 안에 같은 유형의 신고가 없습니다.</p>
+          )}
+
+          <button
+            type="button"
+            className="similar-choice__new"
+            onClick={() => submitChoice()}
+            disabled={submitting}
+          >
+            {submitting ? '접수 중…' : '새 신고로 접수'}
+          </button>
+        </section>
+      )}
     </div>
   );
 }
