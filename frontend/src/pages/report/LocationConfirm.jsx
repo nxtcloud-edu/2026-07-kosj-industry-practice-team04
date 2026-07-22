@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCurrentLocation from '../../hooks/useCurrentLocation.js';
-import { createReport, nearbyIssues, presignUpload } from '../../api.js';
+import { addEmpathy, createReport, nearbyIssues, presignUpload } from '../../api.js';
+import { getDeviceId } from '../../deviceId.js';
 import { clearDraft, getDraft } from '../../reportDraft.js';
 import './report.css';
 
@@ -23,6 +24,15 @@ export default function LocationConfirm() {
   const [submitError, setSubmitError] = useState('');
   const [photoUrls, setPhotoUrls] = useState([]);
   const [candidates, setCandidates] = useState(null);
+  const [empathyBusy, setEmpathyBusy] = useState(null);
+  const [empathized, setEmpathized] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('moa-empathized-issues'));
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
 
   // TODO: 실제 주소 API(카카오 로컬, 행정안전부 등) 연동 시 이 함수 교체
   const addressPlaceholder = position
@@ -109,6 +119,26 @@ export default function LocationConfirm() {
       setSubmitting(false);
     }
   }, [position, agreed, submitting, photoUrls, addressPlaceholder, navigate]);
+
+  const handleEmpathy = useCallback(async (issueId) => {
+    if (empathyBusy || empathized.includes(issueId)) return;
+    setEmpathyBusy(issueId);
+    setSubmitError('');
+
+    try {
+      const result = await addEmpathy(issueId, getDeviceId());
+      setCandidates((current) => current.map((candidate) =>
+        candidate.id === issueId ? { ...candidate, empathy: result.count } : candidate
+      ));
+      const next = [...empathized, issueId];
+      setEmpathized(next);
+      window.localStorage.setItem('moa-empathized-issues', JSON.stringify(next));
+    } catch (e) {
+      setSubmitError(e.message || '공감을 추가하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setEmpathyBusy(null);
+    }
+  }, [empathyBusy, empathized]);
 
   return (
     <div className="location-page">
@@ -260,10 +290,22 @@ export default function LocationConfirm() {
                     <strong>{candidate.type}</strong>
                     <span>{candidate.address}</span>
                     <small>
-                      약 {Math.round(candidate.distance ?? 0)}m · 신고 {candidate.reportCount ?? 1}건 · {candidate.status}
+                      약 {Math.round(candidate.distance ?? 0)}m · 신고 {candidate.reportCount ?? 1}건 · 공감 {candidate.empathy ?? 0}명 · {candidate.status}
                     </small>
                     <button
                       type="button"
+                      className="similar-choice__empathy"
+                      aria-pressed={empathized.includes(candidate.id)}
+                      onClick={() => handleEmpathy(candidate.id)}
+                      disabled={empathyBusy === candidate.id || empathized.includes(candidate.id)}
+                    >
+                      {empathized.includes(candidate.id)
+                        ? '✓ 공감했어요'
+                        : empathyBusy === candidate.id ? '추가 중…' : '🙋 나도 불편해요'}
+                    </button>
+                    <button
+                      type="button"
+                      className="similar-choice__attach"
                       onClick={() => submitChoice(candidate.id)}
                       disabled={submitting}
                     >
