@@ -18,7 +18,9 @@ async function req(method, url, body) {
     const detail = Array.isArray(payload.errors)
       ? payload.errors.map((e) => e.message).filter(Boolean).join(' / ')
       : payload.error;
-    throw new Error(detail || `요청 실패 (${res.status})`);
+    const error = new Error(detail || `요청 실패 (${res.status})`);
+    error.status = res.status;
+    throw error;
   }
   return payload.data ?? payload;
 }
