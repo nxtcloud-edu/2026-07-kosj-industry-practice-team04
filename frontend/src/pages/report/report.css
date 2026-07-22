@@ -1,3 +1,743 @@
+/* ═══════════════════════════════════════════════════════════
+   시민 신고 화면 공통 스타일
+   화면이 늘어나면 화면별 파일로 분리할 것 (camera.css / compress.css …)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ───────── 신고 시작 · 사진 촬영 (#5) ───────── */
+/* 시민 신고 화면 스타일 */
+
+/* 공통 레이아웃 */
+.report-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+/* ===== 신고 시작 화면 ===== */
+.report-start__title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #2dd4bf;
+  margin-bottom: 8px;
+}
+
+.report-start__desc {
+  font-size: 15px;
+  color: #9fb3cd;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.report-start__btn {
+  padding: 16px 32px;
+  border-radius: 14px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 17px;
+  font-weight: 800;
+  transition: filter 0.15s;
+}
+
+.report-start__btn:hover {
+  filter: brightness(1.08);
+}
+
+/* ===== 카메라 촬영 화면 ===== */
+.camera-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.camera-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.camera-page__back {
+  font-size: 22px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.camera-page__back:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.camera-page__title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 경고 메시지 */
+.camera-warning {
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #3b1a1a;
+  color: #f87171;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 촬영 가이드 */
+.camera-guide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.camera-guide__box {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed #2dd4bf;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #9fb3cd;
+  font-size: 14px;
+  padding: 16px;
+}
+
+.camera-guide__icon {
+  font-size: 48px;
+}
+
+.camera-guide__tips {
+  list-style: none;
+  font-size: 13px;
+  color: #7a92ad;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.camera-guide__tips li::before {
+  content: "\2713  ";
+  color: #2dd4bf;
+}
+
+/* 촬영 버튼 */
+.camera-capture-btn {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 14px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.camera-capture-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* 숨김 input */
+.camera-input-hidden {
+  display: none;
+}
+
+/* ===== 미리보기 ===== */
+.preview-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 카운터 */
+.preview-counter {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2dd4bf;
+  align-self: flex-end;
+}
+
+/* 격자 미리보기 */
+.preview-grid {
+  width: 100%;
+  max-width: 400px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.preview-grid__item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #1e293b;
+}
+
+.preview-grid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-grid__delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.preview-grid__delete:hover {
+  background: rgba(92, 32, 32, 0.9);
+}
+
+/* 액션 버튼 영역 */
+.preview-section__actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.preview-btn {
+  flex: 1;
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.preview-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.preview-btn--retake {
+  background: #1e293b;
+  color: #e8eef4;
+  border: 1px solid #334155;
+}
+
+.preview-btn--retake:hover:not(:disabled) {
+  background: #334155;
+}
+
+.preview-btn--delete {
+  background: #3b1a1a;
+  color: #f87171;
+  border: 1px solid #5c2020;
+}
+
+.preview-btn--delete:hover {
+  background: #5c2020;
+}
+
+.preview-btn--confirm {
+  background: #2dd4bf;
+  color: #062823;
+}
+
+.preview-btn--confirm:hover {
+  filter: brightness(1.08);
+}
+
+/* ───────── 이미지 자동 압축 (#6) ───────── */
+/* ===== 이미지 압축 화면 스타일 (Issue #6) ===== */
+
+/* 페이지 레이아웃 */
+.compressor-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+}
+
+/* 헤더 */
+.compressor-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compressor-page__back {
+  font-size: 22px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.compressor-page__back:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.compressor-page__title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 숨김 input */
+.compressor-input-hidden {
+  display: none;
+}
+
+/* 선택 버튼 */
+.compressor-select-btn {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 14px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.compressor-select-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.compressor-select-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 로딩 */
+.compressor-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  font-size: 14px;
+  color: #9fb3cd;
+  font-weight: 600;
+}
+
+/* 에러 */
+.compressor-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #3b1a1a;
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 전체 요약 */
+.compressor-summary {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #0f2b26;
+  border: 1px solid #134e45;
+  font-size: 14px;
+  font-weight: 700;
+  color: #5eead4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compressor-summary__ratio {
+  color: #2dd4bf;
+  font-weight: 800;
+}
+
+/* 격자 미리보기 */
+.compressor-grid {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.compressor-grid__item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #1e293b;
+}
+
+.compressor-grid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.compressor-grid__delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.compressor-grid__delete:hover {
+  background: rgba(92, 32, 32, 0.9);
+}
+
+/* 개별 압축 정보 */
+.compressor-grid__info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 5px 6px;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 10px;
+  font-weight: 600;
+  color: #a5f3fc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compressor-grid__ratio {
+  color: #2dd4bf;
+  font-weight: 800;
+}
+
+/* 액션 버튼 영역 */
+.compressor-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.compressor-actions__add,
+.compressor-actions__clear {
+  flex: 1;
+  padding: 14px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.compressor-actions__add {
+  background: #1e293b;
+  color: #e8eef4;
+  border: 1px solid #334155;
+}
+
+.compressor-actions__add:hover:not(:disabled) {
+  background: #334155;
+}
+
+.compressor-actions__add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.compressor-actions__clear {
+  background: #3b1a1a;
+  color: #f87171;
+  border: 1px solid #5c2020;
+}
+
+.compressor-actions__clear:hover {
+  background: #5c2020;
+}
+
+/* ───────── 촬영 화면 자동 압축 표시 (#6 통합) ───────── */
+.camera-compressing,
+.camera-compress-info {
+  margin: 10px 16px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+.camera-compressing { background: #fdf3dd; color: #7c5d16; }
+.camera-compress-info { background: #e2f2ee; color: #0b544f; }
+
+/* ───────── 위치 확인 (#7) ───────── */
+/* ===== 위치 확인 화면 스타일 (PER-003) ===== */
+
+/* 페이지 레이아웃 */
+.location-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+}
+
+/* 헤더 */
+.location-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-page__back {
+  font-size: 22px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.location-page__back:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.location-page__title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 위치정보 안내 카드 */
+.location-card {
+  padding: 20px;
+  border-radius: 14px;
+  background: #152234;
+  border: 1px solid #1e3a5f;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.location-card__heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2dd4bf;
+}
+
+.location-card__desc {
+  font-size: 14px;
+  color: #9fb3cd;
+  line-height: 1.5;
+}
+
+/* 동의 체크박스 */
+.location-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.location-agree__checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #2dd4bf;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.location-agree__text {
+  font-size: 13.5px;
+  color: #c8d6e5;
+  line-height: 1.5;
+}
+
+/* 현재 위치 가져오기 버튼 */
+.location-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 15px;
+  font-weight: 800;
+  transition: filter 0.15s;
+}
+
+.location-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.location-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 작은 스피너 */
+.spinner--sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2.5px;
+  border-top-color: #062823;
+}
+
+/* 에러 메시지 */
+.location-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #3b1a1a;
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 지도 Placeholder */
+.location-map-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  border: 2px dashed #334155;
+  background: #0f1d2e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.location-map-placeholder:hover {
+  border-color: #2dd4bf;
+}
+
+.location-map-placeholder__text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e8eef4;
+}
+
+.location-map-placeholder__hint {
+  font-size: 12px;
+  color: #7a92ad;
+  text-align: center;
+  line-height: 1.5;
+  padding: 0 16px;
+}
+
+/* 위치 정보 카드 */
+.location-info-card {
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: #0f2b26;
+  border: 1px solid #134e45;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.location-info-card__heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5eead4;
+}
+
+.location-info-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.location-info-card__row {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.location-info-card__row dt {
+  font-weight: 700;
+  color: #9fb3cd;
+  min-width: 40px;
+}
+
+.location-info-card__row dd {
+  color: #e8eef4;
+  word-break: break-all;
+}
+
+/* 다음 버튼 */
+.location-next-btn {
+  margin-top: auto;
+  padding: 16px;
+  border-radius: 14px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.location-next-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.location-next-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ───────── 촬영 → 위치 확인 연결 버튼 ───────── */
+.camera-next-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 14px 16px 24px;
+  min-height: 54px;
+  border-radius: 14px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 16.5px;
+  font-weight: 800;
+  border: 0;
+  cursor: pointer;
+}
+.camera-next-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ───────── 신고 완료 (#8) ───────── */
 /* ===== 신고 완료 화면 스타일 (Issue #8) ===== */
 
 /* 페이지 레이아웃 */

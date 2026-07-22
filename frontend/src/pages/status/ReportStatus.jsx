@@ -5,7 +5,7 @@ import './status.css';
  * 신고 상태 조회 화면 (/status/:receiptNo)
  *
  * 접수번호를 기반으로 처리 현황을 표시한다.
- * 현재는 접수 완료 상태를 정적으로 보여주며,
+ * 현재는 접수 상태를 정적으로 보여주며,
  * 향후 백엔드 API(/api/reports/:receiptNo)와 연동하여 실시간 조회 가능.
  */
 export default function ReportStatus() {
@@ -15,14 +15,14 @@ export default function ReportStatus() {
   // TODO: 실제 백엔드 API 연동 — fetch(`/api/reports/${receiptNo}?token=...`)
   const statusInfo = {
     receiptNo,
-    status: '접수 완료',
+    status: '접수',
     statusDetail: '신고가 정상적으로 접수되었습니다. 담당 부서에서 확인 후 처리할 예정입니다.',
     receivedAt: '2026. 07. 22. 14:32',
     steps: [
-      { label: '신고 접수', done: true },
-      { label: '담당 부서 배정', done: false },
-      { label: '현장 확인', done: false },
-      { label: '처리 완료', done: false },
+      { label: '접수', done: true },
+      { label: '배정', done: false },
+      { label: '처리중', done: false },
+      { label: '완료', done: false },
     ],
   };
 
