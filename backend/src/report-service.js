@@ -27,12 +27,13 @@ function generateViewToken() {
 
 /**
  * 신고 접수
- * @param {{ photos: string[], latitude: number, longitude: number, address?: string }} data
+ * @param {{ photos: string[], latitude: number, longitude: number, address?: string, locationConsent: boolean }} data
  * @returns {{ receiptNo: string, viewToken: string, report: object }}
  */
 export function submitReport(data) {
   const receiptNo = generateReceiptNo();
   const viewToken = generateViewToken();
+  const now = new Date().toISOString();
 
   const report = {
     receiptNo,
@@ -43,9 +44,15 @@ export function submitReport(data) {
       longitude: data.longitude,
       address: data.address || null, // TODO: 역지오코딩 API 연동 후 자동 채움
     },
+    // 위치정보 수집 동의 사실을 신고와 함께 보관한다 (SER-001, Issue #33).
+    // 검증(schema)만으로는 "동의를 받았다"는 근거가 남지 않으므로 시각까지 기록.
+    consent: {
+      location: data.locationConsent === true,
+      agreedAt: now,
+    },
     status: '접수', // 접수 → 배정 → 처리중 → 완료
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
 
   saveReport(report);

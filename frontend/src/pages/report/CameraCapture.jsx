@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useImageCompression, { formatFileSize } from '../../hooks/useImageCompression.js';
+import { saveDraftPhotos } from '../../reportDraft.js';
 import './report.css';
 
 const MAX_PHOTOS = 10;
@@ -36,6 +37,9 @@ export default function CameraCapture() {
     // 새 URL 생성
     const newUrls = files.map((file) => URL.createObjectURL(file));
     setPreviewUrls(newUrls);
+
+    // 다음 화면(위치 확인)에서 신고 접수에 쓰도록 사진 정보를 임시 보관
+    saveDraftPhotos(files);
 
     // cleanup: 컴포넌트 언마운트 또는 files 변경 시 해제
     return () => {

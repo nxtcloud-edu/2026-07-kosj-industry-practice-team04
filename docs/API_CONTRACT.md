@@ -49,13 +49,11 @@ return body.data ?? body;
 | 5 | `GET /api/status/:receiptNo?token=` | — | `{report, issue:{...issueSummary, history, statusFlow}}` | #22·#23 |
 | 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` | #15 |
 
-**신고 접수 요청 본문 (4번)**
+**신고 접수 요청 본문 (4번)** — 현재 구현 기준 (PR #37·#43)
 ```json
 {
-  "photoUrl": "/uploads/ph_ab12.jpg",
-  "type": "도로 파손",
-  "confidence": 0.87,
-  "lat": 36.48012, "lng": 127.28901,
+  "photos": ["https://.../reports/2026/07/22/xxx.jpg"],
+  "latitude": 36.48012, "longitude": 127.28901,
   "address": "세종특별자치시 도움6로 24 인근",
   "locationConsent": true,
   "contact": "010-0000-0000",
@@ -63,7 +61,9 @@ return body.data ?? body;
   "attachIssueId": "is_xxx"
 }
 ```
-- `locationConsent`(필수, SER-001) 없으면 **400**
+- `locationConsent`(필수, SER-001) 없거나 `true`가 아니면 **400**. 동의 사실은 `consent: { location, agreedAt }` 으로 신고에 저장된다
+- `photos`는 presign으로 받은 `publicUrl` 배열. **1장 vs 여러 장은 7장 미결정 사항** — 1장으로 정해지면 `photoUrl` 단수로 바꾼다
+- `type`·`confidence`는 분류 API(#10·#11) 연동 시 추가 예정
 - `attachIssueId` 있으면 기존 대표 문제에 통합 → 응답 `merged: true`
 - `contact`는 알림 희망 시에만 (선택, SER-003)
 - 시간당 신고 5건 초과 시 **429**
