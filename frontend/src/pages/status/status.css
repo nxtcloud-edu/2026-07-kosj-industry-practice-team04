@@ -20,6 +20,21 @@
   color: #e8eef4;
 }
 
+.status-error {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+  border: 1px solid #f87171;
+  border-radius: 14px;
+  background: #3b1a1a;
+  color: #fecaca;
+  display: grid;
+  gap: 10px;
+}
+.status-error strong { font-size: 17px; }
+.status-error p { line-height: 1.6; }
+.status-error small { color: #fca5a5; line-height: 1.5; }
+
 /* 접수번호 카드 */
 .status-card {
   width: 100%;

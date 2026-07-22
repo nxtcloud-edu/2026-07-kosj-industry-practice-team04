@@ -1,33 +1,81 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { getStatus } from '../../api.js';
 import './status.css';
 
 /**
  * 신고 상태 조회 화면 (/status/:receiptNo)
  *
  * 접수번호를 기반으로 처리 현황을 표시한다.
- * 현재는 접수 상태를 정적으로 보여주며,
- * 향후 백엔드 API(/api/reports/:receiptNo)와 연동하여 실시간 조회 가능.
+ * 접수번호와 비밀 조회 토큰이 모두 있어야 로그인 없이 조회할 수 있다.
  */
 export default function ReportStatus() {
   const { receiptNo } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(Boolean(token));
 
-  // TODO: 실제 백엔드 API 연동 — fetch(`/api/reports/${receiptNo}?token=...`)
-  const statusInfo = {
-    receiptNo,
-    status: '접수',
-    statusDetail: '신고가 정상적으로 접수되었습니다. 담당 부서에서 확인 후 처리할 예정입니다.',
-    receivedAt: '2026. 07. 22. 14:32',
-    steps: [
-      { label: '접수', done: true },
-      { label: '배정', done: false },
-      { label: '처리중', done: false },
-      { label: '완료', done: false },
-    ],
-  };
+  useEffect(() => {
+    if (!token) {
+      setError('조회 토큰이 없습니다. 신고 완료 화면에서 제공된 조회 링크를 사용해 주세요.');
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
+    getStatus(receiptNo, token)
+      .then((result) => { if (active) setData(result); })
+      .catch((e) => {
+        if (!active) return;
+        setError(e.status === 403
+          ? '조회 링크가 만료되었거나 올바르지 않습니다.'
+          : e.message || '처리 현황을 불러오지 못했습니다.');
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [receiptNo, token]);
+
+  const statusInfo = useMemo(() => {
+    if (!data) return null;
+    const issue = data.issue ?? data;
+    const report = data.report ?? data;
+    const flow = issue.statusFlow ?? ['접수', '배정', '처리중', '완료'];
+    const status = issue.status ?? report.status ?? '접수';
+    const currentIndex = Math.max(flow.indexOf(status), 0);
+    return {
+      receiptNo: report.receiptNo ?? receiptNo,
+      status,
+      statusDetail: status === '완료'
+        ? '신고 처리가 완료되었습니다.'
+        : '담당 부서에서 신고 내용을 확인하고 있습니다.',
+      receivedAt: report.createdAt ? new Date(report.createdAt).toLocaleString('ko-KR') : '-',
+      steps: flow.map((label, index) => ({ label, done: index <= currentIndex })),
+    };
+  }, [data, receiptNo]);
+
+  if (loading) {
+    return <main className="status-page"><div className="spinner" role="status" aria-label="처리 현황 불러오는 중" /></main>;
+  }
+
+  if (error || !statusInfo) {
+    return (
+      <main className="status-page">
+        <h1 className="status-page__title">신고 조회</h1>
+        <section className="status-error" role="alert">
+          <strong>처리 현황을 조회할 수 없습니다</strong>
+          <p>{error || '조회 정보가 없습니다.'}</p>
+          <small>보안을 위해 조회 토큰은 재발급되지 않습니다. 링크를 잃어버린 경우 담당 기관에 접수번호로 문의해 주세요.</small>
+        </section>
+        <button className="status-home-btn" onClick={() => navigate('/')}>홈으로 돌아가기</button>
+      </main>
+    );
+  }
 
   return (
-    <div className="status-page">
+    <main className="status-page">
       {/* 헤더 */}
       <header className="status-page__header">
         <h1 className="status-page__title">신고 조회</h1>
@@ -71,6 +119,6 @@ export default function ReportStatus() {
       >
         홈으로 돌아가기
       </button>
-    </div>
+    </main>
   );
 }
