@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react';
 
 const STORAGE_KEY = 'moa-accessibility-settings';
 const FONT_SCALES = [100, 120, 140, 160];
-const DEFAULT_SETTINGS = { fontScale: 100, darkMode: false };
+const DEFAULT_SETTINGS = { fontScale: 100, highContrast: false };
 
 function normalizeFontScale(value) {
   const numericValue = Number(value);
@@ -20,7 +20,7 @@ function loadSettings() {
 
     return {
       fontScale: savedScale ?? (saved?.largeText === true ? 140 : 100),
-      darkMode: saved?.darkMode === true || saved?.highContrast === true,
+      highContrast: saved?.highContrast === true || saved?.darkMode === true,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -33,8 +33,8 @@ export default function AccessibilityToolbar() {
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.dataset.fontScale = String(settings.fontScale);
-    root.classList.toggle('a11y-dark-mode', settings.darkMode);
-    root.classList.remove('a11y-large-text', 'a11y-high-contrast');
+    root.classList.remove('a11y-large-text', 'a11y-dark-mode');
+    root.classList.toggle('a11y-high-contrast', settings.highContrast);
 
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -82,13 +82,13 @@ export default function AccessibilityToolbar() {
         <button
           type="button"
           className="accessibility-toggle"
-          aria-pressed={settings.darkMode}
-          onClick={() => setSettings((current) => ({ ...current, darkMode: !current.darkMode }))}
+          aria-pressed={settings.highContrast}
+          onClick={() => setSettings((current) => ({ ...current, highContrast: !current.highContrast }))}
         >
-          <span className="accessibility-icon" aria-hidden="true">☾</span>
-          <span>다크 모드</span>
+          <span className="accessibility-icon" aria-hidden="true">◐</span>
+          <span>고대비</span>
           <span className="accessibility-state" aria-hidden="true">
-            {settings.darkMode ? '켜짐' : '꺼짐'}
+            {settings.highContrast ? '켜짐' : '꺼짐'}
           </span>
         </button>
       </div>

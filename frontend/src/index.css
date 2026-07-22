@@ -231,30 +231,30 @@ html[data-font-scale]:not([data-font-scale='100']) .font-size-value {
   font-size: var(--a11y-state-text) !important;
 }
 
-/* 다크 모드: 차콜 배경과 저채도 샌드 포인트로 눈부심을 줄인다. */
-html.a11y-dark-mode { background: #0b0d0f; color-scheme: dark; }
-html.a11y-dark-mode body,
-html.a11y-dark-mode .admin-shell {
-  background: #0b0d0f !important;
-  color: #e6e0d5 !important;
+/* 고대비 모드: 검정 배경과 노랑 포인트로 핵심 정보와 조작부를 선명하게 구분한다. */
+html.a11y-high-contrast { background: #000; color-scheme: dark; }
+html.a11y-high-contrast body,
+html.a11y-high-contrast .admin-shell {
+  background: #000 !important;
+  color: #fff !important;
 }
-html.a11y-dark-mode .accessibility-bar,
-html.a11y-dark-mode .admin-topbar {
-  background: #14171b !important;
-  color: #e6e0d5 !important;
-  border-color: #343a40 !important;
+html.a11y-high-contrast .accessibility-bar,
+html.a11y-high-contrast .admin-topbar {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #ffdf00 !important;
 }
-html.a11y-dark-mode :where(.font-size-control, .accessibility-toggle) {
-  background: #1b1f24;
-  color: #e6e0d5;
-  border-color: #424850;
+html.a11y-high-contrast :where(.font-size-control, .accessibility-toggle) {
+  background: #000;
+  color: #fff;
+  border-color: #ffdf00;
 }
-html.a11y-dark-mode .font-size-step {
-  background: #242930;
-  color: #e6e0d5;
-  border-color: #4b525b;
+html.a11y-high-contrast .font-size-step {
+  background: #000;
+  color: #ffdf00;
+  border-color: #ffdf00;
 }
-html.a11y-dark-mode :where(
+html.a11y-high-contrast :where(
   .accessibility-heading,
   .font-size-label,
   .accessibility-state,
@@ -265,8 +265,8 @@ html.a11y-dark-mode :where(
   .admin-dept,
   .admin-report-meta,
   .admin-timeline time
-) { color: #aaa398 !important; }
-html.a11y-dark-mode :where(
+) { color: #fff !important; }
+html.a11y-high-contrast :where(
   .font-size-value,
   .home-placeholder h1,
   .admin-title-mark,
@@ -274,8 +274,8 @@ html.a11y-dark-mode :where(
   .admin-stat.review b,
   .admin-params b,
   .admin-mono
-) { color: #c4a46b !important; }
-html.a11y-dark-mode :where(
+) { color: #ffdf00 !important; }
+html.a11y-high-contrast :where(
   .admin-stat,
   .admin-sort,
   .admin-params,
@@ -284,44 +284,44 @@ html.a11y-dark-mode :where(
   .admin-panel,
   .admin-report-card
 ) {
-  background: #15191d !important;
-  border-color: #343a40 !important;
+  background: #000 !important;
+  border-color: #ffdf00 !important;
   box-shadow: none !important;
 }
-html.a11y-dark-mode :where(
+html.a11y-high-contrast :where(
   .admin-card-thumb,
   .admin-thumb-empty,
   .admin-select
 ) {
-  background: #101216 !important;
-  color: #e6e0d5 !important;
-  border-color: #424850 !important;
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #ffdf00 !important;
 }
-html.a11y-dark-mode :where(
+html.a11y-high-contrast :where(
   .admin-btn,
   .admin-tab,
   .admin-sort button,
   .admin-status-btn,
   .admin-status
 ) {
-  background: #20252b !important;
-  color: #d8d2c8 !important;
-  border-color: #424850 !important;
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #ffdf00 !important;
 }
-html.a11y-dark-mode .accessibility-toggle[aria-pressed='true'],
-html.a11y-dark-mode .home-cta,
-html.a11y-dark-mode body .admin-tab.active,
-html.a11y-dark-mode body .admin-sort button.active,
-html.a11y-dark-mode body .admin-status-btn.current {
-  background: #c4a46b !important;
-  color: #17130d !important;
-  border-color: #c4a46b !important;
+html.a11y-high-contrast .accessibility-toggle[aria-pressed='true'],
+html.a11y-high-contrast .home-cta,
+html.a11y-high-contrast body .admin-tab.active,
+html.a11y-high-contrast body .admin-sort button.active,
+html.a11y-high-contrast body .admin-status-btn.current {
+  background: #ffdf00 !important;
+  color: #000 !important;
+  border-color: #ffdf00 !important;
 }
-html.a11y-dark-mode .accessibility-toggle[aria-pressed='true'] .accessibility-state {
-  background: rgba(23, 19, 13, 0.12);
-  color: #17130d !important;
+html.a11y-high-contrast .accessibility-toggle[aria-pressed='true'] .accessibility-state {
+  background: #000;
+  color: #ffdf00 !important;
 }
-html.a11y-dark-mode :focus-visible { outline-color: #d3b77d; }
+html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
 
 @media (max-width: 520px) {
   .accessibility-bar { padding: 8px 12px; }
