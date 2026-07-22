@@ -1,7 +1,15 @@
-import { validateUploadRequest, validateReportRequest } from './schema.js';
+import { validateStatusLookup, validateUploadRequest, validateReportRequest } from './schema.js';
 import { generatePresignedUrl } from './upload.js';
 import { submitReport } from './report-service.js';
 import { getReportByReceiptNo } from './store.js';
+import { matchesViewToken } from './view-token.js';
+
+class InvalidJsonError extends Error {
+  constructor() {
+    super('잘못된 JSON 형식입니다.');
+    this.name = 'InvalidJsonError';
+  }
+}
 
 /**
  * HTTP 라우터 (Issue #9)
@@ -25,11 +33,16 @@ function parseBody(req) {
     const chunks = [];
     req.on('data', (chunk) => chunks.push(chunk));
     req.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('utf8');
+      if (!raw) {
+        resolve({});
+        return;
+      }
+
       try {
-        const raw = Buffer.concat(chunks).toString('utf8');
-        resolve(raw ? JSON.parse(raw) : {});
-      } catch (e) {
-        reject(new Error('잘못된 JSON 형식입니다.'));
+        resolve(JSON.parse(raw));
+      } catch {
+        reject(new InvalidJsonError());
       }
     });
     req.on('error', reject);
@@ -42,6 +55,24 @@ function parseBody(req) {
 function json(res, statusCode, data) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
+}
+
+/**
+ * 라우터 오류를 공개 가능한 HTTP 응답과 최소 로그로 변환한다.
+ */
+export function respondToRouterError(err, method, res, logError = console.error) {
+  if (err instanceof InvalidJsonError) {
+    return json(res, 400, {
+      success: false,
+      errors: [{ field: 'body', message: '잘못된 JSON 형식입니다.' }],
+    });
+  }
+
+  logError({ event: 'UNEXPECTED_ERROR', method: method || 'UNKNOWN' });
+  return json(res, 500, {
+    success: false,
+    errors: [{ field: 'server', message: '서버 내부 오류' }],
+  });
 }
 
 /**
@@ -103,28 +134,33 @@ export async function handleRequest(req, res) {
       const receiptNo = pathname.replace('/api/status/', '');
       const token = url.searchParams.get('token');
 
+      // 조회 URL의 토큰과 응답이 브라우저 캐시·후속 요청에 남지 않도록 제한한다.
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Referrer-Policy', 'no-referrer');
+
       if (!receiptNo) {
         return json(res, 400, { success: false, errors: [{ field: 'receiptNo', message: '접수번호가 필요합니다.' }] });
       }
 
-      const report = getReportByReceiptNo(receiptNo);
-      if (!report) {
-        return json(res, 404, { success: false, errors: [{ field: 'receiptNo', message: '해당 접수번호의 신고를 찾을 수 없습니다.' }] });
-      }
-
-      // 조회 토큰 검증 — 토큰이 없거나 틀리면 403
-      if (!token || report.viewToken !== token) {
+      // 형식 오류·없는 번호·잘못된 토큰을 동일하게 처리해 접수번호 존재 여부를 숨긴다.
+      if (!validateStatusLookup(receiptNo, token)) {
         return json(res, 403, { success: false, errors: [{ field: 'token', message: '유효한 조회 토큰이 필요합니다.' }] });
       }
 
+      const report = getReportByReceiptNo(receiptNo);
+      if (!report || !matchesViewToken(report.viewTokenHash, token)) {
+        return json(res, 403, { success: false, errors: [{ field: 'token', message: '유효한 조회 토큰이 필요합니다.' }] });
+      }
+
+      // 시민 상태 화면에 필요한 최소 필드만 반환한다. 사진·위치·연락처·토큰은 제외한다.
       return json(res, 200, {
         success: true,
         data: {
-          receiptNo: report.receiptNo,
-          photos: report.photos,
-          location: report.location,
-          status: report.status,
-          createdAt: report.createdAt,
+          report: {
+            receiptNo: report.receiptNo,
+            status: report.status,
+            createdAt: report.createdAt,
+          },
         },
       });
     }
@@ -137,7 +173,6 @@ export async function handleRequest(req, res) {
     // ─── 404 ─────────────────────────────────────────────
     json(res, 404, { success: false, errors: [{ field: 'path', message: `${method} ${pathname} 를 찾을 수 없습니다.` }] });
   } catch (err) {
-    console.error('[router]', err);
-    json(res, 500, { success: false, errors: [{ field: 'server', message: err.message || '서버 내부 오류' }] });
+    return respondToRouterError(err, method, res);
   }
 }

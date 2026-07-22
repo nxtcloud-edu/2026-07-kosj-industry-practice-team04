@@ -1,3 +1,5 @@
+import { matchesViewToken } from './view-token.js';
+
 /**
  * 인메모리 신고 저장소 (Issue #9)
  * ─────────────────────────────────────────────────────
@@ -34,7 +36,7 @@ export function getReportByReceiptNo(receiptNo) {
  */
 export function getReportByToken(token) {
   for (const report of reports.values()) {
-    if (report.viewToken === token) return report;
+    if (matchesViewToken(report.viewTokenHash, token)) return report;
   }
   return undefined;
 }

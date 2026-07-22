@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { saveReport } from './store.js';
+import { generateViewToken, hashViewToken } from './view-token.js';
 
 /**
  * 신고 접수 비즈니스 로직 (Issue #9 · SFR-001)
@@ -18,26 +19,19 @@ function generateReceiptNo() {
 }
 
 /**
- * 조회 토큰 생성 — 시민이 접수 결과를 조회할 때 사용하는 비밀 토큰
- * @returns {string}
- */
-function generateViewToken() {
-  return crypto.randomBytes(16).toString('hex');
-}
-
-/**
  * 신고 접수
- * @param {{ photos: string[], latitude: number, longitude: number, address?: string, locationConsent: boolean }} data
+ * @param {{ photos: string[], latitude: number, longitude: number, address?: string, locationConsent: boolean, contact?: string }} data
  * @returns {{ receiptNo: string, viewToken: string, report: object }}
  */
 export function submitReport(data) {
   const receiptNo = generateReceiptNo();
   const viewToken = generateViewToken();
+  const contact = typeof data.contact === 'string' ? data.contact.trim() : '';
   const now = new Date().toISOString();
 
   const report = {
     receiptNo,
-    viewToken,
+    viewTokenHash: hashViewToken(viewToken),
     photos: data.photos,
     location: {
       latitude: data.latitude,
@@ -50,6 +44,8 @@ export function submitReport(data) {
       location: data.locationConsent === true,
       agreedAt: now,
     },
+    // 연락처 존재 자체를 처리 알림 희망으로 본다. 미입력 시 필드도 만들지 않는다.
+    ...(contact ? { contact } : {}),
     status: '접수', // 접수 → 배정 → 처리중 → 완료
     createdAt: now,
     updatedAt: now,
