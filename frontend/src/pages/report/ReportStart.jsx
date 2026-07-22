@@ -10,11 +10,11 @@ export default function ReportStart() {
 
   return (
     <div className="report-page">
-      <h1 className="report-start__title">불법 주정차 신고</h1>
+      <h1 className="report-start__title">생활 불편 신고</h1>
       <p className="report-start__desc">
-        불법 주정차 차량을 촬영하여 간편하게 신고하세요.
+        도로 파손, 가로등 고장, 쓰레기 무단투기를 사진으로 신고하세요.
         <br />
-        촬영된 사진은 AI가 자동으로 분석합니다.
+        촬영한 사진은 AI가 자동으로 유형을 분류합니다.
       </p>
       <button
         className="report-start__btn"
