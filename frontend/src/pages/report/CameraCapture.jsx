@@ -187,6 +187,15 @@ export default function CameraCapture() {
               전체 삭제
             </button>
           </div>
+
+          {/* 다음 단계 — 위치 확인 (#7) */}
+          <button
+            className="camera-next-btn"
+            onClick={() => navigate('/report/location')}
+            disabled={isCompressing}
+          >
+            다음 · 위치 확인 →
+          </button>
         </section>
       ) : (
         /* 촬영 가이드 */
