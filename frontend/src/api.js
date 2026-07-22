@@ -1,12 +1,26 @@
+/**
+ * 공통 요청 헬퍼 — docs/API_CONTRACT.md 1장(응답 형태 규약)
+ *
+ * 성공: { success: true, data: {...} }  → data만 돌려준다
+ * 실패: { success: false, errors: [{ field, message }] } → message를 합쳐 throw
+ *
+ * 봉투가 없는 응답(구버전·정적 목)도 그대로 통과시킨다.
+ */
 async function req(method, url, body) {
   const res = await fetch(url, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `요청 실패 (${res.status})`);
-  return data;
+  const payload = await res.json().catch(() => ({}));
+
+  if (!res.ok || payload.success === false) {
+    const detail = Array.isArray(payload.errors)
+      ? payload.errors.map((e) => e.message).filter(Boolean).join(' / ')
+      : payload.error;
+    throw new Error(detail || `요청 실패 (${res.status})`);
+  }
+  return payload.data ?? payload;
 }
 
 // ── 시민 (FE 팀이 사용) ──
