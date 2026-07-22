@@ -1,0 +1,170 @@
+/* ===== 신고 상태 조회 화면 스타일 ===== */
+
+.status-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+  gap: 24px;
+}
+
+.status-page__header {
+  width: 100%;
+  max-width: 380px;
+}
+
+.status-page__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #e8eef4;
+}
+
+/* 접수번호 카드 */
+.status-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #152234;
+  border: 1px solid #1e3a5f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-card__label {
+  font-size: 13px;
+  color: #7a92ad;
+  font-weight: 600;
+}
+
+.status-card__number {
+  font-size: 18px;
+  font-weight: 800;
+  color: #e8eef4;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #0e1726;
+  border: 1px solid #334155;
+  user-select: all;
+}
+
+/* 현재 상태 */
+.status-current {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+  border-radius: 14px;
+  background: #0f2b26;
+  border: 1px solid #134e45;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-current__badge {
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #2dd4bf;
+  color: #062823;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.status-current__detail {
+  font-size: 14px;
+  color: #c8d6e5;
+  line-height: 1.5;
+}
+
+.status-current__date {
+  font-size: 12px;
+  color: #7a92ad;
+}
+
+/* 처리 단계 */
+.status-steps {
+  width: 100%;
+  max-width: 380px;
+}
+
+.status-steps__heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: #9fb3cd;
+  margin-bottom: 14px;
+}
+
+.status-steps__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.status-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-left: 2px solid #334155;
+  margin-left: 8px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.status-steps__item:first-child {
+  padding-top: 0;
+}
+
+.status-steps__item:last-child {
+  border-left-color: transparent;
+}
+
+.status-steps__dot {
+  position: absolute;
+  left: -7px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #334155;
+  border: 2px solid #1e293b;
+}
+
+.status-steps__item--done .status-steps__dot {
+  background: #2dd4bf;
+  border-color: #0f2b26;
+}
+
+.status-steps__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #7a92ad;
+}
+
+.status-steps__item--done .status-steps__label {
+  color: #e8eef4;
+}
+
+/* 홈 버튼 */
+.status-home-btn {
+  width: 100%;
+  max-width: 380px;
+  margin-top: auto;
+  padding: 16px;
+  border-radius: 14px;
+  background: #1e293b;
+  color: #e8eef4;
+  border: 1px solid #334155;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.status-home-btn:hover {
+  background: #334155;
+}

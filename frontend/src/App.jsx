@@ -1,6 +1,8 @@
 import { Link, Route, Routes } from 'react-router-dom';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import AdminIssueDetail from './pages/admin/AdminIssueDetail.jsx';
+import ReportComplete from './pages/report/ReportComplete.jsx';
+import ReportStatus from './pages/status/ReportStatus.jsx';
 
 // 관리자 콘솔 라우팅.
 // 시민 화면(/, /status/:receiptNo)은 FE 팀 PR에서 이 App에 라우트를 추가한다.
@@ -20,6 +22,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/report/complete" element={<ReportComplete />} />
+      <Route path="/status/:receiptNo" element={<ReportStatus />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/admin/issues/:id" element={<AdminIssueDetail />} />
     </Routes>
