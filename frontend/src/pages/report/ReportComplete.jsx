@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './report.css';
 
 /**
@@ -46,6 +46,20 @@ const SIMILAR_REPORTS = [
 
 export default function ReportComplete() {
   const navigate = useNavigate();
+  const { state } = useLocation();
+
+  // 접수 응답(receiptNo·viewToken)은 위치 확인 화면에서 넘어온다.
+  // 직접 URL로 들어온 경우엔 예시 값으로 화면만 보여준다.
+  const receiptNo = state?.receiptNo ?? MOCK_RECEIPT.receiptNo;
+  const viewToken = state?.viewToken ?? null;
+  const receivedAt = state?.receiptNo
+    ? new Date().toLocaleString('ko-KR')
+    : MOCK_RECEIPT.date;
+
+  // 조회는 접수번호 + 토큰이 함께 있어야 한다 (SER-001·003)
+  const statusPath = viewToken
+    ? `/status/${receiptNo}?token=${viewToken}`
+    : `/status/${receiptNo}`;
 
   return (
     <div className="report-complete">
@@ -65,15 +79,15 @@ export default function ReportComplete() {
       {/* 접수번호 카드 */}
       <div className="receipt-card">
         <span className="receipt-card__label">접수번호</span>
-        <span className="receipt-card__number">{MOCK_RECEIPT.receiptNo}</span>
-        <span className="receipt-card__date">접수일시: {MOCK_RECEIPT.date}</span>
+        <span className="receipt-card__number">{receiptNo}</span>
+        <span className="receipt-card__date">접수일시: {receivedAt}</span>
       </div>
 
       {/* 액션 버튼 */}
       <div className="report-complete__actions">
         <button
           className="report-complete__btn report-complete__btn--primary"
-          onClick={() => navigate(`/status/${MOCK_RECEIPT.receiptNo}`)}
+          onClick={() => navigate(statusPath)}
         >
           신고 조회하기
         </button>

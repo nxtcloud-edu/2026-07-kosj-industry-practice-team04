@@ -24,6 +24,9 @@ async function req(method, url, body) {
 }
 
 // ── 시민 (FE 팀이 사용) ──
+/** 사진 업로드용 presigned URL 발급 — 응답의 publicUrl을 신고에 첨부한다 */
+export const presignUpload = ({ filename, contentType, fileSize }) =>
+  req('POST', '/api/uploads/presign', { filename, contentType, fileSize });
 export const analyzePhoto = (photo, filename) => req('POST', '/api/analyze', { photo, filename });
 export const nearbyIssues = (lat, lng, type) =>
   req('GET', `/api/issues/nearby?lat=${lat}&lng=${lng}&type=${encodeURIComponent(type)}`);
