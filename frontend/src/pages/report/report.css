@@ -759,7 +759,17 @@
   border-radius: 10px;
   font-weight: 800;
 }
-.similar-choice__content button { margin-top: 5px; background: #2dd4bf; color: #062823; }
+.similar-choice__content button { margin-top: 5px; }
+.similar-choice__content .similar-choice__attach { background: #2dd4bf; color: #062823; }
+.similar-choice__content .similar-choice__empathy {
+  background: #1e293b;
+  color: #fbbf24;
+  border: 1px solid #fbbf24;
+}
+.similar-choice__content .similar-choice__empathy[aria-pressed='true'] {
+  background: #422006;
+  color: #fde68a;
+}
 .similar-choice__new { width: 100%; background: #1e293b; color: #fff; border: 1px solid #64748b; }
 .similar-choice__empty {
   padding: 14px;
