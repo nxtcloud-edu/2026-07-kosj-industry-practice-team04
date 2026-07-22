@@ -43,9 +43,9 @@ export default function LocationConfirm() {
   );
 
   const handleNext = useCallback(() => {
-    // TODO: 다음 단계로 이동 (신고 제출 등)
-    // navigate('/report/submit');
-    navigate('/');
+    // TODO(#9 연동): POST /api/reports 로 접수한 뒤, 응답의 receiptNo·viewToken을
+    // state로 넘겨 완료 화면에서 표시한다 (docs/API_CONTRACT.md 2장)
+    navigate('/report/complete');
   }, [navigate]);
 
   return (

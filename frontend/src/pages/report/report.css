@@ -736,3 +736,186 @@
   cursor: pointer;
 }
 .camera-next-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ───────── 신고 완료 (#8) ───────── */
+/* ===== 신고 완료 화면 스타일 (Issue #8) ===== */
+
+/* 페이지 레이아웃 */
+.report-complete {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+  gap: 24px;
+}
+
+/* 성공 아이콘 */
+.report-complete__icon {
+  font-size: 56px;
+  line-height: 1;
+}
+
+/* 완료 메시지 */
+.report-complete__title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2dd4bf;
+  text-align: center;
+}
+
+.report-complete__subtitle {
+  font-size: 14px;
+  color: #9fb3cd;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 접수번호 카드 */
+.receipt-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+  border-radius: 14px;
+  background: #152234;
+  border: 1px solid #1e3a5f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.receipt-card__label {
+  font-size: 13px;
+  color: #7a92ad;
+  font-weight: 600;
+}
+
+.receipt-card__number {
+  font-size: 20px;
+  font-weight: 800;
+  color: #e8eef4;
+  letter-spacing: 0.02em;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: #0e1726;
+  border: 1px solid #334155;
+  user-select: all;
+}
+
+.receipt-card__date {
+  font-size: 12px;
+  color: #7a92ad;
+}
+
+/* 액션 버튼 */
+.report-complete__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.report-complete__btn {
+  display: block;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  transition: filter 0.15s;
+}
+
+.report-complete__btn--primary {
+  background: #2dd4bf;
+  color: #062823;
+}
+
+.report-complete__btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+.report-complete__btn--secondary {
+  background: #1e293b;
+  color: #e8eef4;
+  border: 1px solid #334155;
+}
+
+.report-complete__btn--secondary:hover {
+  background: #334155;
+}
+
+/* ===== 유사 신고 후보 영역 ===== */
+.similar-section {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.similar-section__heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: #9fb3cd;
+}
+
+.similar-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #152234;
+  border: 1px solid #1e3a5f;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s;
+}
+
+.similar-card:hover {
+  border-color: #2dd4bf;
+}
+
+.similar-card__type {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2dd4bf;
+  background: #0f2b26;
+  padding: 3px 8px;
+  border-radius: 6px;
+  align-self: flex-start;
+}
+
+.similar-card__address {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8eef4;
+}
+
+.similar-card__meta {
+  font-size: 12px;
+  color: #7a92ad;
+}
+
+.similar-card__status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.similar-card__status--received {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+
+.similar-card__status--processing {
+  background: #422006;
+  color: #fbbf24;
+}
+
+.similar-card__status--resolved {
+  background: #0f2b26;
+  color: #5eead4;
+}
