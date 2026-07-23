@@ -53,7 +53,7 @@ jobs:
 
       - name: Lint CloudFormation
         run: |
-          "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" --regions ap-northeast-2 infra/frontend-hosting.yml
+          "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/frontend-hosting.yml --regions ap-northeast-2
 
       - name: Lint workflow syntax
         run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
