@@ -1,18 +1,20 @@
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useCurrentLocation from '../../hooks/useCurrentLocation.js';
-import { addEmpathy, createReport, nearbyIssues, presignUpload } from '../../api.js';
+import { addEmpathy, createReport, nearbyIssues, presignUpload, uploadPhoto } from '../../api.js';
 import { getDeviceId } from '../../deviceId.js';
-import { clearDraft, getDraft } from '../../reportDraft.js';
+import { clearDraft, getDraft, getDraftFiles } from '../../reportDraft.js';
+import MoaMap from '../../components/MoaMap.jsx';
 import './report.css';
 
 /**
- * 위치 확인 화면 (/report/location) — SER-001(위치정보 동의) · SIR-002(지도 API 연계)
+ * 위치 확인 화면 (/report/location)
+ * — SER-001(위치정보 동의) · SIR-002(지도) · Issue #55(사진 실업로드)
  *
  * 1. 위치정보 수집 동의
  * 2. 현재 위치 가져오기 (Geolocation API)
- * 3. 지도 Placeholder (향후 Kakao/Naver Map 연동 대비)
- * 4. 행정구역 표시 (현재는 위도/경도 + TODO 주석)
+ * 3. 지도에서 핀을 드래그해 위치 보정 (Leaflet + OSM, 멘토 피드백 7/23)
+ * 4. 사진 실제 업로드(presign → PUT) 후 유사 신고 후보 제시 → 접수
  */
 export default function LocationConfirm() {
   const navigate = useNavigate();
@@ -34,9 +36,14 @@ export default function LocationConfirm() {
     }
   });
 
-  // TODO: 실제 주소 API(카카오 로컬, 행정안전부 등) 연동 시 이 함수 교체
-  const addressPlaceholder = position
-    ? `위도 ${position.latitude.toFixed(6)}, 경도 ${position.longitude.toFixed(6)} (주소 API 연동 예정)`
+  const draft = getDraft();
+  const draftFiles = getDraftFiles();
+  // 새로고침으로 File 객체가 날아간 경우 — 메타만 남아 있으면 재촬영을 안내한다.
+  const filesMissing = draft.photos.length > 0 && draftFiles.length !== draft.photos.length;
+
+  // TODO: 역지오코딩 API(카카오 로컬 등) 연동 시 실제 주소로 교체
+  const addressLabel = position
+    ? `핀 위치 기준 (위도 ${position.latitude.toFixed(5)}, 경도 ${position.longitude.toFixed(5)})`
     : null;
 
   const handleAgreeChange = useCallback((e) => {
@@ -47,38 +54,32 @@ export default function LocationConfirm() {
     getCurrentPosition();
   }, [getCurrentPosition]);
 
-  // 지도에서 위치 변경 시뮬레이션 (Placeholder용)
-  const handleMapClick = useCallback(
-    (e) => {
-      // 실제 지도 API 연동 시 이벤트에서 좌표를 추출
-      // 현재는 Placeholder이므로 동작하지 않음
-      void e;
-      void setPosition;
-    },
-    [setPosition]
-  );
+  // 지도 핀 드래그 → 신고 위치 보정
+  const handlePinMove = useCallback((next) => {
+    setPosition(next);
+  }, [setPosition]);
 
-  // 위치·사진을 준비한 뒤 유사 신고 후보를 먼저 제시한다 (Issue #14).
+  // 사진을 실제로 올린 뒤(#55) 유사 신고 후보를 먼저 제시한다 (Issue #14).
   const handleNext = useCallback(async () => {
     if (!position || !agreed || submitting) return;
     setSubmitting(true);
     setSubmitError('');
 
     try {
-      // ① 사진 업로드용 presigned URL 발급 → publicUrl을 신고에 첨부
-      //    (실제 바이너리 업로드는 S3 연동 시 이 사이에 들어간다 — upload.js 참고)
-      const { photos: metas } = getDraft();
-      const photoUrls = [];
-      for (const meta of metas) {
-        const { publicUrl } = await presignUpload({
-          filename: meta.name,
-          contentType: meta.type,
-          fileSize: meta.size,
+      // ① presign 발급 → ② 압축된 사진 바이트를 PUT 업로드 → ③ publicUrl 첨부
+      const files = getDraftFiles();
+      const uploaded = [];
+      for (const file of files) {
+        const { uploadUrl, publicUrl } = await presignUpload({
+          filename: file.name,
+          contentType: file.type,
+          fileSize: file.size,
         });
-        photoUrls.push(publicUrl);
+        await uploadPhoto(uploadUrl, file);
+        uploaded.push(publicUrl);
       }
 
-      setPhotoUrls(photoUrls);
+      setPhotoUrls(uploaded);
 
       // 촬영 단계의 AI 분류 결과(#10·#11)를 그대로 사용한다. 분류가 없으면 '기타'.
       const reportType = getDraft().analysis?.type ?? '기타';
@@ -92,10 +93,10 @@ export default function LocationConfirm() {
       }
       setSubmitting(false);
     } catch (e) {
-      setSubmitError(e.message || '신고 접수에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      setSubmitError(e.message || '사진 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       setSubmitting(false);
     }
-  }, [position, agreed, submitting, addressPlaceholder, navigate]);
+  }, [position, agreed, submitting]);
 
   const submitChoice = useCallback(async (attachIssueId = null) => {
     if (!position || !agreed || submitting) return;
@@ -110,7 +111,7 @@ export default function LocationConfirm() {
         photos: photoUrls,
         latitude: position.latitude,
         longitude: position.longitude,
-        address: addressPlaceholder,
+        address: addressLabel,
         locationConsent: agreed,
         ...(analysis ? { type: analysis.type, confidence: analysis.confidence } : {}),
         ...(attachIssueId ? { attachIssueId } : {}),
@@ -122,7 +123,7 @@ export default function LocationConfirm() {
       setSubmitError(e.message || '신고 접수에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       setSubmitting(false);
     }
-  }, [position, agreed, submitting, photoUrls, addressPlaceholder, navigate]);
+  }, [position, agreed, submitting, photoUrls, addressLabel, navigate]);
 
   const handleEmpathy = useCallback(async (issueId) => {
     if (empathyBusy || empathized.includes(issueId)) return;
@@ -138,7 +139,9 @@ export default function LocationConfirm() {
       setEmpathized(next);
       window.localStorage.setItem('moa-empathized-issues', JSON.stringify(next));
     } catch (e) {
-      setSubmitError(e.message || '공감을 추가하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      setSubmitError(e.status === 429
+        ? '잠시 후 다시 공감할 수 있습니다.'
+        : (e.message || '공감을 추가하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
     } finally {
       setEmpathyBusy(null);
     }
@@ -147,23 +150,28 @@ export default function LocationConfirm() {
   return (
     <div className="location-page">
       {/* 헤더 */}
-      <header className="location-page__header">
+      <header className="flow-head">
         <button
-          className="location-page__back"
+          className="flow-head__back"
           onClick={() => navigate(-1)}
           aria-label="뒤로 가기"
         >
-          &larr;
+          ←
         </button>
-        <h2 className="location-page__title">위치 확인</h2>
+        <h2 className="flow-head__title">위치 확인</h2>
+        <span className="flow-head__step" aria-label="3단계 중 2단계">2 / 3</span>
       </header>
+
+      {filesMissing && (
+        <div className="notice warn" role="alert">
+          화면이 새로 열려 촬영한 사진이 비워졌어요.{' '}
+          <Link to="/report/camera" className="notice__link">다시 촬영하러 가기</Link>
+        </div>
+      )}
 
       {/* 위치정보 안내 카드 */}
       <section className="location-card">
         <h3 className="location-card__heading">위치정보 수집·이용 안내</h3>
-        <p className="location-card__desc">
-          현재 위치를 사용하기 위해 위치 권한이 필요합니다.
-        </p>
 
         {/* 수집 목적·항목·보관 기간 고지 (SER-001) */}
         <dl className="consent-notice">
@@ -177,12 +185,9 @@ export default function LocationConfirm() {
           </div>
           <div>
             <dt>보관 기간</dt>
-            <dd>처리 완료 후 6개월, 이후 파기 또는 비식별 처리</dd>
+            <dd>처리 완료 후 6개월, 이후 자동 파기·비식별 처리</dd>
           </div>
         </dl>
-        <p className="consent-notice__hint">
-          동의하지 않으면 위치 기반 신고를 접수할 수 없습니다.
-        </p>
 
         {/* 동의 체크박스 */}
         <label className="location-agree">
@@ -221,43 +226,35 @@ export default function LocationConfirm() {
         )}
       </section>
 
-      {/* 지도 영역 (Placeholder) */}
-      <section
-        className="location-map-placeholder"
-        onClick={handleMapClick}
-        role="application"
-        aria-label="지도 영역 (Placeholder)"
-      >
-        <p className="location-map-placeholder__text">
-          {position
-            ? `📍 ${position.latitude.toFixed(4)}, ${position.longitude.toFixed(4)}`
-            : '지도가 여기에 표시됩니다'}
-        </p>
-        <span className="location-map-placeholder__hint">
-          {/* TODO: Kakao Map 또는 Naver Map API 연동 */}
-          향후 지도 API를 연결하면 이 영역에 지도가 표시됩니다.
-          <br />
-          지도에서 위치를 탭하여 수정할 수 있습니다.
-        </span>
-      </section>
+      {/* 지도 — 핀을 드래그해 위치 보정 (SIR-002) */}
+      {position ? (
+        <section className="location-map-card">
+          <MoaMap
+            center={position}
+            picker
+            onMove={handlePinMove}
+            ariaLabel="신고 위치 지도 — 핀을 드래그해 위치를 조정할 수 있습니다"
+          />
+          <p className="location-map-hint">🧭 핀을 끌어서 정확한 위치로 맞춰주세요</p>
+        </section>
+      ) : (
+        <section className="location-map-empty" aria-hidden="true">
+          <span>동의 후 위치를 가져오면 지도가 표시됩니다</span>
+        </section>
+      )}
 
-      {/* 선택된 위치 정보 카드 */}
+      {/* 선택된 위치 정보 */}
       {position && (
         <section className="location-info-card">
-          <h4 className="location-info-card__heading">선택된 위치</h4>
           <dl className="location-info-card__list">
             <div className="location-info-card__row">
-              <dt>위도</dt>
-              <dd>{position.latitude.toFixed(6)}</dd>
-            </div>
-            <div className="location-info-card__row">
-              <dt>경도</dt>
-              <dd>{position.longitude.toFixed(6)}</dd>
+              <dt>좌표</dt>
+              <dd>{position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}</dd>
             </div>
             <div className="location-info-card__row">
               <dt>주소</dt>
               {/* TODO: 역지오코딩 API 연동 후 실제 주소 표시 */}
-              <dd>{addressPlaceholder}</dd>
+              <dd>{addressLabel}</dd>
             </div>
           </dl>
         </section>
@@ -272,11 +269,11 @@ export default function LocationConfirm() {
 
       {candidates === null ? (
         <button
-          className="location-next-btn"
+          className="btn-primary location-next-btn"
           onClick={handleNext}
-          disabled={!position || !agreed || submitting}
+          disabled={!position || !agreed || submitting || filesMissing}
         >
-          {submitting ? '유사 신고 확인 중…' : '이 위치로 신고하기'}
+          {submitting ? '사진 올리는 중…' : '이 위치로 신고하기'}
         </button>
       ) : (
         <section className="similar-choice" aria-labelledby="similar-choice-title">
@@ -287,9 +284,6 @@ export default function LocationConfirm() {
             <div className="similar-choice__list">
               {candidates.map((candidate) => (
                 <article className="similar-choice__card" key={candidate.id}>
-                  {candidate.thumbnail && (
-                    <img src={candidate.thumbnail} alt="" className="similar-choice__thumb" />
-                  )}
                   <div className="similar-choice__content">
                     <strong>{candidate.type}</strong>
                     <span>{candidate.address}</span>

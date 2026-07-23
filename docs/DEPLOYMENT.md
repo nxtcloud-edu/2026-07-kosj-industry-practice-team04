@@ -47,3 +47,24 @@ aws cloudformation create-change-set \
 - 이후 invalidation 또는 smoke test가 실패하면 이전 `index.html` S3 Version ID를 복원하고 다시 invalidation한다. workflow는 rollback 성공 여부와 관계없이 실패로 남는다.
 
 실제 배포 상태는 GitHub Actions에서 확인한다. 백엔드가 아직 클라우드에 배포되지 않은 상태에서는 화면의 API 기능이 실패할 수 있다.
+
+## 배포 리소스 식별 정보 (Issue #60)
+
+| 항목 | 값 |
+|---|---|
+| CloudFormation 스택 | `moa-frontend-hosting` |
+| CloudFront 배포 ID | `EWHPAP2AU1XU7` |
+| 리전 | `ap-northeast-2` |
+
+배포 URL(CloudFront 도메인)은 AWS 콘솔 → CloudFront → 위 배포 ID의 **Distribution domain name**에서 확인해 팀 채널에 공유한다. (보안상 공개 레포 문서에는 적지 않는다.)
+
+## 백엔드 배포 시 환경변수 (Issue #56·#57·#59)
+
+백엔드를 클라우드에 올릴 때 반드시 설정한다:
+
+- `MOA_ADMIN_TOKEN` — 관리자 API Bearer 인증 (미설정 시 콘솔이 공개됨)
+- `MOA_ALLOWED_ORIGIN` — 프론트 CloudFront origin으로 CORS 제한
+- `MOA_GEMINI_API_KEY` — Gemini 실분류 (미설정 시 mock)
+- `MOA_DATA_FILE` / `MOA_UPLOAD_DIR` — 영속 볼륨 경로 (서버리스 전환 전 임시)
+
+전체 목록과 기본값은 README의 **백엔드 환경변수** 표 참고.

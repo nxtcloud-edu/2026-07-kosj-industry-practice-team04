@@ -1,22 +1,32 @@
 /**
  * 신고 작성 중 임시 보관 (촬영 화면 → 위치 확인 화면)
  * ─────────────────────────────────────────────────────
- * 화면 간 상태 공유가 필요하지만 전역 스토어를 도입할 정도는 아니라
- * sessionStorage에 최소 정보만 둔다. 접수가 끝나면 clearDraft()로 비운다.
- *
- * 이미지 바이트는 저장하지 않는다(용량). presign 발급에 필요한 메타데이터만 보관.
+ * 메타데이터는 sessionStorage에, 실제 사진 File 객체는 모듈 메모리에 둔다.
+ * (sessionStorage는 바이트를 담기엔 용량 제한이 있고, SPA 내 이동에서는
+ *  모듈 메모리로 충분하다. 새로고침으로 File이 날아가면 위치 확인 화면이
+ *  재촬영을 안내한다 — Issue #55)
+ * 접수가 끝나면 clearDraft()로 모두 비운다.
  */
 const KEY = 'moa-report-draft';
 
 /** @typedef {{ name: string, type: string, size: number }} PhotoMeta */
 
-/** 촬영 화면에서 사진 메타데이터 저장 (기존 분류 결과는 유지) */
+/** 촬영 화면의 압축된 File 객체 — 업로드(PUT)에 그대로 쓴다 */
+let draftFiles = [];
+
+/** 촬영 화면에서 사진 저장 (기존 분류 결과는 유지) */
 export function saveDraftPhotos(files) {
+  draftFiles = [...files];
   const photos = files.map((f) => ({ name: f.name, type: f.type, size: f.size }));
   const prev = getDraft();
   sessionStorage.setItem(KEY, JSON.stringify({
     ...prev, photos, savedAt: new Date().toISOString(),
   }));
+}
+
+/** 업로드할 실제 File 객체들 (새로고침 시 빈 배열) */
+export function getDraftFiles() {
+  return draftFiles;
 }
 
 /**
@@ -30,7 +40,7 @@ export function saveDraftAnalysis({ type, confidence, needsReview }) {
   }));
 }
 
-/** @returns {{ photos: PhotoMeta[], savedAt?: string }} */
+/** @returns {{ photos: PhotoMeta[], analysis?: object, savedAt?: string }} */
 export function getDraft() {
   try {
     const raw = sessionStorage.getItem(KEY);
@@ -41,5 +51,6 @@ export function getDraft() {
 }
 
 export function clearDraft() {
+  draftFiles = [];
   sessionStorage.removeItem(KEY);
 }

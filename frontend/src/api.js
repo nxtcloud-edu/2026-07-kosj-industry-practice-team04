@@ -26,10 +26,36 @@ function apiBaseUrl() {
 
 const API_BASE_URL = apiBaseUrl();
 
+/** 상대 경로 사진 URL(/uploads/…)을 API 서버 기준 절대 경로로 바꾼다 */
+export function photoSrc(url) {
+  if (!url) return url;
+  return url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
+}
+
+/* ── 관리자 토큰 (#56) — 백엔드에 MOA_ADMIN_TOKEN이 설정된 경우에만 요구된다 ── */
+const ADMIN_TOKEN_KEY = 'moa-admin-token';
+
+export function getAdminToken() {
+  try { return window.sessionStorage.getItem(ADMIN_TOKEN_KEY) || ''; } catch { return ''; }
+}
+export function setAdminToken(token) {
+  try { window.sessionStorage.setItem(ADMIN_TOKEN_KEY, token); } catch { /* 세션 저장 불가 시 이번 요청만 실패 */ }
+}
+export function clearAdminToken() {
+  try { window.sessionStorage.removeItem(ADMIN_TOKEN_KEY); } catch { /* 무시 */ }
+}
+
 async function req(method, url, body) {
+  const headers = {};
+  if (body) headers['Content-Type'] = 'application/json';
+  if (url.startsWith('/api/admin/')) {
+    const token = getAdminToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE_URL}${url}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers: Object.keys(headers).length ? headers : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
   const payload = await res.json().catch(() => ({}));
@@ -49,9 +75,25 @@ async function req(method, url, body) {
 /** 사진 업로드용 presigned URL 발급 — 응답의 publicUrl을 신고에 첨부한다 */
 export const presignUpload = ({ filename, contentType, fileSize }) =>
   req('POST', '/api/uploads/presign', { filename, contentType, fileSize });
+
+/** presign으로 받은 uploadUrl에 실제 사진 바이트를 올린다 (#55) */
+export async function uploadPhoto(uploadUrl, file) {
+  const res = await fetch(`${API_BASE_URL}${uploadUrl}`, { method: 'PUT', body: file });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok || payload.success === false) {
+    const error = new Error(payload.errors?.[0]?.message || `사진 업로드 실패 (${res.status})`);
+    error.status = res.status;
+    throw error;
+  }
+  return payload.data; // { publicUrl }
+}
+
 export const analyzePhoto = (photo, filename) => req('POST', '/api/analyze', { photo, filename });
 export const nearbyIssues = (lat, lng, type) =>
   req('GET', `/api/issues/nearby?lat=${lat}&lng=${lng}&type=${encodeURIComponent(type)}`);
+/** '내 주변' 탭 — 반경 안 대표 문제의 공개 요약 (사진·개인정보 없음) */
+export const issuesMap = (lat, lng, radiusM = 1500) =>
+  req('GET', `/api/issues/map?lat=${lat}&lng=${lng}&radiusM=${radiusM}`);
 export const createReport = (payload) => req('POST', '/api/reports', payload);
 export const getStatus = (receiptNo, token) =>
   req('GET', `/api/status/${encodeURIComponent(receiptNo)}?token=${encodeURIComponent(token)}`);

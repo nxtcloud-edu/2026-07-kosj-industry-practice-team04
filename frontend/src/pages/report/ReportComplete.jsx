@@ -1,125 +1,116 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './report.css';
 
 /**
  * 신고 완료 화면 (/report/complete) — Issue #8
- *
- * - 신고 완료 메시지 표시
- * - 접수번호 표시
- * - 신고 조회 링크
- * - 유사 신고 후보 카드 (더미 데이터)
+ * 종이 접수증 모티프의 티켓. 조회 링크 복사와 '내 신고 보관함' 저장까지.
  */
 
-// 예시 접수번호 (실제로는 이전 화면에서 전달받음)
-const MOCK_RECEIPT = {
-  receiptNo: 'MOA-20260722-38291',
-  date: '2026. 07. 22. 14:32',
-};
-
-// 유사 신고 후보 더미 데이터
-const SIMILAR_REPORTS = [
-  {
-    id: 1,
-    type: '도로 파손',
-    address: '세종특별자치시 도움6로 24 인근',
-    date: '2026. 07. 20.',
-    status: 'processing',
-    statusLabel: '처리중',
-  },
-  {
-    id: 2,
-    type: '도로 파손',
-    address: '세종특별자치시 도움6로 26 인근',
-    date: '2026. 07. 18.',
-    status: 'resolved',
-    statusLabel: '완료',
-  },
-  {
-    id: 3,
-    type: '가로등 고장',
-    address: '세종특별자치시 도움6로 52 인근',
-    date: '2026. 07. 21.',
-    status: 'received',
-    statusLabel: '접수',
-  },
-];
+function saveToMyReports(receiptNo, token) {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem('moa-my-reports'));
+    const list = Array.isArray(saved) ? saved : [];
+    const next = [
+      { receiptNo, token, at: new Date().toISOString() },
+      ...list.filter((r) => r.receiptNo !== receiptNo),
+    ].slice(0, 5);
+    window.localStorage.setItem('moa-my-reports', JSON.stringify(next));
+  } catch {
+    // 저장이 안 돼도 접수 자체에는 영향 없다.
+  }
+}
 
 export default function ReportComplete() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const [copied, setCopied] = useState(false);
 
-  // 접수 응답(receiptNo·viewToken)은 위치 확인 화면에서 넘어온다.
-  // 직접 URL로 들어온 경우엔 예시 값으로 화면만 보여준다.
-  const receiptNo = state?.receiptNo ?? MOCK_RECEIPT.receiptNo;
+  const receiptNo = state?.receiptNo ?? null;
   const viewToken = state?.viewToken ?? null;
-  const receivedAt = state?.receiptNo
-    ? new Date().toLocaleString('ko-KR')
-    : MOCK_RECEIPT.date;
+  const merged = state?.merged ?? false;
+  const receivedAt = useMemo(() => new Date().toLocaleString('ko-KR'), []);
 
-  // 조회는 접수번호 + 토큰이 함께 있어야 한다 (SER-001·003)
-  const statusPath = viewToken
-    ? `/status/${receiptNo}?token=${viewToken}`
-    : `/status/${receiptNo}`;
+  const statusPath = receiptNo && viewToken ? `/status/${receiptNo}?token=${viewToken}` : null;
+
+  // 이 기기에서 접수한 신고는 보관함에 남겨 조회 탭에서 바로 열 수 있게 한다.
+  useEffect(() => {
+    if (receiptNo && viewToken) saveToMyReports(receiptNo, viewToken);
+  }, [receiptNo, viewToken]);
+
+  const copyLink = async () => {
+    if (!statusPath) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${statusPath}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  // 직접 URL로 들어온 경우 — 접수 정보가 없으니 조회 탭을 안내한다.
+  if (!receiptNo) {
+    return (
+      <div className="report-complete">
+        <span className="report-complete__icon" aria-hidden="true">🧾</span>
+        <h1 className="report-complete__title">접수 정보가 없어요</h1>
+        <p className="report-complete__subtitle">
+          신고를 마치면 이 화면에 접수증이 표시됩니다.
+          <br />
+          이미 접수한 신고는 접수 조회 탭에서 확인해 주세요.
+        </p>
+        <div className="report-complete__actions">
+          <button className="btn-primary" onClick={() => navigate('/report/camera')}>📷 신고 시작하기</button>
+          <Link className="btn-ghost" to="/lookup">접수 조회로 가기</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="report-complete">
-      {/* 성공 아이콘 */}
-      <span className="report-complete__icon" aria-hidden="true">
-        ✅
-      </span>
+      <span className="report-complete__icon rise" aria-hidden="true">✅</span>
 
-      {/* 완료 메시지 */}
-      <h1 className="report-complete__title">신고가 접수되었습니다</h1>
-      <p className="report-complete__subtitle">
-        신고 내용을 확인하고 처리 결과를 안내해 드리겠습니다.
-        <br />
-        접수번호를 통해 처리 현황을 조회할 수 있습니다.
+      <h1 className="report-complete__title rise">신고가 접수되었습니다</h1>
+      <p className="report-complete__subtitle rise">
+        {merged
+          ? '주변의 같은 문제와 하나로 모아 담당자에게 전달했어요.'
+          : '담당 부서가 확인 후 처리 단계를 안내해 드려요.'}
       </p>
 
-      {/* 접수번호 카드 */}
-      <div className="receipt-card">
-        <span className="receipt-card__label">접수번호</span>
-        <span className="receipt-card__number">{receiptNo}</span>
-        <span className="receipt-card__date">접수일시: {receivedAt}</span>
-      </div>
+      {/* 접수증 티켓 */}
+      <article className="ticket rise" style={{ animationDelay: '80ms' }} aria-label="신고 접수증">
+        <header className="ticket__head">
+          <span className="ticket__brand">모아</span>
+          <span className="ticket__badge">{merged ? '기존 문제에 통합' : '새 신고 접수'}</span>
+        </header>
+        <div className="ticket__body">
+          <span className="ticket__label">접수번호</span>
+          <b className="ticket__number">{receiptNo}</b>
+          <span className="ticket__date">접수일시 · {receivedAt}</span>
+        </div>
+        <div className="ticket__tear" aria-hidden="true" />
+        <footer className="ticket__foot">
+          <span className="ticket__note">
+            아래 조회 링크(토큰 포함)는 재발급되지 않아요.
+            <br />이 기기 '접수 조회' 탭의 보관함에도 저장해 두었어요.
+          </span>
+        </footer>
+      </article>
 
       {/* 액션 버튼 */}
-      <div className="report-complete__actions">
-        <button
-          className="report-complete__btn report-complete__btn--primary"
-          onClick={() => navigate(statusPath)}
-        >
-          신고 조회하기
+      <div className="report-complete__actions rise" style={{ animationDelay: '140ms' }}>
+        <button className="btn-primary" onClick={() => navigate(statusPath)}>
+          처리 현황 보기
         </button>
-        <button
-          className="report-complete__btn report-complete__btn--secondary"
-          onClick={() => navigate('/')}
-        >
-          홈으로 돌아가기
+        <button className="btn-ghost" onClick={copyLink} aria-live="polite">
+          {copied ? '✓ 복사되었어요' : '조회 링크 복사'}
+        </button>
+        <button className="btn-ghost" onClick={() => navigate('/')}>
+          홈으로
         </button>
       </div>
-
-      {/* 유사 신고 후보 */}
-      <section className="similar-section">
-        <h2 className="similar-section__heading">
-          주변 유사 신고 ({SIMILAR_REPORTS.length}건)
-        </h2>
-        {SIMILAR_REPORTS.map((report) => (
-          <article className="similar-card" key={report.id}>
-            <span className="similar-card__type">{report.type}</span>
-            <p className="similar-card__address">{report.address}</p>
-            <div className="similar-card__meta">
-              {report.date}
-              <span
-                className={`similar-card__status similar-card__status--${report.status}`}
-                style={{ marginLeft: 8 }}
-              >
-                {report.statusLabel}
-              </span>
-            </div>
-          </article>
-        ))}
-      </section>
     </div>
   );
 }

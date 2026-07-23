@@ -1,0 +1,109 @@
+/* ═══════════════════════════════════════════════════════════
+   '내 주변' 탭 — 지도 + 신고 목록 (멘토 피드백 7/23)
+   ═══════════════════════════════════════════════════════════ */
+
+.nearby-page { display: flex; flex-direction: column; gap: 12px; }
+
+.nearby-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nearby-map-wrap {
+  position: relative;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  background: var(--card);
+}
+.nearby-map-wrap .moa-map { height: 300px; }
+
+/* 선택된 문제 플로팅 카드 */
+.nearby-popup {
+  position: absolute;
+  left: 10px; right: 10px; bottom: 10px;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-float);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: rise 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.nearby-popup__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.nearby-popup__row b { font-size: 15px; }
+.nearby-popup__meta { font-size: 12.5px; color: var(--ink-soft); }
+
+.empathy-btn {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent);
+  background: var(--accent-tint);
+  color: #9c3d12;
+  font-size: 13.5px;
+  font-weight: 800;
+  transition: background 0.15s;
+}
+.empathy-btn:hover:not(:disabled) { background: #f9ddc9; }
+.empathy-btn[aria-pressed='true'],
+.empathy-btn:disabled {
+  border-color: var(--line-strong);
+  background: var(--paper-deep);
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+/* 목록 */
+.nearby-list { display: flex; flex-direction: column; gap: 8px; }
+
+.nearby-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s, transform 0.12s;
+}
+.nearby-card:hover { border-color: var(--brand); }
+.nearby-card:active { transform: scale(0.99); }
+.nearby-card.is-active { border-color: var(--brand); background: var(--brand-tint); }
+.nearby-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.nearby-card__type { font-size: 15px; }
+.nearby-card__meta { font-size: 12.5px; color: var(--ink-soft); }
+
+.nearby-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+  padding: 26px 16px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-card);
+  color: var(--ink-soft);
+}
+.nearby-empty b { font-size: 15px; color: var(--ink); }
+.nearby-empty p { font-size: 13px; }

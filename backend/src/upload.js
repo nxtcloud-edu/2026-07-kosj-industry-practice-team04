@@ -1,49 +1,60 @@
 import crypto from 'node:crypto';
 
 /**
- * Presigned URL 발급 서비스 (Issue #9 · PER-002)
+ * Presigned URL 발급 서비스 (Issue #9 · #55 · PER-002)
  * ─────────────────────────────────────────────────────
- * 현재는 로컬 개발용 mock presigned URL을 반환한다.
- * 실제 배포 시에는 AWS S3 또는 GCS presigned URL로 교체한다.
+ * 기본은 로컬 저장 모드 — 이 서버의 PUT /uploads/:fileKey 로 실제 업로드하고
+ * GET /uploads/:fileKey 로 서빙한다 (upload-store.js).
  *
- * TODO: 실제 클라우드 스토리지 연결
- *   - AWS S3: @aws-sdk/s3-request-presigner 사용
- *   - GCS: @google-cloud/storage 사용
- *   - 환경변수 MOA_STORAGE=s3|gcs 로 분기
+ * S3 전환 지점: MOA_STORAGE=s3 분기를 추가하고 @aws-sdk/s3-request-presigner로
+ * 같은 형태({ uploadUrl, publicUrl, fileKey, expiresIn })를 반환하면
+ * 프론트·라우터는 수정 없이 동작한다.
  */
 
-const MOCK_BUCKET = 'moa-uploads-dev';
-const MOCK_REGION = 'ap-northeast-2';
 const URL_EXPIRY_SECONDS = 600; // 10분
 
-/**
- * presigned URL 발급 (mock)
- * @param {{ filename: string, contentType: string }} params
- * @returns {{ uploadUrl: string, fileKey: string, expiresIn: number }}
- */
-export function generatePresignedUrl({ filename, contentType }) {
-  // TODO: 실제 S3 presigned PUT URL 생성으로 교체
-  // const command = new PutObjectCommand({ Bucket, Key, ContentType });
-  // const url = await getSignedUrl(s3Client, command, { expiresIn: URL_EXPIRY_SECONDS });
+// 서버 기동마다 새로 만든다. 재시작하면 발급했던 업로드 URL은 만료된 것으로 취급
+// (presign 유효기간 10분과 같은 성격). 고정하려면 MOA_UPLOAD_SECRET 지정.
+const SECRET = process.env.MOA_UPLOAD_SECRET || crypto.randomBytes(32).toString('hex');
 
-  const ext = filename.split('.').pop() || 'jpg';
+function signKey(fileKey, exp) {
+  return crypto.createHmac('sha256', SECRET).update(`${fileKey}:${exp}`).digest('hex').slice(0, 32);
+}
+
+/**
+ * presigned URL 발급 (로컬 저장 모드)
+ * @param {{ filename: string, contentType: string }} params
+ */
+export function generatePresignedUrl({ filename }) {
+  const ext = (filename.split('.').pop() || 'jpg').toLowerCase();
   const uniqueId = crypto.randomUUID();
   const datePrefix = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
   const fileKey = `reports/${datePrefix}/${uniqueId}.${ext}`;
 
-  // Mock URL — 실제 업로드 엔드포인트가 아님
-  const uploadUrl = `https://${MOCK_BUCKET}.s3.${MOCK_REGION}.amazonaws.com/${fileKey}?` +
-    `X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=${URL_EXPIRY_SECONDS}&` +
-    `Content-Type=${encodeURIComponent(contentType)}&` +
-    `X-Mock-Token=${uniqueId}`;
-
-  // 업로드 완료 후 클라이언트가 저장할 public URL
-  const publicUrl = `https://${MOCK_BUCKET}.s3.${MOCK_REGION}.amazonaws.com/${fileKey}`;
+  const exp = Math.floor(Date.now() / 1000) + URL_EXPIRY_SECONDS;
+  const sig = signKey(fileKey, exp);
 
   return {
-    uploadUrl,
-    publicUrl,
+    uploadUrl: `/uploads/${fileKey}?exp=${exp}&sig=${sig}`,
+    publicUrl: `/uploads/${fileKey}`,
     fileKey,
     expiresIn: URL_EXPIRY_SECONDS,
   };
+}
+
+/**
+ * 업로드 서명 검증 — presign 없이 임의 키에 쓰는 것을 막는다 (Issue #55)
+ * @returns {boolean}
+ */
+export function verifyUploadSignature(fileKey, exp, sig) {
+  const expNum = Number(exp);
+  if (!Number.isFinite(expNum) || expNum * 1000 < Date.now()) return false;
+  if (typeof sig !== 'string' || sig.length !== 32) return false;
+
+  const expected = signKey(fileKey, expNum);
+  try {
+    return crypto.timingSafeEqual(Buffer.from(sig, 'utf8'), Buffer.from(expected, 'utf8'));
+  } catch {
+    return false;
+  }
 }

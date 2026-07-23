@@ -31,3 +31,7 @@ Thumbs.db
 .aws-sam/
 .serverless/
 cdk.out/
+
+# 백엔드 런타임 데이터 (#55·#59) — 커밋 금지
+backend/data/
+backend/uploads/

@@ -129,15 +129,16 @@ export default function CameraCapture() {
   return (
     <div className="camera-page">
       {/* 헤더 */}
-      <header className="camera-page__header">
+      <header className="flow-head">
         <button
-          className="camera-page__back"
+          className="flow-head__back"
           onClick={() => navigate('/')}
           aria-label="뒤로 가기"
         >
           ←
         </button>
-        <h2 className="camera-page__title">문제 상황 촬영</h2>
+        <h2 className="flow-head__title">문제 상황 촬영</h2>
+        <span className="flow-head__step" aria-label="3단계 중 1단계">1 / 3</span>
       </header>
 
       {/* 숨김 파일 입력 — 모바일 후면 카메라 호출 */}
