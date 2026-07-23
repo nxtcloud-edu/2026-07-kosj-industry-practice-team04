@@ -3,6 +3,11 @@ import { generatePresignedUrl } from './upload.js';
 import { submitReport } from './report-service.js';
 import { getReportByReceiptNo } from './store.js';
 import { matchesViewToken } from './view-token.js';
+import { TYPES, STATUS_FLOW, MERGE_PARAMS, summarizeIssue } from './domain.js';
+import {
+  addEmpathy, changeStatus, findIssueByReceiptNo, issueDetail, listIssues,
+  markSpam, nearbyCandidates, reclassifyReport, splitReport, stats,
+} from './issue-service.js';
 
 class InvalidJsonError extends Error {
   constructor() {
@@ -87,7 +92,7 @@ export async function handleRequest(req, res) {
 
   // CORS (개발용)
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (method === 'OPTIONS') {
@@ -121,12 +126,48 @@ export async function handleRequest(req, res) {
         return json(res, 400, { success: false, errors });
       }
 
-      const { receiptNo, viewToken } = submitReport(body);
+      const { receiptNo, viewToken, issue, merged } = submitReport(body);
 
       return json(res, 201, {
         success: true,
-        data: { receiptNo, viewToken },
+        data: {
+          receiptNo,
+          viewToken,
+          statusPath: `/status/${receiptNo}?token=${viewToken}`,
+          issue: summarizeIssue(issue),
+          merged,
+        },
       });
+    }
+
+    // ─── GET /api/issues/nearby?lat=&lng=&type= (Issue #13·#14) ──
+    if (method === 'GET' && pathname === '/api/issues/nearby') {
+      const lat = Number(url.searchParams.get('lat'));
+      const lng = Number(url.searchParams.get('lng'));
+      const type = url.searchParams.get('type') || '';
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || !TYPES.includes(type)) {
+        return json(res, 400, {
+          success: false,
+          errors: [{ field: 'query', message: 'lat, lng, type(유효한 유형)이 필요합니다.' }],
+        });
+      }
+
+      const candidates = nearbyCandidates({ lat, lng, type, confidence: 1 });
+      return json(res, 200, { success: true, data: { params: MERGE_PARAMS, candidates } });
+    }
+
+    // ─── POST /api/issues/:id/empathy (Issue #15) ────────────────
+    if (method === 'POST' && /^\/api\/issues\/[^/]+\/empathy$/.test(pathname)) {
+      const issueId = pathname.split('/')[3];
+      const body = await parseBody(req);
+      if (!body?.deviceId) {
+        return json(res, 400, { success: false, errors: [{ field: 'deviceId', message: 'deviceId가 필요합니다.' }] });
+      }
+
+      const result = addEmpathy(issueId, body.deviceId);
+      if (!result) return json(res, 404, { success: false, errors: [{ field: 'id', message: '문제를 찾을 수 없습니다.' }] });
+      return json(res, 200, { success: true, data: result });
     }
 
     // ─── GET /api/status/:receiptNo ──────────────────────
@@ -153,16 +194,75 @@ export async function handleRequest(req, res) {
       }
 
       // 시민 상태 화면에 필요한 최소 필드만 반환한다. 사진·위치·연락처·토큰은 제외한다.
+      // 대표 문제가 있으면 담당자가 바꾼 상태·이력을 함께 내려준다 (Issue #22).
+      const issue = findIssueByReceiptNo(receiptNo);
       return json(res, 200, {
         success: true,
         data: {
           report: {
             receiptNo: report.receiptNo,
-            status: report.status,
+            status: issue?.status ?? report.status,
             createdAt: report.createdAt,
           },
+          ...(issue ? {
+            issue: {
+              status: issue.status,
+              statusFlow: STATUS_FLOW,
+              dept: issue.dept,
+              history: issue.history,
+            },
+          } : {}),
         },
       });
+    }
+
+    // ─── 관리자 API (Issue #22 · 데모 단계: 인증 없음) ────────────
+    if (method === 'GET' && pathname === '/api/admin/stats') {
+      return json(res, 200, { success: true, data: stats() });
+    }
+
+    if (method === 'GET' && pathname === '/api/admin/issues') {
+      return json(res, 200, {
+        success: true,
+        data: listIssues({
+          sort: url.searchParams.get('sort') || 'priority',
+          queue: url.searchParams.get('queue'),
+          status: url.searchParams.get('status'),
+        }),
+      });
+    }
+
+    if (method === 'GET' && pathname.startsWith('/api/admin/issues/')) {
+      const detail = issueDetail(pathname.split('/')[4]);
+      if (!detail) return json(res, 404, { success: false, errors: [{ field: 'id', message: '문제를 찾을 수 없습니다.' }] });
+      return json(res, 200, { success: true, data: detail });
+    }
+
+    // 오통합 분리
+    if (method === 'POST' && /^\/api\/admin\/issues\/[^/]+\/split$/.test(pathname)) {
+      const body = await parseBody(req);
+      const result = splitReport(pathname.split('/')[4], body?.reportId, body?.reason);
+      if (result.error) return json(res, 400, { success: false, errors: [{ field: 'reportId', message: result.error }] });
+      return json(res, 200, { success: true, data: result });
+    }
+
+    // 상태 변경
+    if (method === 'PATCH' && pathname.startsWith('/api/admin/issues/')) {
+      const body = await parseBody(req);
+      const result = changeStatus(pathname.split('/')[4], body?.status);
+      if (result.error) return json(res, 400, { success: false, errors: [{ field: 'status', message: result.error }] });
+      return json(res, 200, { success: true, data: result.issue });
+    }
+
+    // 재분류 / 스팸 처리
+    if (method === 'PATCH' && pathname.startsWith('/api/admin/reports/')) {
+      const reportId = pathname.split('/')[4];
+      const body = await parseBody(req);
+      const result = body?.type !== undefined
+        ? reclassifyReport(reportId, body.type)
+        : markSpam(reportId, body?.spam);
+      if (result.error) return json(res, 400, { success: false, errors: [{ field: 'report', message: result.error }] });
+      return json(res, 200, { success: true, data: result });
     }
 
     // ─── 헬스체크 ────────────────────────────────────────
