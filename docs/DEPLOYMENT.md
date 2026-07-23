@@ -13,17 +13,17 @@ aws cloudformation validate-template \
   --region ap-northeast-2 \
   --template-body file://infra/frontend-hosting.yml
 
-aws cloudformation deploy \
+aws cloudformation create-change-set \
   --region ap-northeast-2 \
-  --template-file infra/frontend-hosting.yml \
   --stack-name moa-frontend-hosting \
+  --change-set-name issue2-<approved-pr-sha> \
+  --change-set-type CREATE \
+  --template-body file://infra/frontend-hosting.yml \
   --capabilities CAPABILITY_IAM \
-  --parameter-overrides GitHubOidcProviderArn=<existing-provider-arn> \
-  --no-execute-changeset \
-  --change-set-name issue2-<approved-pr-sha>
+  --parameters ParameterKey=GitHubOidcProviderArn,ParameterValue=<existing-provider-arn>
 ```
 
-검토 후 같은 change set을 실행하고 stack 완료를 기다린다. 고정 RoleName을 사용하지 않으므로 `CAPABILITY_IAM`이면 충분하다.
+`aws cloudformation wait change-set-create-complete`와 `describe-change-set`으로 내용을 검토한 뒤, `execute-change-set`을 실행하고 stack 완료를 기다린다. 고정 RoleName을 사용하지 않으므로 `CAPABILITY_IAM`이면 충분하다.
 
 ## GitHub Variables
 
@@ -37,7 +37,7 @@ aws cloudformation deploy \
 | `CLOUDFRONT_DISTRIBUTION_ID` | `CloudFrontDistributionId` 출력값 |
 | `VITE_API_BASE_URL` | 선택 사항: `/api` 없는 HTTPS API origin |
 
-`VITE_API_BASE_URL`이 비어 있으면 기존 상대 `/api/...` 요청을 유지한다. 백엔드가 다른 origin에 배포되면 CORS 허용은 백엔드 배포 작업에서 설정한다.
+`VITE_API_BASE_URL`이 비어 있으면 기존 상대 `/api/...` 요청을 유지한다. 이 경우 CloudFront는 정적 S3 origin만 제공하므로, 백엔드 미배포 상태에서는 API 요청이 403 또는 404가 되는 것이 정상이다. 실제 API 기능을 제공하는 배포에서는 HTTPS API origin을 `VITE_API_BASE_URL`로 설정하고, 백엔드 배포 작업에서 CloudFront origin에 대한 CORS를 허용해야 한다.
 
 ## 배포와 복구
 
