@@ -81,14 +81,22 @@ export function riskOf(type) {
 }
 
 /**
- * 우선순위 = 기본 위험도 + 누적 신고 건수 + '나도 불편해요' 공감 수 (SFR-003)
+ * 공감이 우선순위에 기여할 수 있는 상한 (Issue #58)
+ * deviceId는 클라이언트 생성값이라 위조로 무한정 부양할 수 있으므로,
+ * 공감이 아무리 쌓여도 배정 순서를 이 이상 밀어올리지 못하게 막는다.
+ */
+export const EMPATHY_PRIORITY_CAP = Number(process.env.MOA_EMPATHY_CAP ?? 5);
+
+/**
+ * 우선순위 = 기본 위험도 + 누적 신고 건수 + '나도 불편해요' 공감 수(상한 적용) (SFR-003)
  * 스팸 처리된 신고는 제외한다.
  * @param {{type:string, reports?:Array<{spam?:boolean}>, empathyDevices?:string[]}} issue
  * @returns {number}
  */
 export function priorityOf(issue) {
   const active = (issue.reports ?? []).filter((r) => !r.spam);
-  return riskOf(issue.type) + active.length + (issue.empathyDevices?.length ?? 0);
+  const empathy = Math.min(issue.empathyDevices?.length ?? 0, EMPATHY_PRIORITY_CAP);
+  return riskOf(issue.type) + active.length + empathy;
 }
 
 /** 점수 → 라벨 (≥8 높음 · ≥5 보통 · 그 외 낮음) */

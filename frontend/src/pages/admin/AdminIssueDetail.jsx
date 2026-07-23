@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { adminIssue, markSpam, reclassify, setIssueStatus, splitIssue } from '../../api.js';
+import { adminIssue, markSpam, photoSrc, reclassify, setIssueStatus, splitIssue } from '../../api.js';
 import './admin.css';
 
 // 관리자 문제 상세 — 상태 변경(SFR-006) · 재분류(COR-001, SFR-005) · 스팸 · 오통합 분리
@@ -210,7 +210,11 @@ export default function AdminIssueDetail() {
               <div className="admin-report-grid">
                 {reports.map((r) => (
                   <article key={r.id} className={`admin-report-card ${r.spam ? 'spam' : ''}`}>
-                    <img className="admin-report-photo" src={r.photoUrl} alt={`신고 ${r.receiptNo} 사진`} />
+                    {r.photoUrl ? (
+                      <img className="admin-report-photo" src={photoSrc(r.photoUrl)} alt={`신고 ${r.receiptNo} 사진`} />
+                    ) : (
+                      <div className="admin-report-photo admin-thumb-empty">사진 없음</div>
+                    )}
                     <div className="admin-report-body">
                       <div className="admin-report-top">
                         <b className="admin-mono">{r.receiptNo}</b>
@@ -294,7 +298,7 @@ export default function AdminIssueDetail() {
                 <ol className="admin-timeline">
                   {history.map((h, i) => (
                     <li key={i}>
-                      {h.status || h.label || ''}
+                      {h.event || h.status || h.label || ''}
                       {h.note ? ` — ${h.note}` : ''}
                       <time>{formatTime(h.time || h.at)}</time>
                     </li>

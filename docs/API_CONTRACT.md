@@ -70,12 +70,15 @@ return body.data ?? body;
 
 | # | 메서드·경로 | 요청 | 응답 data | 담당 이슈 |
 |---|---|---|---|---|
-| 1 | `POST /api/uploads/presign` | `{filename, contentType, fileSize?}` | `{uploadUrl, publicUrl, fileKey, expiresIn}` | #9 |
-| 2 | `POST /api/analyze` | `{photoUrl}` | `{type, confidence, needsReview}` | #10·#11 |
+| 1 | `POST /api/uploads/presign` | `{filename, contentType, fileSize?}` | `{uploadUrl, publicUrl, fileKey, expiresIn}` | #9·#55 |
+| 1-1 | `PUT {uploadUrl}` (= `/uploads/:fileKey?exp=&sig=`) | 사진 바이트 (본문 그대로, ≤10MB) | `201 {publicUrl}` — 서명 틀리면 403, 재업로드 409 | #55 |
+| 1-2 | `GET /uploads/:fileKey` | — | 이미지 바이트 (`Cache-Control: immutable`) — 없으면 404 | #55 |
+| 2 | `POST /api/analyze` | `{photo(dataURL) 또는 photoUrl, filename?}` | `{type, confidence, needsReview, engine}` — engine: `gemini`\|`mock` | #10·#11 |
 | 3 | `GET /api/issues/nearby?lat=&lng=&type=` | — | `{params, candidates:[{...issueSummary, distance}]}` | #13·#14 |
+| 3-1 | `GET /api/issues/map?lat=&lng=&radiusM=` | — | `{issues:[{id,type,status,statusIndex,priorityLabel,reportCount,empathy,lat,lng,address,createdAt,distance}]}` — **사진·개인정보 없음** | 내 주변 탭 |
 | 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` | #9 |
 | 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{...issueSummary, history, statusFlow}}` | #22·#23·#34 |
-| 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` | #15 |
+| 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` — 같은 IP가 같은 문제에 1시간 내 재요청 시 **429** | #15·#58 |
 
 **신고 접수 요청 본문 (4번)** — 현재 구현 기준 (PR #37·#43)
 ```json
@@ -143,7 +146,7 @@ return body.data ?? body;
 | 유형 | `도로 파손` · `가로등 고장` · `쓰레기 무단투기` · `기타` (`backend/src/types.js`) |
 | 상태 흐름 | **`접수 → 배정 → 처리중 → 완료`** (다른 라벨 사용 금지) |
 | 부서 매핑 | 도로→도로관리부 · 가로등→시설관리부 · 쓰레기→환경관리부 · 기타→민원총괄팀 |
-| 우선순위 | `유형 위험도(도로5/가로등3/쓰레기2/기타1) + 신고 건수 + 공감 수` |
+| 우선순위 | `유형 위험도(도로5/가로등3/쓰레기2/기타1) + 신고 건수 + 공감 수(상한 5, #58)` |
 | 우선순위 라벨 | ≥8 `높음` · ≥5 `보통` · 그 외 `낮음` |
 | 검수 큐 | `confidence < 0.7` → `needsReview: true` |
 | 유사 통합 | 반경 50m · 동일 유형 · 72시간 (운영 설정값) |
@@ -159,6 +162,10 @@ return body.data ?? body;
 5. 조회 토큰 원문은 접수 응답에서 한 번만 전달하고 저장소에는 SHA-256 해시만 보관합니다.
 6. 없는 접수번호와 틀린 조회 토큰은 모두 **403**으로 응답해 접수번호 존재 여부를 숨깁니다.
 7. 상태 조회 응답은 `Cache-Control: no-store`, `Referrer-Policy: no-referrer`를 사용하고 사진·위치·연락처를 반환하지 않습니다.
+8. **관리자 API 인증 (#56)** — 배포 환경에서는 `MOA_ADMIN_TOKEN`을 설정하고 `/api/admin/*` 요청에 `Authorization: Bearer <토큰>`을 요구합니다(불일치·누락 401). env 미설정 시(로컬 데모) 기존처럼 열립니다. CORS는 `MOA_ALLOWED_ORIGIN` 설정 시 해당 origin으로 제한합니다.
+9. **요청 본문 상한 (#57)** — 기본 15MB(`MOA_MAX_BODY_BYTES`), 초과 시 **413**. 업로드 PUT은 10MB.
+10. **공감 남용 방지 (#58)** — 같은 IP는 같은 문제에 1시간(`MOA_EMPATHY_WINDOW_MS`)당 1회(429), 우선순위 산식의 공감 기여는 최대 +5(`MOA_EMPATHY_CAP`).
+11. **업로드 쓰기 보호 (#55)** — `PUT /uploads/:fileKey`는 presign이 발급한 `exp`·`sig`(HMAC) 검증을 통과해야 하며, 같은 키 재업로드는 409로 거절합니다. GET은 UUID 키를 아는 쪽만 접근합니다(신고·관리자 응답 외 목록 API 없음).
 
 사진·위치·연락처의 보관 및 삭제 기준은 [PRIVACY_POLICY.md](PRIVACY_POLICY.md)를 따릅니다.
 

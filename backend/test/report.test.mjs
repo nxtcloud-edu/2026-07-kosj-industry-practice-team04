@@ -105,7 +105,9 @@ test('POST /api/uploads/presign 정상 발급', async () => {
   });
   assert.equal(res.status, 200);
   assert.equal(res.body.success, true);
-  assert.ok(res.body.data.uploadUrl.includes('s3'));
+  // #55: mock S3 URL 대신 이 서버의 실제 업로드 엔드포인트(서명 포함)를 발급한다.
+  assert.ok(res.body.data.uploadUrl.startsWith('/uploads/reports/'));
+  assert.ok(res.body.data.uploadUrl.includes('sig='));
   assert.ok(res.body.data.fileKey.startsWith('reports/'));
   assert.equal(res.body.data.expiresIn, 600);
 });

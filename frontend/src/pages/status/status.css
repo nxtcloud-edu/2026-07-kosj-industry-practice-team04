@@ -1,185 +1,211 @@
-/* ===== 신고 상태 조회 화면 스타일 ===== */
+/* ═══════════════════════════════════════════════════════════
+   신고 상태 조회 + 접수 조회 탭 (2026-07 리뉴얼)
+   처리 단계는 지하철 노선도 메타포 — 지나온 역은 채워진다.
+   ═══════════════════════════════════════════════════════════ */
 
 .status-page {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 40px 24px;
-  gap: 24px;
+  gap: 14px;
+  padding-top: 12px;
 }
 
-.status-page__header {
-  width: 100%;
-  max-width: 380px;
-}
-
-.status-page__title {
-  font-size: 22px;
-  font-weight: 800;
-  color: #e8eef4;
-}
+.status-page__header { padding: 2px; }
+.status-page__title { font-family: var(--font-display); font-size: 24px; }
 
 .status-error {
-  width: 100%;
-  max-width: 380px;
-  padding: 20px;
-  border: 1px solid #f87171;
-  border-radius: 14px;
-  background: #3b1a1a;
-  color: #fecaca;
+  padding: 18px;
+  border: 1px solid #eec5c0;
+  border-radius: var(--r-card);
+  background: var(--danger-tint);
+  color: var(--danger);
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
-.status-error strong { font-size: 17px; }
-.status-error p { line-height: 1.6; }
-.status-error small { color: #fca5a5; line-height: 1.5; }
+.status-error strong { font-size: 16px; }
+.status-error p { line-height: 1.6; font-size: 14px; }
+.status-error small { color: #9c5550; line-height: 1.5; font-size: 12.5px; }
 
 /* 접수번호 카드 */
 .status-card {
-  width: 100%;
-  max-width: 380px;
-  padding: 18px 20px;
-  border-radius: 14px;
-  background: #152234;
-  border: 1px solid #1e3a5f;
+  padding: 16px 18px;
+  border-radius: var(--r-card);
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
-
 .status-card__label {
-  font-size: 13px;
-  color: #7a92ad;
-  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  font-weight: 900;
 }
-
 .status-card__number {
-  font-size: 18px;
-  font-weight: 800;
-  color: #e8eef4;
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: #0e1726;
-  border: 1px solid #334155;
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
   user-select: all;
 }
 
 /* 현재 상태 */
 .status-current {
-  width: 100%;
-  max-width: 380px;
-  padding: 20px;
-  border-radius: 14px;
-  background: #0f2b26;
-  border: 1px solid #134e45;
+  padding: 18px;
+  border-radius: var(--r-card);
+  background: var(--brand-tint);
+  border: 1px solid #bcd9cd;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-
 .status-current__badge {
   align-self: flex-start;
-  padding: 5px 12px;
-  border-radius: 8px;
-  background: #2dd4bf;
-  color: #062823;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 900;
 }
+.status-current__detail { font-size: 14px; color: var(--brand-deep); line-height: 1.5; }
+.status-current__date { font-size: 12px; color: var(--ink-faint); }
 
-.status-current__detail {
-  font-size: 14px;
-  color: #c8d6e5;
-  line-height: 1.5;
-}
-
-.status-current__date {
-  font-size: 12px;
-  color: #7a92ad;
-}
-
-/* 처리 단계 */
+/* 처리 단계 — 노선도 */
 .status-steps {
-  width: 100%;
-  max-width: 380px;
+  padding: 18px;
+  border-radius: var(--r-card);
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
 }
+.status-steps__heading { font-size: 14.5px; font-weight: 800; color: var(--ink-soft); margin-bottom: 14px; }
 
-.status-steps__heading {
-  font-size: 15px;
-  font-weight: 700;
-  color: #9fb3cd;
-  margin-bottom: 14px;
-}
-
-.status-steps__list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
+.status-steps__list { list-style: none; display: flex; flex-direction: column; }
 
 .status-steps__item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-left: 2px solid #334155;
-  margin-left: 8px;
-  padding-left: 20px;
+  gap: 14px;
+  padding: 11px 0;
+  border-left: 3px solid var(--line);
+  margin-left: 9px;
+  padding-left: 22px;
   position: relative;
 }
-
-.status-steps__item:first-child {
-  padding-top: 0;
-}
-
-.status-steps__item:last-child {
-  border-left-color: transparent;
-}
+.status-steps__item--done { border-left-color: var(--brand); }
+.status-steps__item:first-child { padding-top: 0; }
+.status-steps__item:last-child { border-left-color: transparent; }
+.status-steps__item--done:last-child { border-left-color: transparent; }
 
 .status-steps__dot {
   position: absolute;
-  left: -7px;
-  width: 12px;
-  height: 12px;
+  left: -9px;
+  width: 15px; height: 15px;
   border-radius: 50%;
-  background: #334155;
-  border: 2px solid #1e293b;
+  background: var(--card);
+  border: 3px solid var(--line-strong);
 }
-
 .status-steps__item--done .status-steps__dot {
-  background: #2dd4bf;
-  border-color: #0f2b26;
+  background: var(--brand);
+  border-color: var(--brand-tint);
+}
+/* 마지막으로 지나온 역 — 은은히 맥동 */
+.status-steps__item--done:has(+ .status-steps__item:not(.status-steps__item--done)) .status-steps__dot,
+.status-steps__item--done:last-child .status-steps__dot {
+  animation: station-pulse 2.2s ease-in-out infinite;
+}
+@keyframes station-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(21, 104, 90, 0.35); }
+  50% { box-shadow: 0 0 0 7px rgba(21, 104, 90, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-steps__dot { animation: none !important; }
 }
 
-.status-steps__label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #7a92ad;
-}
-
-.status-steps__item--done .status-steps__label {
-  color: #e8eef4;
-}
+.status-steps__label { font-size: 14.5px; font-weight: 700; color: var(--ink-faint); }
+.status-steps__item--done .status-steps__label { color: var(--ink); font-weight: 800; }
 
 /* 홈 버튼 */
 .status-home-btn {
-  width: 100%;
-  max-width: 380px;
-  margin-top: auto;
-  padding: 16px;
+  min-height: 52px;
+  padding: 14px;
   border-radius: 14px;
-  background: #1e293b;
-  color: #e8eef4;
-  border: 1px solid #334155;
+  background: var(--card);
+  color: var(--ink);
+  border: 1.5px solid var(--line-strong);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   text-align: center;
-  transition: background 0.15s;
+  transition: border-color 0.15s, color 0.15s;
 }
+.status-home-btn:hover { border-color: var(--brand); color: var(--brand-deep); }
 
-.status-home-btn:hover {
-  background: #334155;
+/* ───────── 접수 조회 탭 (/lookup) ───────── */
+
+.lookup-page { display: flex; flex-direction: column; gap: 14px; }
+
+.my-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
+.my-reports__heading {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+.my-reports__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.my-reports__item:hover { border-color: var(--brand); transform: translateY(-1px); }
+.my-reports__item b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.my-reports__item span { font-size: 12.5px; color: var(--ink-faint); font-weight: 700; }
+
+.lookup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  padding: 18px;
+}
+.lookup-form__label {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+.lookup-form__input {
+  min-height: 50px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--paper);
+  font: inherit;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+.lookup-form__input:focus { outline: none; border-color: var(--brand); background: var(--card); }
+.lookup-form__input::placeholder { color: var(--ink-faint); font-size: 13.5px; }
+.lookup-form__hint { font-size: 12.5px; font-weight: 700; color: var(--danger); }
+.lookup-form__submit { margin-top: 10px; width: 100%; }
+.lookup-form__note { font-size: 12px; color: var(--ink-faint); line-height: 1.6; margin-top: 4px; }

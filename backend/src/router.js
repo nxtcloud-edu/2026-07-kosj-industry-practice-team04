@@ -1,12 +1,14 @@
+import crypto from 'node:crypto';
 import { validateStatusLookup, validateUploadRequest, validateReportRequest } from './schema.js';
-import { generatePresignedUrl } from './upload.js';
+import { generatePresignedUrl, verifyUploadSignature } from './upload.js';
+import { saveUpload, readUpload, isValidFileKey } from './upload-store.js';
 import { submitReport } from './report-service.js';
 import { getReportByReceiptNo } from './store.js';
 import { matchesViewToken } from './view-token.js';
 import { TYPES, STATUS_FLOW, MERGE_PARAMS, summarizeIssue } from './domain.js';
 import { classify } from './classifier.js';
 import {
-  addEmpathy, changeStatus, findIssueByReceiptNo, issueDetail, listIssues,
+  addEmpathy, changeStatus, findIssueByReceiptNo, issueDetail, issuesAround, listIssues,
   markSpam, nearbyCandidates, reclassifyReport, splitReport, stats,
 } from './issue-service.js';
 
@@ -17,60 +19,113 @@ class InvalidJsonError extends Error {
   }
 }
 
+class BodyTooLargeError extends Error {
+  constructor(limit) {
+    super(`요청 본문이 허용 크기(${Math.round(limit / 1024 / 1024)}MB)를 초과했습니다.`);
+    this.name = 'BodyTooLargeError';
+  }
+}
+
 /**
- * HTTP 라우터 (Issue #9)
+ * HTTP 라우터 (Issue #9 · #55~#58)
  * ─────────────────────────────────────────────────────
  * node:http 기반 최소 라우터. 향후 Express/Fastify 도입 시 교체 가능.
  *
- * API 경로 (API_CONTRACT.md 기준):
- *   POST /api/uploads/presign       — presigned URL 발급
- *   POST /api/reports               — 신고 접수
- *   GET  /api/status/:receiptNo     — 신고 조회 (token 필수)
- *   GET  /api/health                — 헬스체크
+ * API 경로 (docs/API_CONTRACT.md 기준):
+ *   [시민]  POST /api/uploads/presign · PUT|GET /uploads/:fileKey
+ *           POST /api/reports · POST /api/analyze
+ *           GET  /api/issues/nearby · GET /api/issues/map · POST /api/issues/:id/empathy
+ *           GET  /api/status/:receiptNo?token=
+ *   [관리자] /api/admin/* — MOA_ADMIN_TOKEN 설정 시 Bearer 인증 필수 (#56)
  */
+
+/** 요청 본문 상한 (#57) — /api/analyze의 base64 사진까지 감안한 기본값 15MB */
+function maxBodyBytes() {
+  return Number(process.env.MOA_MAX_BODY_BYTES ?? 15 * 1024 * 1024);
+}
 
 /**
- * 요청 본문을 JSON으로 파싱
- * @param {import('node:http').IncomingMessage} req
- * @returns {Promise<object>}
+ * 요청 본문을 크기 상한과 함께 버퍼로 읽는다 (#57).
+ * Content-Length가 상한을 넘으면 읽기 전에 끊고, 스트리밍 중 초과해도 즉시 중단한다.
  */
-function parseBody(req) {
+function readRawBody(req, limit = maxBodyBytes()) {
   return new Promise((resolve, reject) => {
+    const declared = Number(req.headers['content-length']);
+    if (Number.isFinite(declared) && declared > limit) {
+      reject(new BodyTooLargeError(limit));
+      return;
+    }
+
     const chunks = [];
-    req.on('data', (chunk) => chunks.push(chunk));
-    req.on('end', () => {
-      const raw = Buffer.concat(chunks).toString('utf8');
-      if (!raw) {
-        resolve({});
+    let received = 0;
+    req.on('data', (chunk) => {
+      received += chunk.length;
+      if (received > limit) {
+        req.destroy();
+        reject(new BodyTooLargeError(limit));
         return;
       }
-
-      try {
-        resolve(JSON.parse(raw));
-      } catch {
-        reject(new InvalidJsonError());
-      }
+      chunks.push(chunk);
     });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
 
-/**
- * JSON 응답 전송 헬퍼
- */
+/** 요청 본문을 JSON으로 파싱 */
+async function parseBody(req) {
+  const raw = (await readRawBody(req)).toString('utf8');
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new InvalidJsonError();
+  }
+}
+
+/** JSON 응답 전송 헬퍼 */
 function json(res, statusCode, data) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
 }
 
+/** 클라이언트 IP — 프록시(CloudFront/ALB) 뒤에서는 X-Forwarded-For 첫 값 */
+function clientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (typeof fwd === 'string' && fwd.length > 0) return fwd.split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
 /**
- * 라우터 오류를 공개 가능한 HTTP 응답과 최소 로그로 변환한다.
+ * 관리자 인증 (#56) — MOA_ADMIN_TOKEN이 설정된 경우에만 검사한다.
+ * 미설정이면 로컬 데모 그대로 열려 있고, 배포 환경에서는 반드시 설정한다.
  */
+function isAdminAuthorized(req) {
+  const required = process.env.MOA_ADMIN_TOKEN;
+  if (!required) return true;
+
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return false;
+
+  // 길이가 달라도 비교 시간이 같도록 해시끼리 비교한다.
+  const a = crypto.createHash('sha256').update(token).digest();
+  const b = crypto.createHash('sha256').update(required).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+/** 라우터 오류를 공개 가능한 HTTP 응답과 최소 로그로 변환한다. */
 export function respondToRouterError(err, method, res, logError = console.error) {
   if (err instanceof InvalidJsonError) {
     return json(res, 400, {
       success: false,
       errors: [{ field: 'body', message: '잘못된 JSON 형식입니다.' }],
+    });
+  }
+  if (err instanceof BodyTooLargeError) {
+    return json(res, 413, {
+      success: false,
+      errors: [{ field: 'body', message: err.message }],
     });
   }
 
@@ -91,9 +146,11 @@ export async function handleRequest(req, res) {
   const { pathname } = url;
   const method = req.method?.toUpperCase();
 
-  // CORS (개발용)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+  // CORS (#56) — MOA_ALLOWED_ORIGIN 설정 시 그 origin만, 미설정 시 개발용 전체 허용
+  const allowedOrigin = process.env.MOA_ALLOWED_ORIGIN || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  if (allowedOrigin !== '*') res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (method === 'OPTIONS') {
@@ -103,6 +160,44 @@ export async function handleRequest(req, res) {
   }
 
   try {
+    // ─── 업로드 실저장 (Issue #55) ───────────────────────
+    // PUT: presign 서명이 있어야만 저장 가능. GET: 키(UUID)를 아는 쪽만 접근.
+    if (pathname.startsWith('/uploads/')) {
+      const fileKey = decodeURIComponent(pathname.slice('/uploads/'.length));
+
+      if (method === 'PUT') {
+        if (!isValidFileKey(fileKey)
+          || !verifyUploadSignature(fileKey, url.searchParams.get('exp'), url.searchParams.get('sig'))) {
+          return json(res, 403, { success: false, errors: [{ field: 'sig', message: '유효한 업로드 서명이 필요합니다. presign을 다시 발급받아 주세요.' }] });
+        }
+        const buffer = await readRawBody(req, 10 * 1024 * 1024); // presign 검증과 같은 10MB 상한
+        if (buffer.length === 0) {
+          return json(res, 400, { success: false, errors: [{ field: 'body', message: '업로드할 이미지 데이터가 없습니다.' }] });
+        }
+        const saved = saveUpload(fileKey, buffer);
+        if (!saved.ok) {
+          const status = saved.reason === 'exists' ? 409 : 400;
+          return json(res, status, { success: false, errors: [{ field: 'fileKey', message: saved.reason === 'exists' ? '이미 업로드된 파일입니다.' : '파일 키가 올바르지 않습니다.' }] });
+        }
+        return json(res, 201, { success: true, data: { publicUrl: `/uploads/${fileKey}` } });
+      }
+
+      if (method === 'GET') {
+        const found = readUpload(fileKey);
+        if (!found) {
+          return json(res, 404, { success: false, errors: [{ field: 'fileKey', message: '파일을 찾을 수 없습니다.' }] });
+        }
+        // 키에 UUID가 들어 있어 내용이 바뀌지 않는다 — 캐시를 길게 준다.
+        res.writeHead(200, {
+          'Content-Type': found.contentType,
+          'Content-Length': found.buffer.length,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        });
+        res.end(found.buffer);
+        return;
+      }
+    }
+
     // ─── POST /api/uploads/presign ───────────────────────
     if (method === 'POST' && pathname === '/api/uploads/presign') {
       const body = await parseBody(req);
@@ -141,7 +236,7 @@ export async function handleRequest(req, res) {
       });
     }
 
-    // ─── POST /api/analyze (Issue #10·#11) ───────────────────────
+    // ─── POST /api/analyze (Issue #10·#11 · Gemini 연동) ─────────
     // 사진 유형을 분류하고 검수 필요 여부를 함께 알려준다.
     if (method === 'POST' && pathname === '/api/analyze') {
       const body = await parseBody(req);
@@ -153,12 +248,17 @@ export async function handleRequest(req, res) {
         });
       }
 
-      // dataURL이면 바이트를, URL이면 경로 문자열을 분류 입력으로 쓴다.
-      const base64 = typeof body.photo === 'string' ? body.photo.split(',')[1] : null;
-      const buffer = base64 ? Buffer.from(base64, 'base64') : Buffer.from(String(source), 'utf8');
+      // dataURL이면 바이트와 MIME을, URL이면 경로 문자열을 분류 입력으로 쓴다.
+      const dataUrlMatch = typeof body.photo === 'string'
+        ? body.photo.match(/^data:([^;,]+);base64,(.+)$/)
+        : null;
+      const buffer = dataUrlMatch
+        ? Buffer.from(dataUrlMatch[2], 'base64')
+        : Buffer.from(String(source), 'utf8');
+      const mimeType = dataUrlMatch?.[1];
       const filename = body.filename || String(body.photoUrl || '');
 
-      const result = await classify({ buffer, filename });
+      const result = await classify({ buffer, filename, mimeType });
       return json(res, 200, { success: true, data: result });
     }
 
@@ -179,7 +279,21 @@ export async function handleRequest(req, res) {
       return json(res, 200, { success: true, data: { params: MERGE_PARAMS, candidates } });
     }
 
-    // ─── POST /api/issues/:id/empathy (Issue #15) ────────────────
+    // ─── GET /api/issues/map?lat=&lng=&radiusM= ('내 주변' 탭) ───
+    if (method === 'GET' && pathname === '/api/issues/map') {
+      const lat = Number(url.searchParams.get('lat'));
+      const lng = Number(url.searchParams.get('lng'));
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return json(res, 400, {
+          success: false,
+          errors: [{ field: 'query', message: 'lat, lng가 필요합니다.' }],
+        });
+      }
+      const issues = issuesAround({ lat, lng, radiusM: url.searchParams.get('radiusM') });
+      return json(res, 200, { success: true, data: { issues } });
+    }
+
+    // ─── POST /api/issues/:id/empathy (Issue #15·#58) ────────────
     if (method === 'POST' && /^\/api\/issues\/[^/]+\/empathy$/.test(pathname)) {
       const issueId = pathname.split('/')[3];
       const body = await parseBody(req);
@@ -187,8 +301,11 @@ export async function handleRequest(req, res) {
         return json(res, 400, { success: false, errors: [{ field: 'deviceId', message: 'deviceId가 필요합니다.' }] });
       }
 
-      const result = addEmpathy(issueId, body.deviceId);
+      const result = addEmpathy(issueId, body.deviceId, { ip: clientIp(req) });
       if (!result) return json(res, 404, { success: false, errors: [{ field: 'id', message: '문제를 찾을 수 없습니다.' }] });
+      if (result.limited) {
+        return json(res, 429, { success: false, errors: [{ field: 'empathy', message: '잠시 후 다시 공감할 수 있습니다.' }] });
+      }
       return json(res, 200, { success: true, data: result });
     }
 
@@ -238,7 +355,16 @@ export async function handleRequest(req, res) {
       });
     }
 
-    // ─── 관리자 API (Issue #22 · 데모 단계: 인증 없음) ────────────
+    // ─── 관리자 API (Issue #22 · #56 인증) ────────────────────────
+    if (pathname.startsWith('/api/admin/')) {
+      if (!isAdminAuthorized(req)) {
+        return json(res, 401, {
+          success: false,
+          errors: [{ field: 'authorization', message: '관리자 토큰이 필요합니다.' }],
+        });
+      }
+    }
+
     if (method === 'GET' && pathname === '/api/admin/stats') {
       return json(res, 200, { success: true, data: stats() });
     }
