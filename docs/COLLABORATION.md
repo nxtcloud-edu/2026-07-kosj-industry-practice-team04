@@ -6,8 +6,10 @@
 **3대 원칙**
 
 1. **이슈 없이는 작업 없음** — 모든 작업은 GitHub Issue로 시작한다
-2. **main 직접 push 금지** — 모든 변경은 브랜치 → PR → CI + 리뷰 → 머지
+2. **main 직접 push 금지** — 모든 변경은 브랜치 → PR → CI → 머지
 3. **main은 항상 시연 가능 상태** — CI(테스트 113개 + 빌드)가 필수 체크라 깨진 코드는 머지 자체가 안 된다
+
+> 📌 **현재 운영 모드 (7/23~)**: 1인 개발 체제. 리뷰 승인 요건은 일단 해제 — **PR + CI 통과**가 머지 조건입니다. 팀 협업 재개 시 아래 리뷰 규칙(승인 1인·교차 리뷰)을 복원합니다.
 
 ---
 
@@ -30,7 +32,7 @@ jaeyong     ●───────●
 | 머지 방식 | **Squash and merge** — main 히스토리가 "PR 1개 = 커밋 1개"로 유지 |
 | 머지 후 | 브랜치를 지우지 않고 계속 사용 (`git pull origin main` 후 다음 작업) |
 
-**main 보호 (적용 중)**: 직접 push 금지 · PR 필수 · 승인 1인 · **required checks: `backend-test` `frontend-build`** · force-push 금지
+**main 보호 (적용 중)**: 직접 push 금지 · PR 필수 · **required checks: `backend-test` `frontend-build`** · force-push 금지 (승인 요건은 1인 개발 모드 동안 해제)
 
 ## 2. 작업 관리 — Issues + 칸반 보드
 

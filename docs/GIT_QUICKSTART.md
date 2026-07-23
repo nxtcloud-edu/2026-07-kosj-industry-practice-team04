@@ -43,7 +43,7 @@ git push
 # ⑦ CI(backend-test·frontend-build)가 초록인지 확인 → 리뷰어 지정 + 슬랙 공유
 #    로컬 선확인: cd backend && npm test
 
-# ⑧ Approve 받으면 [Squash and merge]  (브랜치는 지우지 않고 계속 사용)
+# ⑧ CI 초록이면 [Squash and merge]  (현 1인 개발 모드 — 승인 불필요. 브랜치는 계속 사용)
 
 # ⑨ 다음 작업은 다시 ②부터 — 같은 브랜치에서 git pull origin main 후 진행
 ```

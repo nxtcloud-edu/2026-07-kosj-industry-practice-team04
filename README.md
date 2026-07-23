@@ -130,4 +130,4 @@ npm run dev
 | 가동진 | BE (백엔드) | `dongjin` |
 | 김성현 | AI · Admin (AI 분류·관리자·인프라) | `sunghyun` |
 
-**협업 규칙 요약** — main 직접 push 금지 · **사람별 브랜치**(멘토 권장)에서 작업 → PR(`Closes #N`) → CI 통과 + 리뷰 1인 → Squash merge · 진행 상황은 [칸반 보드](https://github.com/users/SungHyunC/projects/1)
+**작업 방식** — main 직접 push 금지 · **사람별 브랜치**(멘토 권장)에서 작업 → PR(`Closes #N`) → **CI 통과 시 머지** (현재 1인 개발 모드 — 리뷰 승인 요건은 해제, 팀 협업 재개 시 복원) · 진행 상황은 [칸반 보드](https://github.com/users/SungHyunC/projects/1)
