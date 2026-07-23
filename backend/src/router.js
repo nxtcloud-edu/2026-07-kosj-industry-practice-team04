@@ -4,6 +4,7 @@ import { submitReport } from './report-service.js';
 import { getReportByReceiptNo } from './store.js';
 import { matchesViewToken } from './view-token.js';
 import { TYPES, STATUS_FLOW, MERGE_PARAMS, summarizeIssue } from './domain.js';
+import { classify } from './classifier.js';
 import {
   addEmpathy, changeStatus, findIssueByReceiptNo, issueDetail, listIssues,
   markSpam, nearbyCandidates, reclassifyReport, splitReport, stats,
@@ -138,6 +139,27 @@ export async function handleRequest(req, res) {
           merged,
         },
       });
+    }
+
+    // ─── POST /api/analyze (Issue #10·#11) ───────────────────────
+    // 사진 유형을 분류하고 검수 필요 여부를 함께 알려준다.
+    if (method === 'POST' && pathname === '/api/analyze') {
+      const body = await parseBody(req);
+      const source = body?.photo || body?.photoUrl || body?.filename;
+      if (!source) {
+        return json(res, 400, {
+          success: false,
+          errors: [{ field: 'photo', message: '분류할 사진(photo 또는 photoUrl)이 필요합니다.' }],
+        });
+      }
+
+      // dataURL이면 바이트를, URL이면 경로 문자열을 분류 입력으로 쓴다.
+      const base64 = typeof body.photo === 'string' ? body.photo.split(',')[1] : null;
+      const buffer = base64 ? Buffer.from(base64, 'base64') : Buffer.from(String(source), 'utf8');
+      const filename = body.filename || String(body.photoUrl || '');
+
+      const result = await classify({ buffer, filename });
+      return json(res, 200, { success: true, data: result });
     }
 
     // ─── GET /api/issues/nearby?lat=&lng=&type= (Issue #13·#14) ──

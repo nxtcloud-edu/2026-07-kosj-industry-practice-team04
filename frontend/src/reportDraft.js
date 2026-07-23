@@ -10,10 +10,24 @@ const KEY = 'moa-report-draft';
 
 /** @typedef {{ name: string, type: string, size: number }} PhotoMeta */
 
-/** 촬영 화면에서 사진 메타데이터 저장 */
+/** 촬영 화면에서 사진 메타데이터 저장 (기존 분류 결과는 유지) */
 export function saveDraftPhotos(files) {
   const photos = files.map((f) => ({ name: f.name, type: f.type, size: f.size }));
-  sessionStorage.setItem(KEY, JSON.stringify({ photos, savedAt: new Date().toISOString() }));
+  const prev = getDraft();
+  sessionStorage.setItem(KEY, JSON.stringify({
+    ...prev, photos, savedAt: new Date().toISOString(),
+  }));
+}
+
+/**
+ * AI 분류 결과 저장 (Issue #10·#11)
+ * 위치 확인 화면이 이 유형으로 유사 신고를 조회하고, 접수 시 함께 전송한다.
+ */
+export function saveDraftAnalysis({ type, confidence, needsReview }) {
+  const prev = getDraft();
+  sessionStorage.setItem(KEY, JSON.stringify({
+    ...prev, analysis: { type, confidence, needsReview },
+  }));
 }
 
 /** @returns {{ photos: PhotoMeta[], savedAt?: string }} */
