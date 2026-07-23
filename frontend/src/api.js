@@ -6,8 +6,28 @@
  *
  * 봉투가 없는 응답(구버전·정적 목)도 그대로 통과시킨다.
  */
+function apiBaseUrl() {
+  const configured = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (!configured) return '';
+
+  const normalized = configured.replace(/\/+$/, '');
+  let parsed;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    throw new Error('VITE_API_BASE_URL은 HTTPS origin이어야 합니다.');
+  }
+
+  if (parsed.protocol !== 'https:' || parsed.origin !== normalized) {
+    throw new Error('VITE_API_BASE_URL은 경로 없이 HTTPS origin만 허용합니다.');
+  }
+  return parsed.origin;
+}
+
+const API_BASE_URL = apiBaseUrl();
+
 async function req(method, url, body) {
-  const res = await fetch(url, {
+  const res = await fetch(`${API_BASE_URL}${url}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
