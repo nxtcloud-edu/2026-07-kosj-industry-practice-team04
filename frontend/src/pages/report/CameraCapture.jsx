@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useImageCompression, { formatFileSize } from '../../hooks/useImageCompression.js';
-import { saveDraftPhotos } from '../../reportDraft.js';
+import { saveDraftAnalysis, saveDraftPhotos } from '../../reportDraft.js';
+import { analyzePhoto } from '../../api.js';
 import './report.css';
 
 const MAX_PHOTOS = 10;
@@ -26,6 +27,9 @@ export default function CameraCapture() {
   const [warning, setWarning] = useState('');
   // 압축 결과 누적 (원본/압축 후 용량 표시용)
   const [savedBytes, setSavedBytes] = useState({ before: 0, after: 0 });
+  // AI 분류 결과 (Issue #10·#11)
+  const [analysis, setAnalysis] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   const { compressImages, isCompressing } = useImageCompression();
 
@@ -71,6 +75,27 @@ export default function CameraCapture() {
         before: prev.before + infos.reduce((n, i) => n + i.originalSize, 0),
         after: prev.after + infos.reduce((n, i) => n + i.compressedSize, 0),
       }));
+
+      // 첫 사진으로 AI 유형 분류 (Issue #10·#11).
+      // 분류 실패가 신고 자체를 막아서는 안 되므로 조용히 넘어간다.
+      if (files.length === 0 && compressed[0]) {
+        setAnalyzing(true);
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(compressed[0]);
+          });
+          const result = await analyzePhoto(dataUrl, compressed[0].name);
+          setAnalysis(result);
+          saveDraftAnalysis(result);
+        } catch {
+          setAnalysis(null);
+        } finally {
+          setAnalyzing(false);
+        }
+      }
     },
     [files.length, compressImages]
   );
@@ -86,6 +111,7 @@ export default function CameraCapture() {
     setFiles([]);
     setWarning('');
     setSavedBytes({ before: 0, after: 0 });
+    setAnalysis(null);
   }, []);
 
   // 카메라 열기
@@ -137,6 +163,20 @@ export default function CameraCapture() {
           자동 압축 완료 · {formatFileSize(savedBytes.before)} → {formatFileSize(savedBytes.after)}
           {savedBytes.before > savedBytes.after &&
             ` (${Math.round((1 - savedBytes.after / savedBytes.before) * 100)}% 절감)`}
+        </p>
+      )}
+
+      {/* AI 유형 분류 결과 (Issue #10·#11) */}
+      {analyzing && (
+        <p className="camera-analyzing" role="status">
+          AI가 사진 유형을 확인하는 중입니다…
+        </p>
+      )}
+      {!analyzing && analysis && (
+        <p className={`camera-analysis ${analysis.needsReview ? 'is-low' : ''}`}>
+          AI 예상 유형: <strong>{analysis.type}</strong>
+          <span> (신뢰도 {Math.round(analysis.confidence * 100)}%)</span>
+          {analysis.needsReview && <em> · 담당자가 먼저 확인합니다</em>}
         </p>
       )}
 

@@ -1070,3 +1070,20 @@
   color: #64756f;
   margin-bottom: 4px;
 }
+
+/* ───────── AI 유형 분류 결과 (#10·#11) ───────── */
+.camera-analyzing,
+.camera-analysis {
+  margin: 8px 16px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+.camera-analyzing { background: #1e293b; color: #cbd5e1; }
+.camera-analysis { background: #0f766e; color: #ecfdf5; }
+.camera-analysis strong { font-weight: 900; }
+.camera-analysis span { font-weight: 700; opacity: .85; }
+.camera-analysis.is-low { background: #422006; color: #fde68a; }
+.camera-analysis em { font-style: normal; font-weight: 800; }

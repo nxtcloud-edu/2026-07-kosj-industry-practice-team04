@@ -80,10 +80,10 @@ export default function LocationConfirm() {
 
       setPhotoUrls(photoUrls);
 
-      // 이미지 분류 연동 전에는 '기타'로 조회한다. 분류 결과가 draft에 추가되면
-      // 해당 유형을 넘기도록 교체한다.
+      // 촬영 단계의 AI 분류 결과(#10·#11)를 그대로 사용한다. 분류가 없으면 '기타'.
+      const reportType = getDraft().analysis?.type ?? '기타';
       try {
-        const result = await nearbyIssues(position.latitude, position.longitude, '기타');
+        const result = await nearbyIssues(position.latitude, position.longitude, reportType);
         setCandidates(result.candidates ?? []);
       } catch {
         // 후보 조회 장애가 새 신고 자체를 막아서는 안 된다.
@@ -103,12 +103,16 @@ export default function LocationConfirm() {
     setSubmitError('');
 
     try {
+      // AI 분류 결과(#10·#11)를 함께 보내 대표 문제의 유형·부서·검수 큐 판정에 쓰이게 한다.
+      const { analysis } = getDraft();
+
       const { receiptNo, viewToken, merged } = await createReport({
         photos: photoUrls,
         latitude: position.latitude,
         longitude: position.longitude,
         address: addressPlaceholder,
         locationConsent: agreed,
+        ...(analysis ? { type: analysis.type, confidence: analysis.confidence } : {}),
         ...(attachIssueId ? { attachIssueId } : {}),
       });
 
