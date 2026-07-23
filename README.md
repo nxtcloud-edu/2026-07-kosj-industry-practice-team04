@@ -29,6 +29,7 @@
 - **Frontend**: React 모바일 웹앱 (모바일 우선, 접근성 토글)
 - **Backend**: AWS 서버리스 (API Gateway + Lambda + DynamoDB + S3)
 - **AI**: 관리형 이미지 인식 API → 검수 라벨 축적 → 자체 모델 파인튜닝(로드맵)
+- **Frontend Hosting**: S3 + CloudFront 자동 배포 파이프라인 — 실제 배포 상태는 GitHub Actions에서 확인 (백엔드 클라우드 배포 전 API 요청은 실패할 수 있음)
 
 ## 실행 방법 — main에서 지금 볼 수 있는 것
 
@@ -74,7 +75,7 @@ npm run dev
 
 ```bash
 cd backend
-npm test        # 단위 테스트 78개
+npm test        # 전체 테스트
 npm run eval    # 분류 정확도 표본 점검 (QUR-002)
 ```
 
@@ -85,7 +86,7 @@ npm run eval    # 분류 정확도 표본 점검 (QUR-002)
 | 사진 실제 업로드 (S3) | presign URL은 mock — 클라우드 연동 시 교체 |
 | AI 분류 자동 호출 | 분류기·검수 큐는 완성, 신고 흐름 연결은 후속 |
 | 지도에서 위치 수정 | placeholder — 지도 API 연동 예정 (SIR-002) |
-| 배포 | #2 진행 예정 |
+| 백엔드 클라우드 배포 | 로컬 Node.js 서버 — 서버리스 연동은 후속 |
 
 ## 문서
 
@@ -97,6 +98,7 @@ npm run eval    # 분류 정확도 표본 점검 (QUR-002)
 - [MVP 백로그 (이슈 등록용)](docs/BACKLOG.md)
 - **[📄 API 계약 v1 (프론트·백엔드 공통 기준)](docs/API_CONTRACT.md)**
 - [개인정보·위치정보 보관 및 삭제 정책](docs/PRIVACY_POLICY.md)
+- [프론트엔드 배포 가이드](docs/DEPLOYMENT.md)
 - **[🔗 팀 통합 참고 (AI/Admin PR 반영 시)](docs/INTEGRATION_NOTES.md)**
 
 ## 팀원 및 역할

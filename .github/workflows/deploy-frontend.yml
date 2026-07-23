@@ -1,0 +1,219 @@
+name: Frontend validate and deploy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install and build frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check frontend deployment artifact
+        run: node .github/scripts/frontend-deploy-check.mjs dist frontend/dist
+
+      - name: Install and test backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm test
+
+      - name: Test CloudFront Function
+        run: node --test infra/test/cloudfront-spa-rewrite.test.mjs
+
+      - name: Install cfn-lint
+        run: |
+          python3 -m venv "$RUNNER_TEMP/cfn-lint"
+          "$RUNNER_TEMP/cfn-lint/bin/pip" install "cfn-lint==1.53.1"
+
+      - name: Lint CloudFormation
+        run: |
+          "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/frontend-hosting.yml --regions ap-northeast-2
+
+      - name: Lint workflow syntax
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
+      - name: Check changed files for whitespace errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$GITHUB_EVENT_NAME" in
+            pull_request)
+              git diff --check "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+              ;;
+            push)
+              git diff --check "${{ github.event.before }}...${{ github.sha }}"
+              ;;
+            workflow_dispatch)
+              git diff --check HEAD^ HEAD
+              ;;
+          esac
+
+  deploy:
+    name: deploy
+    needs: validate
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: moa-frontend-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Validate deployment variables
+        shell: bash
+        run: |
+          set -euo pipefail
+          for variable_name in AWS_REGION AWS_ROLE_ARN S3_BUCKET_NAME CLOUDFRONT_DISTRIBUTION_ID; do
+            if [ -z "${!variable_name}" ]; then
+              echo "Missing required GitHub Actions variable: ${variable_name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check frontend deployment artifact
+        run: node .github/scripts/frontend-deploy-check.mjs dist frontend/dist
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: moa-frontend-deploy
+
+      - name: Record previous index version
+        id: previous-index
+        shell: bash
+        run: |
+          set -euo pipefail
+          error_file="$RUNNER_TEMP/head-index-error"
+          set +e
+          version_id=$(aws s3api head-object --bucket "$S3_BUCKET_NAME" --key index.html --query VersionId --output text 2>"$error_file")
+          status=$?
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
+          elif grep -Eq 'Not Found|404' "$error_file"; then
+            echo "No existing index.html: first deployment." >&2
+            echo "version_id=" >> "$GITHUB_OUTPUT"
+          else
+            cat "$error_file" >&2
+            exit "$status"
+          fi
+
+      - name: Upload hashed assets
+        run: aws s3 cp frontend/dist/assets "s3://${S3_BUCKET_NAME}/assets" --recursive --cache-control "public,max-age=31536000,immutable"
+
+      - name: Upload index
+        id: publish-index
+        run: >-
+          aws s3 cp frontend/dist/index.html "s3://${S3_BUCKET_NAME}/index.html"
+          --cache-control "no-cache,max-age=0,must-revalidate"
+          --content-type "text/html"
+
+      - name: Invalidate CloudFront cache
+        id: invalidate
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          invalidation_id=$(aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/*" --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --id "$invalidation_id"
+
+      - name: Smoke test
+        id: smoke
+        if: steps.invalidate.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          domain=$(aws cloudfront get-distribution --id "$CLOUDFRONT_DISTRIBUTION_ID" --query 'Distribution.DomainName' --output text)
+          for attempt in 1 2 3 4; do
+            set +e
+            node .github/scripts/frontend-deploy-check.mjs smoke "https://${domain}" frontend/dist
+            status=$?
+            set -e
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$status" -ne 75 ] || [ "$attempt" -eq 4 ]; then
+              exit "$status"
+            fi
+            sleep_seconds=$((5 * (2 ** (attempt - 1))))
+            sleep "$sleep_seconds"
+          done
+
+      - name: Restore previous index after failed deployment
+        if: >-
+          always() && steps.publish-index.outcome == 'success' &&
+          (steps.invalidate.outcome == 'failure' || steps.smoke.outcome == 'failure') &&
+          steps.previous-index.outputs.version_id != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws s3api copy-object \
+            --bucket "$S3_BUCKET_NAME" \
+            --copy-source "${S3_BUCKET_NAME}/index.html?versionId=${{ steps.previous-index.outputs.version_id }}" \
+            --key index.html \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache,max-age=0,must-revalidate" \
+            --content-type "text/html"
+          invalidation_id=$(aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/*" --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --id "$invalidation_id"
+
+      - name: Fail unsuccessful deployment after rollback attempt
+        if: >-
+          always() && (steps.invalidate.outcome == 'failure' || steps.smoke.outcome == 'failure')
+        run: exit 1
