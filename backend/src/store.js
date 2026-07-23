@@ -55,3 +55,32 @@ export function getAllReports() {
 export function clearReports() {
   reports.clear();
 }
+
+/* ─────────────────────────────────────────────────────
+ * 대표 문제(issue) 저장소 (Issue #22)
+ * 신고(report)를 담당자가 처리하는 단위로 묶은 계층.
+ * ───────────────────────────────────────────────────── */
+
+/** @type {Map<string, object>} issueId → issue */
+const issues = new Map();
+
+/** 대표 문제 저장 */
+export function saveIssue(issue) {
+  issues.set(issue.id, issue);
+  return issue;
+}
+
+/** ID로 대표 문제 조회 */
+export function getIssueById(id) {
+  return issues.get(id);
+}
+
+/** 전체 대표 문제 목록 */
+export function getAllIssues() {
+  return [...issues.values()];
+}
+
+/** 문제 저장소 초기화 (테스트용) */
+export function clearIssues() {
+  issues.clear();
+}

@@ -1,6 +1,8 @@
 import crypto from 'node:crypto';
 import { saveReport } from './store.js';
 import { generateViewToken, hashViewToken } from './view-token.js';
+import { attachReportToIssue } from './issue-service.js';
+import { needsReview } from './domain.js';
 
 /**
  * 신고 접수 비즈니스 로직 (Issue #9 · SFR-001)
@@ -28,11 +30,22 @@ export function submitReport(data) {
   const viewToken = generateViewToken();
   const contact = typeof data.contact === 'string' ? data.contact.trim() : '';
   const now = new Date().toISOString();
+  const confidence = Number(data.confidence) || 0;
 
   const report = {
+    id: `rp_${crypto.randomBytes(6).toString('hex')}`,
     receiptNo,
     viewTokenHash: hashViewToken(viewToken),
     photos: data.photos,
+    // 대표 문제 판정·관리자 화면이 쓰는 평평한 필드 (Issue #22)
+    photoUrl: data.photos?.[0] ?? null,
+    lat: data.latitude,
+    lng: data.longitude,
+    address: data.address || null,
+    type: data.type || '기타',
+    confidence,
+    needsReview: needsReview(confidence),
+    spam: false,
     location: {
       latitude: data.latitude,
       longitude: data.longitude,
@@ -53,5 +66,8 @@ export function submitReport(data) {
 
   saveReport(report);
 
-  return { receiptNo, viewToken, report };
+  // 신고를 대표 문제에 연결한다 — attachIssueId가 있으면 통합, 없으면 새 문제 (Issue #22)
+  const { issue, merged } = attachReportToIssue(report, data.attachIssueId);
+
+  return { receiptNo, viewToken, report, issue, merged };
 }
