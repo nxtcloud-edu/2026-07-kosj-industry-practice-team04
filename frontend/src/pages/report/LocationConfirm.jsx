@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useCurrentLocation from '../../hooks/useCurrentLocation.js';
-import { addEmpathy, createReport, nearbyIssues, presignUpload, uploadPhoto } from '../../api.js';
+import { addEmpathy, createReport, nearbyIssues, presignUpload, reverseGeocode, uploadPhoto } from '../../api.js';
 import { getDeviceId } from '../../deviceId.js';
 import { clearDraft, getDraft, getDraftFiles } from '../../reportDraft.js';
 import MoaMap from '../../components/MoaMap.jsx';
@@ -41,9 +41,23 @@ export default function LocationConfirm() {
   // 새로고침으로 File 객체가 날아간 경우 — 메타만 남아 있으면 재촬영을 안내한다.
   const filesMissing = draft.photos.length > 0 && draftFiles.length !== draft.photos.length;
 
-  // TODO: 역지오코딩 API(카카오 로컬 등) 연동 시 실제 주소로 교체
+  // 실주소 (Nominatim 역지오코딩) — 핀을 옮기면 0.6초 뒤 갱신, 실패하면 좌표로 폴백
+  const [address, setAddress] = useState(null);
+  useEffect(() => {
+    if (!position) return undefined;
+    const timer = setTimeout(async () => {
+      try {
+        const result = await reverseGeocode(position.latitude, position.longitude);
+        setAddress(result.address ?? null);
+      } catch {
+        setAddress(null);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [position?.latitude, position?.longitude]);
+
   const addressLabel = position
-    ? `핀 위치 기준 (위도 ${position.latitude.toFixed(5)}, 경도 ${position.longitude.toFixed(5)})`
+    ? (address ?? `핀 위치 기준 (위도 ${position.latitude.toFixed(5)}, 경도 ${position.longitude.toFixed(5)})`)
     : null;
 
   const handleAgreeChange = useCallback((e) => {

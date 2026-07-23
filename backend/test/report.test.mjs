@@ -9,6 +9,9 @@ let server;
 let baseUrl;
 
 test.before(async () => {
+  // 이 파일은 신고를 여러 번 접수한다 — IP 레이트리밋(계약 규칙 3)에 걸리지 않게 한도를 올린다.
+  // 리밋 자체의 검증은 hardening.test.mjs가 담당한다.
+  process.env.MOA_REPORT_LIMIT = '1000';
   server = http.createServer(handleRequest);
   await new Promise((resolve) => server.listen(0, resolve));
   const { port } = server.address();

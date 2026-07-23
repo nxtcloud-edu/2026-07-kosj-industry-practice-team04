@@ -3,6 +3,8 @@ import { validateStatusLookup, validateUploadRequest, validateReportRequest } fr
 import { generatePresignedUrl, verifyUploadSignature } from './upload.js';
 import { saveUpload, readUpload, isValidFileKey } from './upload-store.js';
 import { submitReport } from './report-service.js';
+import { consumeReportSlot } from './report-limit.js';
+import { reverseGeocode } from './geocode.js';
 import { getReportByReceiptNo } from './store.js';
 import { matchesViewToken } from './view-token.js';
 import { TYPES, STATUS_FLOW, MERGE_PARAMS, summarizeIssue } from './domain.js';
@@ -97,12 +99,14 @@ function clientIp(req) {
 }
 
 /**
- * 관리자 인증 (#56) — MOA_ADMIN_TOKEN이 설정된 경우에만 검사한다.
- * 미설정이면 로컬 데모 그대로 열려 있고, 배포 환경에서는 반드시 설정한다.
+ * 관리자 인증 (#56) — 언제나 잠겨 있다.
+ * MOA_ADMIN_TOKEN이 없으면 부팅 때 만든 임시 토큰을 쓰고 콘솔에 출력한다
+ * (server.js). "설정을 깜빡해서 콘솔이 공개되는" 사고를 원천 차단한다.
  */
+export const BOOT_ADMIN_TOKEN = crypto.randomBytes(8).toString('hex');
+
 function isAdminAuthorized(req) {
-  const required = process.env.MOA_ADMIN_TOKEN;
-  if (!required) return true;
+  const required = process.env.MOA_ADMIN_TOKEN || BOOT_ADMIN_TOKEN;
 
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
@@ -222,6 +226,14 @@ export async function handleRequest(req, res) {
         return json(res, 400, { success: false, errors });
       }
 
+      // 익명 신고 남발 방지 — 같은 IP 시간당 5건 (계약 보안 규칙 3)
+      if (!consumeReportSlot(clientIp(req)).allowed) {
+        return json(res, 429, {
+          success: false,
+          errors: [{ field: 'reports', message: '신고가 너무 잦습니다. 잠시 후 다시 접수해 주세요.' }],
+        });
+      }
+
       const { receiptNo, viewToken, issue, merged } = submitReport(body);
 
       return json(res, 201, {
@@ -277,6 +289,20 @@ export async function handleRequest(req, res) {
 
       const candidates = nearbyCandidates({ lat, lng, type, confidence: 1 });
       return json(res, 200, { success: true, data: { params: MERGE_PARAMS, candidates } });
+    }
+
+    // ─── GET /api/geocode/reverse?lat=&lng= (실주소 표시) ───────
+    if (method === 'GET' && pathname === '/api/geocode/reverse') {
+      const lat = Number(url.searchParams.get('lat'));
+      const lng = Number(url.searchParams.get('lng'));
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return json(res, 400, {
+          success: false,
+          errors: [{ field: 'query', message: 'lat, lng가 필요합니다.' }],
+        });
+      }
+      const { address } = await reverseGeocode(lat, lng);
+      return json(res, 200, { success: true, data: { address } });
     }
 
     // ─── GET /api/issues/map?lat=&lng=&radiusM= ('내 주변' 탭) ───

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { handleRequest } from '../src/router.js';
+import { handleRequest, BOOT_ADMIN_TOKEN } from '../src/router.js';
+import { clearReportLimits } from '../src/report-limit.js';
 
 /**
  * 프로덕션 하드닝 (Issue #56 · #57)
@@ -56,10 +57,15 @@ test('#57 상한 이내 요청은 정상 처리된다', async () => {
   assert.equal(res.status, 200);
 });
 
-test('#56 MOA_ADMIN_TOKEN 미설정이면 관리자 API가 열려 있다 (로컬 데모)', async () => {
+test('#56 MOA_ADMIN_TOKEN 미설정이어도 부팅 토큰으로 잠긴다 (배포 사고 방지)', async () => {
   delete process.env.MOA_ADMIN_TOKEN;
-  const res = await fetch(`${base}/api/admin/stats`);
-  assert.equal(res.status, 200);
+  const noAuth = await fetch(`${base}/api/admin/stats`);
+  assert.equal(noAuth.status, 401, '토큰 없이는 열리지 않아야 한다');
+
+  const withBoot = await fetch(`${base}/api/admin/stats`, {
+    headers: { Authorization: `Bearer ${BOOT_ADMIN_TOKEN}` },
+  });
+  assert.equal(withBoot.status, 200, '콘솔에 출력된 부팅 토큰으로는 접근된다');
 });
 
 test('#56 토큰 설정 시 Authorization 없는 관리자 요청은 401', async () => {
@@ -98,6 +104,31 @@ test('#56 시민 API는 관리자 토큰 설정과 무관하게 동작한다', a
     assert.equal(res.status, 200);
   } finally {
     delete process.env.MOA_ADMIN_TOKEN;
+  }
+});
+
+test('계약 규칙 3 — 같은 IP의 신고가 시간당 한도를 넘으면 429', async () => {
+  process.env.MOA_REPORT_LIMIT = '1'; // 한도를 1로 낮춰 시험
+  clearReportLimits();
+  const body = {
+    photos: ['/uploads/reports/2026/07/23/11111111-2222-3333-4444-555555555555.jpg'],
+    latitude: 36.48, longitude: 127.28, locationConsent: true,
+  };
+  const post = () => fetch(`${base}/api/reports`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  try {
+    const first = await post();
+    assert.equal(first.status, 201, '한도 안에서는 정상 접수');
+    const second = await post();
+    assert.equal(second.status, 429, '한도를 넘으면 429');
+    const payload = await second.json();
+    assert.equal(payload.errors[0].field, 'reports');
+  } finally {
+    delete process.env.MOA_REPORT_LIMIT;
+    clearReportLimits();
   }
 });
 

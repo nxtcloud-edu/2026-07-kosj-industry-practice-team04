@@ -719,6 +719,120 @@ html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
   background: #fff;
 }
 
+/* ============ 데스크톱 확장 — PC에서 좁아 보이지 않게 ============ */
+
+@media (min-width: 1000px) {
+  .app-header,
+  .accessibility-bar,
+  .app-main {
+    max-width: 1080px;
+  }
+  .app-main { padding-bottom: 120px; }
+  .page-head__title { font-size: 28px; }
+
+  /* 하단 풀폭 바 대신 화면 아래 중앙의 플로팅 필 */
+  .tab-bar {
+    left: 50%;
+    right: auto;
+    bottom: 18px;
+    transform: translateX(-50%);
+    width: auto;
+    padding: 7px;
+    gap: 4px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow-float);
+    background: rgba(255, 255, 255, 0.96);
+  }
+  .tab-item {
+    flex-direction: row;
+    gap: 8px;
+    min-width: 132px;
+    min-height: 46px;
+    padding-inline: 18px;
+    border-radius: 999px;
+    font-size: 13.5px;
+  }
+  .tab-item__icon svg { width: 19px; height: 19px; }
+
+  /* 홈 — 히어로를 왼쪽 크게, 절차·바로가기를 오른쪽에 */
+  .home-page {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 18px;
+    align-items: stretch;
+    padding-top: 16px;
+  }
+  .home-hero {
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 46px 42px;
+  }
+  .home-hero__title { font-size: 40px; }
+  .home-hero__desc { font-size: 16px; }
+  .home-hero__cta { max-width: 340px; }
+  .home-steps { align-self: start; }
+  .home-step { padding: 20px 10px 16px; }
+  .home-links { align-self: start; }
+  .home-foot { grid-column: 1 / -1; }
+
+  /* 내 주변 — 지도 왼쪽 고정, 목록 오른쪽 스크롤 */
+  .nearby-page {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .nearby-page > .page-head,
+  .nearby-page > .nearby-controls,
+  .nearby-page > .notice { grid-column: 1 / -1; }
+  .nearby-map-wrap {
+    position: sticky;
+    top: 16px;
+  }
+  .nearby-map-wrap .moa-map { height: 520px; }
+
+  /* 위치 확인 — 동의·정보 왼쪽, 지도 오른쪽 고정 */
+  .location-page {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .location-page > .flow-head,
+  .location-page > .notice,
+  .location-page > .location-error { grid-column: 1 / -1; }
+  .location-map-card,
+  .location-map-empty {
+    grid-column: 2;
+    grid-row: span 3;
+    position: sticky;
+    top: 16px;
+  }
+  .location-map-card .moa-map { height: 420px; }
+  .location-map-empty { height: 420px; }
+  .location-card,
+  .location-info-card { grid-column: 1; }
+  .location-next-btn,
+  .similar-choice { grid-column: 1; }
+
+  /* 촬영·완료·조회는 본문만 살짝 넓힌다 (읽기 폭 유지) */
+  .camera-page,
+  .compressor-page { max-width: 680px; margin-inline: auto; }
+  .preview-grid { grid-template-columns: repeat(4, 1fr); }
+  .status-page,
+  .lookup-page,
+  .report-complete { max-width: 620px; margin-inline: auto; }
+}
+
+@media (min-width: 1400px) {
+  .app-header,
+  .accessibility-bar,
+  .app-main { max-width: 1220px; }
+}
+
 /* ============ 반응형 ============ */
 
 @media (max-width: 520px) {
