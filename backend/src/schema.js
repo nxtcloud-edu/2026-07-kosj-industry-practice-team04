@@ -11,6 +11,9 @@
  * @property {string} message
  */
 
+const RECEIPT_NO_PATTERN = /^MOA-\d{8}-\d{5}$/;
+const VIEW_TOKEN_PATTERN = /^[a-f0-9]{32}$/;
+
 /**
  * presigned URL 요청 검증
  * @param {object} body
@@ -90,10 +93,34 @@ export function validateReportRequest(body) {
     errors.push({ field: 'address', message: '주소(address)는 문자열이어야 합니다.' });
   }
 
+  // 처리 알림을 희망하는 경우에만 연락처를 선택 수집한다 (SER-003).
+  // 연락처가 없으면 관련 필드를 저장하지 않는다.
+  if (body.contact != null) {
+    if (typeof body.contact !== 'string' || body.contact.trim() === '') {
+      errors.push({ field: 'contact', message: '연락처(contact)는 비어 있지 않은 문자열이어야 합니다.' });
+    } else {
+      const contact = body.contact.trim();
+      if (!/^(?:010\d{8}|010-\d{4}-\d{4})$/.test(contact)) {
+        errors.push({ field: 'contact', message: '연락처는 010-0000-0000 또는 01000000000 형식이어야 합니다.' });
+      }
+    }
+  }
+
   // 위치정보 수집 동의
   if (body.locationConsent !== true) {
     errors.push({ field: 'locationConsent', message: '위치정보 수집 동의(locationConsent)는 true여야 합니다.' });
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+/**
+ * 개인정보를 반환하지 않는 상태 조회 경계 검증.
+ * 형식 오류도 토큰 오류와 같은 403으로 처리하도록 boolean만 반환한다.
+ */
+export function validateStatusLookup(receiptNo, token) {
+  return typeof receiptNo === 'string'
+    && RECEIPT_NO_PATTERN.test(receiptNo)
+    && typeof token === 'string'
+    && VIEW_TOKEN_PATTERN.test(token);
 }

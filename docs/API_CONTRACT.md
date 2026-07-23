@@ -26,6 +26,34 @@
 { "success": false, "errors": [ { "field": "latitude", "message": "위도는 필수입니다." } ] }
 ```
 
+**잘못된 JSON**
+
+요청 본문이 JSON 문법에 맞지 않으면 HTTP `400`을 반환한다.
+
+```json
+{
+  "success": false,
+  "errors": [
+    { "field": "body", "message": "잘못된 JSON 형식입니다." }
+  ]
+}
+```
+
+빈 요청 본문은 `{}`로 파싱한 뒤 각 API의 필수 필드 검증 결과를 반환한다.
+
+**예상하지 못한 서버 오류**
+
+내부 오류 정보는 공개하지 않고 HTTP `500`과 고정된 메시지만 반환한다.
+
+```json
+{
+  "success": false,
+  "errors": [
+    { "field": "server", "message": "서버 내부 오류" }
+  ]
+}
+```
+
 - PR #37의 필드 단위 검증 에러 구조를 채택합니다(폼 UX에 유리).
 - `api.js`가 `data`를 벗겨 컴포넌트에 넘기고, 실패 시 `errors`의 message를 합쳐 `Error`로 throw 합니다 → **컴포넌트 코드는 수정 불필요**.
 
@@ -46,7 +74,7 @@ return body.data ?? body;
 | 2 | `POST /api/analyze` | `{photoUrl}` | `{type, confidence, needsReview}` | #10·#11 |
 | 3 | `GET /api/issues/nearby?lat=&lng=&type=` | — | `{params, candidates:[{...issueSummary, distance}]}` | #13·#14 |
 | 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` | #9 |
-| 5 | `GET /api/status/:receiptNo?token=` | — | `{report, issue:{...issueSummary, history, statusFlow}}` | #22·#23 |
+| 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{...issueSummary, history, statusFlow}}` | #22·#23·#34 |
 | 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` | #15 |
 
 **신고 접수 요청 본문 (4번)** — 현재 구현 기준 (PR #37·#43)
@@ -65,7 +93,7 @@ return body.data ?? body;
 - `photos`는 presign으로 받은 `publicUrl` 배열. **1장 vs 여러 장은 7장 미결정 사항** — 1장으로 정해지면 `photoUrl` 단수로 바꾼다
 - `type`·`confidence`는 분류 API(#10·#11) 연동 시 추가 예정
 - `attachIssueId` 있으면 기존 대표 문제에 통합 → 응답 `merged: true`
-- `contact`는 알림 희망 시에만 (선택, SER-003)
+- `contact`는 처리 알림을 희망해 직접 입력한 경우에만 보내는 선택값이다(SER-003). 서버는 `010-0000-0000` 또는 `01000000000` 형식만 저장하며, 미입력 신고에는 연락처 필드를 만들지 않는다
 - 시간당 신고 5건 초과 시 **429**
 
 **흐름**: ① presign 받아 사진 업로드 → ② `/api/analyze`로 유형·신뢰도 표시 → ③ `/api/issues/nearby`로 유사 신고 후보 제시(선택) → ④ `/api/reports` 접수 → ⑤ `statusPath`로 조회
@@ -106,6 +134,8 @@ return body.data ?? body;
 }
 ```
 
+시민 상태 조회의 `report`는 최소 공개 형태인 `receiptNo`, `status`, `createdAt`만 포함한다. 내부 신고 모델의 사진·위치·연락처와 조회 토큰 해시는 관리자 권한이 없는 상태 조회 응답에 포함하지 않는다.
+
 **공통 상수**
 
 | 항목 | 값 |
@@ -122,9 +152,15 @@ return body.data ?? body;
 
 1. **상태 조회는 접수번호 + 토큰 둘 다 필수.** 토큰이 **없으면 403** (있는데 틀려도 403).
    → 토큰이 없을 때 통과시키면 접수번호 열거로 타인의 사진·GPS가 노출됩니다 (SER-003, 제안서 6p).
+   접수번호는 `MOA-YYYYMMDD-XXXXX`, 조회 토큰은 발급 응답의 32자리 소문자 hex 값만 허용하며 형식 오류도 403으로 처리합니다.
 2. **위치정보 동의**(`locationConsent`) 없이는 신고 접수 불가, 동의 사실을 신고 데이터에 기록 (SER-001).
 3. **기기당 시간당 신고 5건 제한** (익명 신고 악용 방지).
 4. 조회 토큰에는 개인정보를 넣지 않습니다(난수).
+5. 조회 토큰 원문은 접수 응답에서 한 번만 전달하고 저장소에는 SHA-256 해시만 보관합니다.
+6. 없는 접수번호와 틀린 조회 토큰은 모두 **403**으로 응답해 접수번호 존재 여부를 숨깁니다.
+7. 상태 조회 응답은 `Cache-Control: no-store`, `Referrer-Policy: no-referrer`를 사용하고 사진·위치·연락처를 반환하지 않습니다.
+
+사진·위치·연락처의 보관 및 삭제 기준은 [PRIVACY_POLICY.md](PRIVACY_POLICY.md)를 따릅니다.
 
 ## 6. PR #37 정렬 가이드
 
@@ -154,4 +190,4 @@ return body.data ?? body;
 
 ---
 
-관련 문서: [INTEGRATION_NOTES.md](INTEGRATION_NOTES.md) · [BACKLOG.md](BACKLOG.md) · [COLLABORATION.md](COLLABORATION.md)
+관련 문서: [PRIVACY_POLICY.md](PRIVACY_POLICY.md) · [INTEGRATION_NOTES.md](INTEGRATION_NOTES.md) · [BACKLOG.md](BACKLOG.md) · [COLLABORATION.md](COLLABORATION.md)
