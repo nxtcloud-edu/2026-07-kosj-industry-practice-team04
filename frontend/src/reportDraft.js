@@ -40,6 +40,13 @@ export function saveDraftAnalysis({ type, confidence, needsReview }) {
   }));
 }
 
+/** 분류의 근거였던 사진이 삭제되면 결과도 함께 지운다 — 낡은 유형으로 접수되는 것 방지 */
+export function clearDraftAnalysis() {
+  const prev = getDraft();
+  delete prev.analysis;
+  sessionStorage.setItem(KEY, JSON.stringify(prev));
+}
+
 /** @returns {{ photos: PhotoMeta[], analysis?: object, savedAt?: string }} */
 export function getDraft() {
   try {

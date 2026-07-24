@@ -7,6 +7,9 @@ import './report.css';
  * 종이 접수증 모티프의 티켓. 조회 링크 복사와 '내 신고 보관함' 저장까지.
  */
 
+// 재발급 불가한 조회 토큰이 무음으로 사라지지 않게 보관함을 넉넉히 둔다.
+const MY_REPORTS_CAP = 30;
+
 function saveToMyReports(receiptNo, token) {
   try {
     const saved = JSON.parse(window.localStorage.getItem('moa-my-reports'));
@@ -14,7 +17,7 @@ function saveToMyReports(receiptNo, token) {
     const next = [
       { receiptNo, token, at: new Date().toISOString() },
       ...list.filter((r) => r.receiptNo !== receiptNo),
-    ].slice(0, 5);
+    ].slice(0, MY_REPORTS_CAP);
     window.localStorage.setItem('moa-my-reports', JSON.stringify(next));
   } catch {
     // 저장이 안 돼도 접수 자체에는 영향 없다.
@@ -90,10 +93,16 @@ export default function ReportComplete() {
           <b className="ticket__number">{receiptNo}</b>
           <span className="ticket__date">접수일시 · {receivedAt}</span>
         </div>
+        {viewToken && (
+          <div className="ticket__token">
+            <span className="ticket__label">조회 토큰</span>
+            <code className="ticket__token-value">{viewToken}</code>
+          </div>
+        )}
         <div className="ticket__tear" aria-hidden="true" />
         <footer className="ticket__foot">
           <span className="ticket__note">
-            아래 조회 링크(토큰 포함)는 재발급되지 않아요.
+            접수번호와 조회 토큰은 <b>재발급되지 않아요</b> — 캡처하거나 링크를 복사해 보관하세요.
             <br />이 기기 '접수 조회' 탭의 보관함에도 저장해 두었어요.
           </span>
         </footer>

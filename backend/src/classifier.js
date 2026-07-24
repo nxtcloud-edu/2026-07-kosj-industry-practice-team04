@@ -41,7 +41,9 @@ const GEMINI_PROMPT = [
 
 async function classifyWithGemini({ buffer, mimeType }) {
   const key = process.env.MOA_GEMINI_API_KEY;
-  const model = process.env.MOA_GEMINI_MODEL || 'gemini-2.0-flash';
+  // gemini-flash-latest는 무료 티어 할당량이 있는 현행 flash 모델을 가리킨다.
+  // (일부 신규 키는 gemini-2.0-flash 무료 할당량이 0이라 429가 난다)
+  const model = process.env.MOA_GEMINI_MODEL || 'gemini-flash-latest';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
   const controller = new AbortController();

@@ -71,6 +71,9 @@ async function req(method, url, body) {
   return payload.data ?? payload;
 }
 
+/** 서버 연결 확인 — 배포된 프론트가 백엔드 부재를 사용자에게 알릴 때 사용 */
+export const health = () => req('GET', '/api/health');
+
 // ── 시민 (FE 팀이 사용) ──
 /** 사진 업로드용 presigned URL 발급 — 응답의 publicUrl을 신고에 첨부한다 */
 export const presignUpload = ({ filename, contentType, fileSize }) =>
@@ -94,6 +97,9 @@ export const nearbyIssues = (lat, lng, type) =>
 /** '내 주변' 탭 — 반경 안 대표 문제의 공개 요약 (사진·개인정보 없음) */
 export const issuesMap = (lat, lng, radiusM = 1500) =>
   req('GET', `/api/issues/map?lat=${lat}&lng=${lng}&radiusM=${radiusM}`);
+/** 좌표 → 실주소 (실패 시 address: null — 좌표 표기로 폴백) */
+export const reverseGeocode = (lat, lng) =>
+  req('GET', `/api/geocode/reverse?lat=${lat}&lng=${lng}`);
 export const createReport = (payload) => req('POST', '/api/reports', payload);
 export const getStatus = (receiptNo, token) =>
   req('GET', `/api/status/${encodeURIComponent(receiptNo)}?token=${encodeURIComponent(token)}`);

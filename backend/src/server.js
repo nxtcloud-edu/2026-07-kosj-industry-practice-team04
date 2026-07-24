@@ -1,6 +1,6 @@
 import http from 'node:http';
-import { handleRequest } from './router.js';
-import { initPersistence } from './store.js';
+import { handleRequest, BOOT_ADMIN_TOKEN } from './router.js';
+import { initPersistence, flushNow } from './store.js';
 import { sweepRetention } from './retention.js';
 
 /**
@@ -38,8 +38,31 @@ const server = http.createServer(handleRequest);
 server.listen(PORT, () => {
   console.log(`[moa-backend] 서버 시작 — http://localhost:${PORT}`);
   console.log(`  분류 엔진: ${process.env.MOA_GEMINI_API_KEY ? 'Gemini' : 'mock (MOA_GEMINI_API_KEY 미설정)'}`);
-  console.log(`  관리자 인증: ${process.env.MOA_ADMIN_TOKEN ? 'Bearer 토큰 필수' : '꺼짐 (MOA_ADMIN_TOKEN 미설정)'}`);
+  if (process.env.MOA_ADMIN_TOKEN) {
+    console.log('  관리자 인증: 환경변수 토큰 사용 (MOA_ADMIN_TOKEN)');
+  } else {
+    // 미설정이어도 콘솔이 공개되지 않도록 부팅 토큰으로 잠근다 — 재시작하면 바뀐다.
+    console.log(`  관리자 토큰(자동 생성): ${BOOT_ADMIN_TOKEN}`);
+    console.log('    → /admin 접속 시 이 토큰을 입력하세요. 고정하려면 MOA_ADMIN_TOKEN 설정.');
+  }
   console.log(`  데이터 파일: ${dataFile === 'off' ? '인메모리 전용' : dataFile}`);
 });
+
+// 우아한 종료 — Ctrl+C·서비스 중지(SIGTERM) 시 진행 중 요청을 마무리하고
+// 스냅숏을 저장한 뒤 나간다. 지연되면 5초 후 강제 종료(안전망은 store의 exit 훅).
+let shuttingDown = false;
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.on(sig, () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`\n[moa-backend] ${sig} 수신 — 종료 준비 중…`);
+    const force = setTimeout(() => process.exit(0), 5000);
+    force.unref?.();
+    server.close(() => {
+      try { flushNow(); } catch { /* exit 훅이 재시도 */ }
+      process.exit(0);
+    });
+  });
+}
 
 export default server;

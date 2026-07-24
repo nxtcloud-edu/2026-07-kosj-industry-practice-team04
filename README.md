@@ -1,46 +1,64 @@
 # 「모아」 — AI 생활 인프라 유지관리 플랫폼
 
-> 같은 신고는 모으고, 누구나 3단계로 신고하게.
+> **같은 신고는 모으고, 누구나 3단계로 신고하게.**
 
-고려대 세종 산업체 실습 4팀의 MVP 프로젝트입니다. (학습용 가상 공고 [2026-세종-0002] 대응)
+고려대 세종 산업체 실습 4팀의 MVP입니다. (학습용 가상 공고 [2026-세종-0002] 대응)
 
-**앱 설치·로그인 없이** 사진 한 장과 위치로 생활 불편을 신고하면, AI가 유형을 분류하고 **유사 신고를 하나의 문제로 통합**해 담당자에게 우선순위대로 전달합니다. 신고자는 접수번호가 담긴 링크로 처리 상태를 끝까지 확인합니다.
+**앱 설치·로그인 없이** 사진 한 장과 위치로 생활 불편을 신고하면, AI가 유형을 분류하고 **유사 신고를 하나의 문제로 통합**해 담당자에게 우선순위대로 전달합니다. 신고자는 접수증의 조회 링크로 처리 상태를 끝까지 확인합니다.
 
-## 해결하려는 문제
+| 시민의 문제 | 담당자의 문제 | 시스템의 문제 |
+|---|---|---|
+| 앱 설치·회원가입·긴 양식 — 신고 문턱이 높아 디지털 취약층이 포기한다 | 같은 문제가 별개 민원으로 쌓여 처리보다 중복 확인에 시간을 쓴다 | 접수 순서 중심 처리로 위험한 문제가 뒤로 밀린다 |
 
-| 주체 | 문제 |
-|---|---|
-| 시민 | 앱 설치·회원가입·긴 양식 — 신고 문턱이 높아 디지털 취약층이 포기한다 |
-| 담당자 | 같은 문제가 별개 민원으로 쌓여 처리보다 중복 확인에 시간을 쓴다 |
-| 시스템 | 접수 순서 중심 처리로 위험한 문제가 뒤로 밀린다 |
+## 지금 동작하는 것
 
-## 주요 기능 (MVP 1~5)
+**시민 앱** — 하단 3탭 (모바일 우선, PC는 와이드 레이아웃)
 
-1. **3단계 신고 흐름** — 사진 촬영 → 위치 확인 → 완료, 로그인 없음 (SFR-001)
-2. **AI 유형 분류 + 오분류 보정** — 이미지 인식 API 연계, 관리자 재분류 (SFR-002·005)
-3. **유사 신고 통합 + 우선순위·배정** — 반경·유형·시간 통합, '나도 불편해요' (SFR-003·004)
-4. **접근성 기본 세트** — 큰 글자·고대비 토글, 사진 촬영 가이드 (COR-002)
-5. **처리 상태 관리 + 관리자 검수** — 접수번호·조회 토큰 무로그인 조회 (SFR-006)
+- **신고하기**: 촬영(자동 압축 + AI 유형 분류) → 위치 확인(지도 핀 드래그 보정 + **실주소 자동 표시**) → 접수증 발급. 사진은 **실제로 업로드**되어 서버에 저장
+- **내 주변**: 반경 500m~3km 신고를 지도·목록으로 확인, '나도 불편해요' 공감
+- **접수 조회**: 접수번호+토큰 무로그인 조회, 이 기기에서 낸 신고는 **내 신고 보관함**에 자동 저장
+- **유사 신고 통합**: 반경 50m·같은 유형·72시간 내 신고를 후보로 제시 → 신고자가 '기존 문제에 추가' 선택
+- **접근성**: 글자 크기 100~160% · 고대비 모드 (모든 화면, 설정은 기기에 저장)
 
-6~10단계 확장 로드맵은 [입찰 제안서](docs/2주차_입찰제안서_모아.pdf) 11p 참고.
+**관리자 콘솔** (`/admin` — 토큰 게이트)
 
-## 기술 구성
+- 우선순위 정렬(`위험도 + 신고 건수 + 공감(상한 5)`) · AI 신뢰도 70% 미만 **검수 큐**
+- 통합된 신고 **실사진 비교** · 상태 변경(접수→배정→처리중→완료, 시민 화면 즉시 반영)
+- 수동 재분류 · 스팸 처리 · 오통합 분리(우선순위 자동 재계산) · 처리 이력 타임라인
 
-- **Frontend**: React 모바일 웹앱 — 하단 3탭(신고/내 주변/조회), Leaflet+OpenStreetMap 지도(API 키 불필요), 접근성 토글
-- **Backend**: Node.js HTTP 서버 (현재) → AWS 서버리스 (로드맵). JSON 스냅숏 영속화·보관기한 자동 삭제·관리자 토큰 인증 내장
-- **AI**: `MOA_GEMINI_API_KEY` 설정 시 **Gemini 비전 실분류** (무료 키: aistudio.google.com/apikey), 미설정 시 결정적 mock — 검수 라벨 축적 → 자체 모델 파인튜닝(로드맵)
-- **사진 저장**: presign → 서명 검증 PUT → 로컬 디스크(`backend/uploads/`) — S3 전환 지점 주석 유지
-- **Frontend Hosting**: S3 + CloudFront 자동 배포 파이프라인 — 실제 배포 상태는 GitHub Actions에서 확인 (백엔드 클라우드 배포 전 API 요청은 실패할 수 있음)
+## 아키텍처
 
-## 실행 방법 — main에서 지금 볼 수 있는 것
+```mermaid
+flowchart LR
+  subgraph Client["시민 · 관리자 (React SPA)"]
+    T1["신고하기<br/>촬영·압축·AI분류"] --- T2["내 주변<br/>Leaflet 지도"] --- T3["접수 조회"] --- AD["관리자 콘솔<br/>(Bearer 토큰)"]
+  end
+  Client -->|"REST (봉투 규약)"| API["Node.js HTTP 서버 :4000"]
+  subgraph Backend["backend/src"]
+    API --> RT["router<br/>413·429·CORS·인증"]
+    RT --> CLS["classifier<br/>Gemini ⇄ mock 폴백"]
+    RT --> DOM["domain<br/>통합·우선순위·부서배정"]
+    RT --> GEO["geocode<br/>Nominatim 캐시"]
+    RT --> UP["uploads<br/>서명 검증 실저장"]
+    DOM --> ST["store<br/>JSON 스냅숏 영속화"]
+    ST --> RET["retention<br/>보관기한 자동 삭제"]
+  end
+  GH["GitHub Actions<br/>CI + 배포"] -->|"S3 + CloudFront"| Client
+```
 
-> Node.js 20 이상 필요
+- **Frontend**: React 18 + Vite, Leaflet+OpenStreetMap(키 불필요), Pretendard·고운돋움
+- **Backend**: 순수 node:http (프레임워크 무의존) — 서버리스 전환 시 라우터만 이식
+- **AI**: `MOA_GEMINI_API_KEY` 설정 시 **Gemini 비전 실분류**(무료 키: aistudio.google.com/apikey), 미설정·장애 시 결정적 mock 폴백
+- **품질 게이트**: PR마다 백엔드 테스트 전체 + 프론트 빌드가 필수 체크 — 깨진 코드는 머지 불가
 
-터미널 **2개**를 띄우면 시민 앱과 관리자 콘솔이 **한 서버로** 모두 동작합니다.
+## 실행 방법
+
+> Node.js 20 이상 · 터미널 2개
 
 ```bash
 # 터미널 1 — 백엔드 (:4000)
 cd backend
+cp .env.example .env    # 최초 1회 (관리자 토큰 demo-team04가 이미 들어 있음)
 npm start
 
 # 터미널 2 — 프론트엔드 (:5173)
@@ -49,90 +67,74 @@ npm install     # 최초 1회
 npm run dev
 ```
 
-> 포트는 `MOA_PORT`가 최우선입니다 (개발 도구가 `PORT`를 주입해도 안전).
-> 데이터는 `backend/data/moa-data.json`에 스냅숏으로 남아 **서버를 재시작해도 유지**됩니다. 초기화하려면 이 파일과 `backend/uploads/`를 지우면 됩니다.
+- 시민 앱 http://localhost:5173 · 관리자 http://localhost:5173/admin
+- **관리자 토큰 (MVP 데모용)**: `demo-team04` — `/admin` 진입 시 이 값을 입력하세요.
+  `backend/.env.example`에 기본으로 들어 있어 `cp` 후 바로 동작합니다.
+  > ⚠️ 실제 배포 시에는 반드시 `MOA_ADMIN_TOKEN`을 **다른 값으로** 바꾸세요. 지금 값은 공개 데모용입니다.
+- **AI 분류 (선택)**: Gemini 키가 있으면 `backend/.env`의 `MOA_GEMINI_API_KEY=`에 넣으세요 (키는 절대 커밋 금지 — `.env`는 gitignore됨). 없으면 mock으로 동작합니다.
+- 데이터는 `backend/data/moa-data.json` 스냅숏으로 **재시작해도 유지** — 초기화는 이 파일과 `backend/uploads/` 삭제
+- 테스트 `cd backend && npm test` · 분류 정확도 표본 `npm run eval`
 
-**백엔드 환경변수 (전부 선택)**
+<details>
+<summary><b>백엔드 환경변수 (전부 선택)</b></summary>
 
 | 변수 | 기본값 | 용도 |
 |---|---|---|
-| `MOA_GEMINI_API_KEY` | (없음 → mock) | Gemini 비전 실분류 켜기 |
-| `MOA_ADMIN_TOKEN` | (없음 → 열림) | `/api/admin/*` Bearer 인증 — **배포 시 필수** |
+| `MOA_PORT` | 4000 | 포트 (`PORT`보다 우선 — 개발 도구 주입 사고 방지) |
+| `MOA_GEMINI_API_KEY` / `MOA_GEMINI_MODEL` | (없음 → mock) / `gemini-flash-latest` | Gemini 비전 실분류·모델 |
+| `MOA_ADMIN_TOKEN` | (자동 생성 → 콘솔 출력) | 관리자 Bearer 인증 — **배포 시 고정값 필수** |
+| `MOA_TRUST_PROXY` | (없음) | `1`이면 신뢰 프록시 뒤로 보고 X-Forwarded-For로 IP 판별 |
 | `MOA_ALLOWED_ORIGIN` | `*` | CORS를 프론트 origin으로 제한 |
-| `MOA_DATA_FILE` | `./data/moa-data.json` | 영속화 파일 경로 (`off`면 인메모리) |
+| `MOA_DATA_FILE` | `./data/moa-data.json` | 영속화 파일 (`off`면 인메모리) |
+| `MOA_UPLOAD_DIR` / `MOA_UPLOAD_SECRET` | `./uploads` / (랜덤) | 사진 저장 경로 · presign 서명 키(다중 인스턴스 시 고정) |
 | `MOA_MAX_BODY_BYTES` | 15MB | 요청 본문 상한 (초과 413) |
+| `MOA_REPORT_LIMIT` / `_WINDOW_MS` | 5 / 1시간 | IP당 신고 한도·창 (초과 429) |
+| `MOA_ANALYZE_LIMIT` / `MOA_UPLOAD_LIMIT` / `MOA_GEOCODE_LIMIT` | 20 / 60 / 30 (분당) | IP당 AI분석·업로드·역지오코딩 한도 |
+| `MOA_EMPATHY_CAP` / `MOA_EMPATHY_WINDOW_MS` | 5 / 1시간 | 공감 우선순위 상한·IP 재시도 간격 |
+| `MOA_MERGE_RADIUS_M` / `_WINDOW_HOURS` / `MOA_MIN_CONFIDENCE` | 50 / 72 / 0.7 | 통합·검수 파라미터 |
 | `MOA_RETENTION_SWEEP_MS` | 1시간 | 개인정보 보관기한 스윕 주기 |
 
-### ① 시민 앱 — http://localhost:5173
+</details>
 
-하단 **3탭**(신고하기 · 내 주변 · 접수 조회)으로 구성된 서비스형 UI입니다.
+## 보안·개인정보 (RFP SER-001·003 대응)
 
-- **3단계 신고** — 촬영(AI 분류) → 위치 확인 → 접수증. 사진은 **실제로 업로드**되어 관리자 화면에 표시
-- **지도 위치 보정** — Leaflet 지도에서 핀을 드래그해 정확한 위치로 수정 (SIR-002)
-- **내 주변 탭** — 반경 500m~3km 안 신고를 지도+목록으로 확인, '나도 불편해요' 공감
-- **접수 조회 탭** — 접수번호+토큰 입력 조회, 이 기기에서 접수한 신고는 **내 신고 보관함**에서 바로 열람
-- **자동 압축** — 업로드 전 리사이즈 (예: 2.7MB → 678KB)
-- **위치정보 동의** — 수집 목적·항목·보관 기간 고지 후 동의해야 접수 (SER-001)
-- **유사 신고 후보** — 반경 50m·같은 유형·72시간 내 신고를 보여주고 **'기존 문제에 추가' / '새 신고'** 선택
-- **접근성** — 글자 크기 100~160%, 고대비 모드 (설정은 기기에 저장)
+- 위치정보는 **목적·항목·기간 고지 + 동의** 후에만 수집, 동의 사실·시각을 신고에 기록
+- 상태 조회는 접수번호+**SHA-256 해시 보관 토큰** 둘 다 필수 — 없는 번호·틀린 토큰 모두 403(존재 여부 은닉), 응답은 `no-store`
+- 시민 응답에 사진·정밀 위치·연락처 미노출 · 업로드는 presign 서명 검증 + UUID 키
+- **보관기한 자동 삭제**: 처리 완료 후 연락처 30일·사진/위치/토큰 6개월 — 스윕이 실제로 돈다 ([정책 문서](docs/PRIVACY_POLICY.md))
+- 남용 방지: 신고 5건/시간·공감 1회/시간(IP당) · 우선순위 공감 기여 상한 +5 · 본문 15MB 상한
 
-### ② 관리자 콘솔 — http://localhost:5173/admin
+## 배포
 
-시민이 접수한 신고가 **대표 문제**로 묶여 바로 나타납니다. 시민 화면 상단의 `관리자` 버튼 ↔ 콘솔의 `시민 화면` 버튼으로 양방향 이동합니다.
-
-> 배포 환경에서 `MOA_ADMIN_TOKEN`을 설정하면 콘솔 진입 시 토큰을 요구합니다 (로컬은 그대로 열림).
-
-- **우선순위 정렬** — `유형 위험도 + 신고 건수 + 공감 수`
-- **검수 큐 필터** — AI 신뢰도 70% 미만 건에 `검수 필요` 배지
-- **문제 상세** — 통합된 신고 사진 비교, 우선순위 산정 근거 표시
-- **상태 변경** — 접수 → 배정 → 처리중 → 완료. **바꾸면 시민 조회 화면에 즉시 반영됩니다**
-- **수동 재분류 · 스팸 처리 · 오통합 분리** — 분리하면 우선순위가 자동 재계산
-
-> 데이터는 인메모리라 서버를 재시작하면 초기화됩니다 (영속 저장소는 로드맵).
-
-### ③ 테스트 · 정확도 점검
-
-```bash
-cd backend
-npm test        # 전체 테스트
-npm run eval    # 분류 정확도 표본 점검 (QUR-002)
-```
+- **프론트**: main 머지 → GitHub Actions → S3+CloudFront 자동 배포(+스모크 테스트·실패 시 롤백) — [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- **백엔드**: 현재 로컬 Node 서버. 클라우드 이전 시 필수 env는 DEPLOYMENT.md 참고
 
 ### 아직 안 되는 것
 
 | 기능 | 상태 |
 |---|---|
-| 실제 주소 표시 | 좌표만 표시 — 역지오코딩 API(카카오 로컬 등) 연동 예정 |
-| S3 사진 저장 | 현재 로컬 디스크 실저장 — S3 전환 지점 주석으로 표시됨 |
-| Gemini 키 없는 환경 | mock 분류로 폴백 (파일명 힌트 기반이라 실사진 정확도는 제한적) |
-| 백엔드 클라우드 배포 | 로컬 Node.js 서버 — 서버리스 연동은 후속 |
+| S3 사진 저장 | 로컬 디스크 실저장 — `MOA_STORAGE` 분기 주석으로 전환 지점 표시 |
+| Gemini 키 없는 환경 | mock 분류 폴백 (파일명 힌트 기반이라 실사진 정확도 제한) |
+| 백엔드 클라우드 배포 | 서버리스 연동은 후속 — 그 전까지 배포 URL은 화면만 동작 |
 
 ## 문서
 
-- **[👋 START_HERE — 팀원은 이 문서부터](docs/START_HERE.md)**
-- [1주차 · 초기 아이디어 노트](docs/1주차_초기아이디어노트.html)
-- [2주차 · 입찰 제안서 (PDF)](docs/2주차_입찰제안서_모아.pdf)
-- [협업 가이드 (GitHub Flow + Issues/Projects)](docs/COLLABORATION.md)
-- [팀원용 Git 협업 퀵스타트](docs/GIT_QUICKSTART.md)
-- [MVP 백로그 (이슈 등록용)](docs/BACKLOG.md)
-- **[📄 API 계약 v1 (프론트·백엔드 공통 기준)](docs/API_CONTRACT.md)**
-- [개인정보·위치정보 보관 및 삭제 정책](docs/PRIVACY_POLICY.md)
-- [프론트엔드 배포 가이드](docs/DEPLOYMENT.md)
-- **[🔗 팀 통합 참고 (AI/Admin PR 반영 시)](docs/INTEGRATION_NOTES.md)**
-
-## 팀원 및 역할
-
-| 이름 | 역할 |
+| 목적 | 문서 |
 |---|---|
-| 심송언 | FE-A (프론트엔드) |
-| 김재용 | FE-B (프론트엔드) |
-| 가동진 | BE (백엔드) |
-| 김성현 | AI · Admin (AI 분류 연동·관리자 기능) |
+| 👋 팀원 온보딩 | [START_HERE.md](docs/START_HERE.md) |
+| 협업 규칙 (사람별 브랜치·PR·보드) | [COLLABORATION.md](docs/COLLABORATION.md) · [GIT_QUICKSTART.md](docs/GIT_QUICKSTART.md) |
+| 📄 API 계약 v1 (FE·BE 공통 기준) | [API_CONTRACT.md](docs/API_CONTRACT.md) |
+| 개인정보 보관·삭제 정책 | [PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) |
+| 배포 가이드 | [DEPLOYMENT.md](docs/DEPLOYMENT.md) |
+| 제안 배경 | [2주차 입찰 제안서 (PDF)](docs/2주차_입찰제안서_모아.pdf) · [1주차 아이디어 노트](docs/1주차_초기아이디어노트.html) |
 
-> 전원이 코드 리뷰에 참여합니다.
+## 팀
 
-## 협업 규칙 (요약)
+| 이름 | 역할 | 브랜치 |
+|---|---|---|
+| 심송언 | FE-A (프론트엔드) | `songeon` |
+| 김재용 | FE-B (프론트엔드) | `jaeyong` |
+| 가동진 | BE (백엔드) | `dongjin` |
+| 김성현 | AI · Admin (AI 분류·관리자·인프라) | `sunghyun` |
 
-- `main` 직접 push 금지 — 모든 변경은 **이슈 브랜치 → PR → 리뷰 1인 승인 → Squash merge**
-- 브랜치명: `12-photo-upload` (이슈 번호 포함) · 커밋: `feat: 사진 촬영 화면 추가 (#12)`
-- PR 본문에 `Closes #12` → 머지 시 이슈 자동 닫힘 — 자세한 규칙은 [COLLABORATION.md](docs/COLLABORATION.md)
+**작업 방식** — main 직접 push 금지 · **사람별 브랜치**(멘토 권장)에서 작업 → PR(`Closes #N`) → **CI 통과 시 머지** (현재 1인 개발 모드 — 리뷰 승인 요건은 해제, 팀 협업 재개 시 복원) · 진행 상황은 [칸반 보드](https://github.com/users/SungHyunC/projects/1)

@@ -4,8 +4,8 @@
   "type": "module",
   "description": "「모아」 백엔드 — 이미지 분류기·정확도 점검 (AI 파트, #10·#25)",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
     "test": "node --test",
-    "eval": "node eval/accuracy.mjs"
+    "eval": "node --env-file-if-exists=.env eval/accuracy.mjs"
   }
 }

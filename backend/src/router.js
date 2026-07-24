@@ -3,6 +3,8 @@ import { validateStatusLookup, validateUploadRequest, validateReportRequest } fr
 import { generatePresignedUrl, verifyUploadSignature } from './upload.js';
 import { saveUpload, readUpload, isValidFileKey } from './upload-store.js';
 import { submitReport } from './report-service.js';
+import { consumeReportSlot, consumeGeocodeSlot, consumeAnalyzeSlot, consumeUploadSlot } from './report-limit.js';
+import { reverseGeocode } from './geocode.js';
 import { getReportByReceiptNo } from './store.js';
 import { matchesViewToken } from './view-token.js';
 import { TYPES, STATUS_FLOW, MERGE_PARAMS, summarizeIssue } from './domain.js';
@@ -89,20 +91,32 @@ function json(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-/** 클라이언트 IP — 프록시(CloudFront/ALB) 뒤에서는 X-Forwarded-For 첫 값 */
+/**
+ * 클라이언트 IP — 레이트리밋의 버킷 키.
+ * X-Forwarded-For는 발신자가 위조할 수 있으므로 **신뢰 프록시 뒤일 때만** 파싱한다
+ * (MOA_TRUST_PROXY=1). 이때도 신뢰 프록시가 덧붙인 맨 오른쪽 값을 취해야
+ * 공격자가 앞에 끼워넣은 값에 속지 않는다. 미설정(직접 노출)이면 항상 소켓 IP.
+ */
 function clientIp(req) {
+  const socketIp = req.socket?.remoteAddress || 'unknown';
+  if (process.env.MOA_TRUST_PROXY !== '1') return socketIp;
+
   const fwd = req.headers['x-forwarded-for'];
-  if (typeof fwd === 'string' && fwd.length > 0) return fwd.split(',')[0].trim();
-  return req.socket?.remoteAddress || 'unknown';
+  if (typeof fwd !== 'string' || fwd.length === 0) return socketIp;
+  const parts = fwd.split(',').map((s) => s.trim()).filter(Boolean);
+  // 신뢰 프록시가 append하므로 맨 오른쪽이 프록시가 본 실제 원 IP.
+  return parts[parts.length - 1] || socketIp;
 }
 
 /**
- * 관리자 인증 (#56) — MOA_ADMIN_TOKEN이 설정된 경우에만 검사한다.
- * 미설정이면 로컬 데모 그대로 열려 있고, 배포 환경에서는 반드시 설정한다.
+ * 관리자 인증 (#56) — 언제나 잠겨 있다.
+ * MOA_ADMIN_TOKEN이 없으면 부팅 때 만든 임시 토큰을 쓰고 콘솔에 출력한다
+ * (server.js). "설정을 깜빡해서 콘솔이 공개되는" 사고를 원천 차단한다.
  */
+export const BOOT_ADMIN_TOKEN = crypto.randomBytes(8).toString('hex');
+
 function isAdminAuthorized(req) {
-  const required = process.env.MOA_ADMIN_TOKEN;
-  if (!required) return true;
+  const required = process.env.MOA_ADMIN_TOKEN || BOOT_ADMIN_TOKEN;
 
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
@@ -166,6 +180,10 @@ export async function handleRequest(req, res) {
       const fileKey = decodeURIComponent(pathname.slice('/uploads/'.length));
 
       if (method === 'PUT') {
+        // 디스크 소진 방지 — IP 분당 업로드 건수 제한 (서명 검증 전에 값싸게 거른다)
+        if (!consumeUploadSlot(clientIp(req)).allowed) {
+          return json(res, 429, { success: false, errors: [{ field: 'upload', message: '업로드가 너무 잦습니다. 잠시 후 다시 시도해 주세요.' }] });
+        }
         if (!isValidFileKey(fileKey)
           || !verifyUploadSignature(fileKey, url.searchParams.get('exp'), url.searchParams.get('sig'))) {
           return json(res, 403, { success: false, errors: [{ field: 'sig', message: '유효한 업로드 서명이 필요합니다. presign을 다시 발급받아 주세요.' }] });
@@ -200,6 +218,9 @@ export async function handleRequest(req, res) {
 
     // ─── POST /api/uploads/presign ───────────────────────
     if (method === 'POST' && pathname === '/api/uploads/presign') {
+      if (!consumeUploadSlot(clientIp(req)).allowed) {
+        return json(res, 429, { success: false, errors: [{ field: 'upload', message: '업로드 준비 요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.' }] });
+      }
       const body = await parseBody(req);
       const { valid, errors } = validateUploadRequest(body);
       if (!valid) {
@@ -222,6 +243,14 @@ export async function handleRequest(req, res) {
         return json(res, 400, { success: false, errors });
       }
 
+      // 익명 신고 남발 방지 — 같은 IP 시간당 5건 (계약 보안 규칙 3)
+      if (!consumeReportSlot(clientIp(req)).allowed) {
+        return json(res, 429, {
+          success: false,
+          errors: [{ field: 'reports', message: '신고가 너무 잦습니다. 잠시 후 다시 접수해 주세요.' }],
+        });
+      }
+
       const { receiptNo, viewToken, issue, merged } = submitReport(body);
 
       return json(res, 201, {
@@ -239,6 +268,10 @@ export async function handleRequest(req, res) {
     // ─── POST /api/analyze (Issue #10·#11 · Gemini 연동) ─────────
     // 사진 유형을 분류하고 검수 필요 여부를 함께 알려준다.
     if (method === 'POST' && pathname === '/api/analyze') {
+      // 가장 비싼 자원(외부 유료 호출·CPU) — 인증 없는 익명 반복을 IP 분당 건수로 막는다.
+      if (!consumeAnalyzeSlot(clientIp(req)).allowed) {
+        return json(res, 429, { success: false, errors: [{ field: 'analyze', message: 'AI 분석 요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.' }] });
+      }
       const body = await parseBody(req);
       const source = body?.photo || body?.photoUrl || body?.filename;
       if (!source) {
@@ -279,6 +312,27 @@ export async function handleRequest(req, res) {
       return json(res, 200, { success: true, data: { params: MERGE_PARAMS, candidates } });
     }
 
+    // ─── GET /api/geocode/reverse?lat=&lng= (실주소 표시) ───────
+    if (method === 'GET' && pathname === '/api/geocode/reverse') {
+      const lat = Number(url.searchParams.get('lat'));
+      const lng = Number(url.searchParams.get('lng'));
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return json(res, 400, {
+          success: false,
+          errors: [{ field: 'query', message: 'lat, lng가 필요합니다.' }],
+        });
+      }
+      // 외부 지오코딩 API의 중계 창구로 악용되지 않게 IP당 횟수를 막는다.
+      if (!consumeGeocodeSlot(clientIp(req)).allowed) {
+        return json(res, 429, {
+          success: false,
+          errors: [{ field: 'geocode', message: '주소 조회가 너무 잦습니다. 잠시 후 다시 시도해 주세요.' }],
+        });
+      }
+      const { address } = await reverseGeocode(lat, lng);
+      return json(res, 200, { success: true, data: { address } });
+    }
+
     // ─── GET /api/issues/map?lat=&lng=&radiusM= ('내 주변' 탭) ───
     if (method === 'GET' && pathname === '/api/issues/map') {
       const lat = Number(url.searchParams.get('lat'));
@@ -297,8 +351,9 @@ export async function handleRequest(req, res) {
     if (method === 'POST' && /^\/api\/issues\/[^/]+\/empathy$/.test(pathname)) {
       const issueId = pathname.split('/')[3];
       const body = await parseBody(req);
-      if (!body?.deviceId) {
-        return json(res, 400, { success: false, errors: [{ field: 'deviceId', message: 'deviceId가 필요합니다.' }] });
+      // deviceId는 저장·영속화되므로 형식을 강제해 대용량·임의 타입 주입을 막는다.
+      if (typeof body?.deviceId !== 'string' || !/^[A-Za-z0-9_-]{8,64}$/.test(body.deviceId)) {
+        return json(res, 400, { success: false, errors: [{ field: 'deviceId', message: '유효한 deviceId(영문·숫자 8~64자)가 필요합니다.' }] });
       }
 
       const result = addEmpathy(issueId, body.deviceId, { ip: clientIp(req) });
@@ -348,7 +403,9 @@ export async function handleRequest(req, res) {
               status: issue.status,
               statusFlow: STATUS_FLOW,
               dept: issue.dept,
-              history: issue.history,
+              // 상태 변경 이력만 내려준다 — 통합된 다른 신고의 접수번호가
+              // 담긴 이벤트(신고 접수/통합/공감)는 타인 정보라 제외한다.
+              history: issue.history.filter((h) => h.event?.startsWith('상태 변경')),
             },
           } : {}),
         },
@@ -415,7 +472,12 @@ export async function handleRequest(req, res) {
 
     // ─── 헬스체크 ────────────────────────────────────────
     if (method === 'GET' && pathname === '/api/health') {
-      return json(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
+      return json(res, 200, {
+        status: 'ok',
+        classifier: process.env.MOA_GEMINI_API_KEY ? 'gemini' : 'mock',
+        adminAuth: process.env.MOA_ADMIN_TOKEN ? 'env' : 'boot-token',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     // ─── 404 ─────────────────────────────────────────────

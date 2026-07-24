@@ -73,12 +73,14 @@ return body.data ?? body;
 | 1 | `POST /api/uploads/presign` | `{filename, contentType, fileSize?}` | `{uploadUrl, publicUrl, fileKey, expiresIn}` | #9·#55 |
 | 1-1 | `PUT {uploadUrl}` (= `/uploads/:fileKey?exp=&sig=`) | 사진 바이트 (본문 그대로, ≤10MB) | `201 {publicUrl}` — 서명 틀리면 403, 재업로드 409 | #55 |
 | 1-2 | `GET /uploads/:fileKey` | — | 이미지 바이트 (`Cache-Control: immutable`) — 없으면 404 | #55 |
-| 2 | `POST /api/analyze` | `{photo(dataURL) 또는 photoUrl, filename?}` | `{type, confidence, needsReview, engine}` — engine: `gemini`\|`mock` | #10·#11 |
+| 2 | `POST /api/analyze` | `{photo(dataURL) 또는 photoUrl, filename?}` | `{type, confidence, needsReview, engine}` — engine: `gemini`\|`mock`. IP 분당 20건 초과 **429** | #10·#11 |
 | 3 | `GET /api/issues/nearby?lat=&lng=&type=` | — | `{params, candidates:[{...issueSummary, distance}]}` | #13·#14 |
 | 3-1 | `GET /api/issues/map?lat=&lng=&radiusM=` | — | `{issues:[{id,type,status,statusIndex,priorityLabel,reportCount,empathy,lat,lng,address,createdAt,distance}]}` — **사진·개인정보 없음** | 내 주변 탭 |
-| 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` | #9 |
-| 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{...issueSummary, history, statusFlow}}` | #22·#23·#34 |
-| 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` — 같은 IP가 같은 문제에 1시간 내 재요청 시 **429** | #15·#58 |
+| 3-2 | `GET /api/geocode/reverse?lat=&lng=` | — | `{address}` — 실주소(Nominatim, 100m 격자 캐시), 실패 시 `null`. IP 분당 30건 초과 **429** | 실주소 표시 |
+| 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` — `photos`는 업로드 경로 또는 https만, IP 시간당 5건 초과 **429** | #9 |
+| 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{status, dept, statusFlow, history}}` — history는 **상태 변경 이벤트만** (통합된 타인 신고의 접수번호·공감 이벤트 미노출) | #22·#23·#34 |
+| 6 | `POST /api/issues/:id/empathy` | `{deviceId(영문·숫자 8~64자)}` | `{count, added, priority}` — 같은 IP가 같은 문제에 1시간 내 재요청 시 **429** | #15·#58 |
+| 7 | `GET /api/health` | — | **봉투 없는 예외** — `{status:'ok', classifier, adminAuth, timestamp}` 평면 객체 (헬스체크·배포 스모크 관례) | 운영 |
 
 **신고 접수 요청 본문 (4번)** — 현재 구현 기준 (PR #37·#43)
 ```json
@@ -131,7 +133,7 @@ return body.data ?? body;
 **report** (개별 신고)
 ```json
 {
-  "id": "rp_xxx", "receiptNo": "SJ-2026-0722-0001",
+  "id": "rp_xxx", "receiptNo": "MOA-20260722-38291",
   "photoUrl": "…", "address": "…", "lat": 36.48, "lng": 127.28,
   "type": "도로 파손", "confidence": 0.87, "spam": false, "createdAt": "…"
 }
@@ -157,12 +159,12 @@ return body.data ?? body;
    → 토큰이 없을 때 통과시키면 접수번호 열거로 타인의 사진·GPS가 노출됩니다 (SER-003, 제안서 6p).
    접수번호는 `MOA-YYYYMMDD-XXXXX`, 조회 토큰은 발급 응답의 32자리 소문자 hex 값만 허용하며 형식 오류도 403으로 처리합니다.
 2. **위치정보 동의**(`locationConsent`) 없이는 신고 접수 불가, 동의 사실을 신고 데이터에 기록 (SER-001).
-3. **기기당 시간당 신고 5건 제한** (익명 신고 악용 방지).
+3. **IP당 시간당 신고 5건 제한** (익명 신고 악용 방지, 초과 429) — `backend/src/report-limit.js`, `MOA_REPORT_LIMIT`로 조정.
 4. 조회 토큰에는 개인정보를 넣지 않습니다(난수).
 5. 조회 토큰 원문은 접수 응답에서 한 번만 전달하고 저장소에는 SHA-256 해시만 보관합니다.
 6. 없는 접수번호와 틀린 조회 토큰은 모두 **403**으로 응답해 접수번호 존재 여부를 숨깁니다.
 7. 상태 조회 응답은 `Cache-Control: no-store`, `Referrer-Policy: no-referrer`를 사용하고 사진·위치·연락처를 반환하지 않습니다.
-8. **관리자 API 인증 (#56)** — 배포 환경에서는 `MOA_ADMIN_TOKEN`을 설정하고 `/api/admin/*` 요청에 `Authorization: Bearer <토큰>`을 요구합니다(불일치·누락 401). env 미설정 시(로컬 데모) 기존처럼 열립니다. CORS는 `MOA_ALLOWED_ORIGIN` 설정 시 해당 origin으로 제한합니다.
+8. **관리자 API 인증 (#56)** — `/api/admin/*`는 **항상** `Authorization: Bearer <토큰>`을 요구합니다(불일치·누락 401). `MOA_ADMIN_TOKEN` 미설정 시 서버가 부팅 토큰을 생성해 콘솔에 출력합니다 — "설정을 깜빡해 콘솔이 공개되는" 사고 방지. CORS는 `MOA_ALLOWED_ORIGIN` 설정 시 해당 origin으로 제한합니다.
 9. **요청 본문 상한 (#57)** — 기본 15MB(`MOA_MAX_BODY_BYTES`), 초과 시 **413**. 업로드 PUT은 10MB.
 10. **공감 남용 방지 (#58)** — 같은 IP는 같은 문제에 1시간(`MOA_EMPATHY_WINDOW_MS`)당 1회(429), 우선순위 산식의 공감 기여는 최대 +5(`MOA_EMPATHY_CAP`).
 11. **업로드 쓰기 보호 (#55)** — `PUT /uploads/:fileKey`는 presign이 발급한 `exp`·`sig`(HMAC) 검증을 통과해야 하며, 같은 키 재업로드는 409로 거절합니다. GET은 UUID 키를 아는 쪽만 접근합니다(신고·관리자 응답 외 목록 API 없음).

@@ -140,6 +140,35 @@ img { max-width: 100%; display: block; }
   padding: 4px 20px calc(var(--tab-height) + 28px);
 }
 
+/* 서버 연결 불가 배너 — 배포된 화면에 API 서버가 없을 때 */
+.app-offline {
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto 4px;
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7a5a10;
+  background: var(--warn-tint);
+  border-block: 1px solid #ecd9a8;
+}
+.app-offline button {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #ecd9a8;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #7a5a10;
+}
+.app-offline button:hover:not(:disabled) { border-color: #7a5a10; }
+
 /* 페이지 공통 머리글 */
 .page-head { padding: 14px 2px 16px; }
 .page-head__title {
@@ -444,6 +473,19 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
 }
 .font-size-step:hover:not(:disabled) { background: var(--brand-tint); color: var(--brand-deep); }
 .font-size-step:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* 터치 기기에서는 접근성 조작부·작은 삭제 버튼을 최소 44px로 키운다 (WCAG 2.5.5).
+   데스크톱(정밀 포인터)에서는 컴팩트한 시각 크기를 유지한다. */
+@media (pointer: coarse) {
+  .font-size-step { width: 44px; min-width: 44px; min-height: 44px; }
+  .accessibility-toggle { min-height: 44px; }
+  .preview-grid__delete,
+  .compressor-grid__delete {
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+  }
+}
 .font-size-value {
   min-width: 44px;
   color: var(--brand-deep);
@@ -549,6 +591,9 @@ html[data-font-scale]:not([data-font-scale='100']) :where(
   .home-link__body b,
   .admin-title-sub,
   .admin-panel > h3,
+  .status-steps__label,
+  .status-history__label,
+  .status-current__detail,
   .notice
 ) { font-size: var(--a11y-body-text) !important; }
 html[data-font-scale]:not([data-font-scale='100']) :where(
@@ -569,7 +614,16 @@ html[data-font-scale]:not([data-font-scale='100']) :where(
   .admin-mono,
   .admin-conf,
   .admin-report-meta,
-  .admin-timeline time
+  .admin-timeline time,
+  .status-history__time,
+  .status-card__label,
+  .status-steps__heading,
+  .ticket__label,
+  .ticket__date,
+  .lookup-form__note,
+  .my-reports__item span,
+  .nearby-card__meta,
+  .nearby-popup__meta
 ) { font-size: var(--a11y-compact-text) !important; }
 html[data-font-scale]:not([data-font-scale='100']) :where(
   button,
@@ -624,20 +678,29 @@ html.a11y-high-contrast :where(
   .accessibility-heading, .font-size-label, .accessibility-state,
   .page-head__sub, .home-hero__desc, .home-step__desc, .home-link__body small,
   .home-foot, .admin-title-sub, .admin-stat span, .admin-card-addr, .admin-dept,
-  .admin-report-meta, .admin-timeline time
+  .admin-report-meta, .admin-timeline time,
+  .status-history__time, .status-steps__heading, .admin-map-hint,
+  .ticket__note, .ticket__date, .ticket__label, .lookup-form__note
 ) { color: #fff !important; }
 html.a11y-high-contrast :where(
   .font-size-value, .home-hero__title, .page-head__title, .flow-head__title,
   .home-link__arrow, .admin-title-mark, .admin-stat.total b, .admin-stat.review b,
   .admin-params b, .admin-mono
 ) { color: #ffdf00 !important; }
+html.a11y-high-contrast .app-offline,
+html.a11y-high-contrast .app-offline button {
+  background: #000 !important;
+  color: #ffdf00 !important;
+  border-color: #ffdf00 !important;
+}
 html.a11y-high-contrast :where(
   .home-hero, .home-step, .home-link, .notice,
   .location-card, .location-info-card, .location-map-card, .location-map-empty,
   .camera-guide__box, .camera-examples, .preview-section, .photo-quality-check,
   .similar-choice, .similar-choice__card, .ticket, .ticket__head, .ticket__foot,
   .lookup-form, .my-reports__item, .nearby-card, .nearby-popup, .nearby-empty,
-  .status-card, .status-current, .status-error,
+  .status-card, .status-current, .status-error, .status-history, .status-steps,
+  .admin-map-wrap,
   .admin-stat, .admin-sort, .admin-params, .admin-card, .admin-detail-head,
   .admin-panel, .admin-report-card, .admin-gate__card
 ) {
@@ -717,6 +780,121 @@ html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
   inset: 26%;
   border-radius: 50%;
   background: #fff;
+}
+
+/* ============ 데스크톱 확장 — PC에서 좁아 보이지 않게 ============ */
+
+@media (min-width: 1000px) {
+  .app-header,
+  .accessibility-bar,
+  .app-offline,
+  .app-main {
+    max-width: 1080px;
+  }
+  .app-main { padding-bottom: 120px; }
+  .page-head__title { font-size: 28px; }
+
+  /* 하단 풀폭 바 대신 화면 아래 중앙의 플로팅 필 */
+  .tab-bar {
+    left: 50%;
+    right: auto;
+    bottom: 18px;
+    transform: translateX(-50%);
+    width: auto;
+    padding: 7px;
+    gap: 4px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow-float);
+    background: rgba(255, 255, 255, 0.96);
+  }
+  .tab-item {
+    flex-direction: row;
+    gap: 8px;
+    min-width: 132px;
+    min-height: 46px;
+    padding-inline: 18px;
+    border-radius: 999px;
+    font-size: 13.5px;
+  }
+  .tab-item__icon svg { width: 19px; height: 19px; }
+
+  /* 홈 — 히어로를 왼쪽 크게, 절차·바로가기를 오른쪽에 */
+  .home-page {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 18px;
+    align-items: stretch;
+    padding-top: 16px;
+  }
+  .home-hero {
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 46px 42px;
+  }
+  .home-hero__title { font-size: 40px; }
+  .home-hero__desc { font-size: 16px; }
+  .home-hero__cta { max-width: 340px; }
+  .home-steps { align-self: start; }
+  .home-step { padding: 20px 10px 16px; }
+  .home-links { align-self: start; }
+  .home-foot { grid-column: 1 / -1; }
+
+  /* 내 주변 — 지도 왼쪽 고정, 목록 오른쪽 스크롤 */
+  .nearby-page {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .nearby-page > .page-head,
+  .nearby-page > .nearby-controls,
+  .nearby-page > .notice { grid-column: 1 / -1; }
+  .nearby-map-wrap {
+    position: sticky;
+    top: 16px;
+  }
+  .nearby-map-wrap .moa-map { height: 520px; }
+
+  /* 위치 확인 — 동의·정보 왼쪽, 지도 오른쪽 고정 */
+  .location-page {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .location-page > .flow-head,
+  .location-page > .notice,
+  .location-page > .location-error { grid-column: 1 / -1; }
+  .location-map-card,
+  .location-map-empty {
+    grid-column: 2;
+    grid-row: span 3;
+    position: sticky;
+    top: 16px;
+  }
+  .location-map-card .moa-map { height: 420px; }
+  .location-map-empty { height: 420px; }
+  .location-card,
+  .location-info-card { grid-column: 1; }
+  .location-next-btn,
+  .similar-choice { grid-column: 1; }
+
+  /* 촬영·완료·조회는 본문만 살짝 넓힌다 (읽기 폭 유지) */
+  .camera-page,
+  .compressor-page { max-width: 680px; margin-inline: auto; }
+  .preview-grid { grid-template-columns: repeat(4, 1fr); }
+  .status-page,
+  .lookup-page,
+  .report-complete { max-width: 620px; margin-inline: auto; }
+}
+
+@media (min-width: 1400px) {
+  .app-header,
+  .accessibility-bar,
+  .app-main { max-width: 1220px; }
 }
 
 /* ============ 반응형 ============ */

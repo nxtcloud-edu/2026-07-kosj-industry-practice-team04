@@ -61,15 +61,21 @@ export function validateReportRequest(body) {
     return { valid: false, errors: [{ field: 'body', message: '요청 본문이 비어있습니다.' }] };
   }
 
-  // 사진 URL 배열 (1~10장)
+  // 사진 URL 배열 (1~10장) — 이 서버가 발급한 업로드 경로이거나 https URL만 허용한다.
+  // 임의 문자열/외부 스킴을 막아 관리자·시민 화면에 공격자 제어 콘텐츠가 렌더링되는 것을 차단.
   if (!Array.isArray(body.photos) || body.photos.length === 0) {
     errors.push({ field: 'photos', message: '사진 URL 배열(photos)은 1장 이상 필수입니다.' });
   } else if (body.photos.length > 10) {
     errors.push({ field: 'photos', message: '사진은 최대 10장까지 등록 가능합니다.' });
   } else {
     for (let i = 0; i < body.photos.length; i++) {
-      if (typeof body.photos[i] !== 'string' || body.photos[i].trim() === '') {
-        errors.push({ field: `photos[${i}]`, message: `photos[${i}]는 유효한 URL 문자열이어야 합니다.` });
+      const url = body.photos[i];
+      const ok = typeof url === 'string'
+        && url.length <= 512
+        && (/^\/uploads\/reports\/\d{4}\/\d{2}\/\d{2}\/[0-9a-f-]{36}\.(jpe?g|png|webp|heic)$/i.test(url)
+          || /^https:\/\/[^\s]+$/i.test(url));
+      if (!ok) {
+        errors.push({ field: `photos[${i}]`, message: `photos[${i}]는 업로드된 사진 경로 또는 https URL이어야 합니다.` });
       }
     }
   }

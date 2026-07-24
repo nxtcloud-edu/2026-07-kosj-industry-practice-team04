@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { adminIssue, markSpam, photoSrc, reclassify, setIssueStatus, splitIssue } from '../../api.js';
+import { adminIssue, markSpam, reclassify, setIssueStatus, splitIssue } from '../../api.js';
+import MoaMap from '../../components/MoaMap.jsx';
+import Thumb from '../../components/Thumb.jsx';
 import './admin.css';
 
 // 관리자 문제 상세 — 상태 변경(SFR-006) · 재분류(COR-001, SFR-005) · 스팸 · 오통합 분리
@@ -32,6 +34,7 @@ export default function AdminIssueDetail() {
   const [typeSel, setTypeSel] = useState({});
   const [splitOpen, setSplitOpen] = useState(null); // reportId
   const [splitReason, setSplitReason] = useState(SPLIT_REASONS[0]);
+  const [selectedReportId, setSelectedReportId] = useState(null); // 지도 핀 ↔ 카드 연동
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -183,9 +186,30 @@ export default function AdminIssueDetail() {
                 {data.address} · 담당 {data.dept} · 현재 상태 {data.status}
               </p>
               <p className="admin-priority-note">
-                우선순위 {data.priority} = 위험도 + 신고 {data.reportCount}건 + 공감 {data.empathy}
+                우선순위 {data.priority} = 위험도 + 신고 {data.reportCount}건 + 공감 {Math.min(data.empathy, 5)}
+                {data.empathy > 5 && ` (실제 ${data.empathy} — 조작 방지 상한 5 적용)`}
               </p>
             </section>
+
+            {/* 통합된 신고 위치 비교 — 멀리 떨어진 핀은 오통합 신호 */}
+            {reports.some((r) => Number.isFinite(r.lat) && Number.isFinite(r.lng)) && (
+              <section className="admin-panel">
+                <h3>신고 위치 지도</h3>
+                <div className="admin-map-wrap">
+                  <MoaMap
+                    center={{ latitude: data.lat, longitude: data.lng }}
+                    zoom={17}
+                    issues={reports
+                      .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lng))
+                      .map((r) => ({ id: r.id, type: r.type, lat: r.lat, lng: r.lng, status: r.receiptNo }))}
+                    selectedId={selectedReportId}
+                    onSelect={setSelectedReportId}
+                    ariaLabel="통합된 신고들의 위치 지도"
+                  />
+                </div>
+                <p className="admin-map-hint">핀을 누르면 아래 신고 카드가 강조됩니다 — 유형 색이 다르거나 멀리 떨어진 핀은 분리 검토 대상</p>
+              </section>
+            )}
 
             <section className="admin-panel">
               <h3>상태 변경</h3>
@@ -209,12 +233,12 @@ export default function AdminIssueDetail() {
               <h3>통합된 신고 {reports.length}건 — 사진 비교</h3>
               <div className="admin-report-grid">
                 {reports.map((r) => (
-                  <article key={r.id} className={`admin-report-card ${r.spam ? 'spam' : ''}`}>
-                    {r.photoUrl ? (
-                      <img className="admin-report-photo" src={photoSrc(r.photoUrl)} alt={`신고 ${r.receiptNo} 사진`} />
-                    ) : (
-                      <div className="admin-report-photo admin-thumb-empty">사진 없음</div>
-                    )}
+                  <article
+                    key={r.id}
+                    className={`admin-report-card ${r.spam ? 'spam' : ''} ${r.id === selectedReportId ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedReportId(r.id)}
+                  >
+                    <Thumb className="admin-report-photo" url={r.photoUrl} alt={`신고 ${r.receiptNo} 사진`} />
                     <div className="admin-report-body">
                       <div className="admin-report-top">
                         <b className="admin-mono">{r.receiptNo}</b>
