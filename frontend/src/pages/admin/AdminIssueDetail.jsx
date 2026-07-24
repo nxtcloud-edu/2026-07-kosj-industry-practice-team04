@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { adminIssue, markSpam, photoSrc, reclassify, setIssueStatus, splitIssue } from '../../api.js';
+import { adminIssue, markSpam, reclassify, setIssueStatus, splitIssue } from '../../api.js';
 import MoaMap from '../../components/MoaMap.jsx';
+import Thumb from '../../components/Thumb.jsx';
 import './admin.css';
 
 // 관리자 문제 상세 — 상태 변경(SFR-006) · 재분류(COR-001, SFR-005) · 스팸 · 오통합 분리
@@ -237,11 +238,7 @@ export default function AdminIssueDetail() {
                     className={`admin-report-card ${r.spam ? 'spam' : ''} ${r.id === selectedReportId ? 'is-selected' : ''}`}
                     onClick={() => setSelectedReportId(r.id)}
                   >
-                    {r.photoUrl ? (
-                      <img className="admin-report-photo" src={photoSrc(r.photoUrl)} alt={`신고 ${r.receiptNo} 사진`} />
-                    ) : (
-                      <div className="admin-report-photo admin-thumb-empty">사진 없음</div>
-                    )}
+                    <Thumb className="admin-report-photo" url={r.photoUrl} alt={`신고 ${r.receiptNo} 사진`} />
                     <div className="admin-report-body">
                       <div className="admin-report-top">
                         <b className="admin-mono">{r.receiptNo}</b>

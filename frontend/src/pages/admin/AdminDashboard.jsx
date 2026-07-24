@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { adminIssues, adminStats, photoSrc } from '../../api.js';
+import { adminIssues, adminStats } from '../../api.js';
+import Thumb from '../../components/Thumb.jsx';
 import './admin.css';
 
 // 관리자 대시보드 — 대표 문제 목록 · 검수 큐 · 통계 (MVP 2·3 관리자 측)
@@ -152,11 +153,7 @@ export default function AdminDashboard() {
             {data.issues.map((it) => (
               <Link key={it.id} to={`/admin/issues/${it.id}`} className="admin-card" aria-label={`${it.type} — ${it.address} 상세 보기`}>
                 <div className="admin-card-thumb">
-                  {it.thumbnail ? (
-                    <img src={photoSrc(it.thumbnail)} alt={`${it.type} 신고 사진`} />
-                  ) : (
-                    <div className="admin-thumb-empty">사진 없음</div>
-                  )}
+                  <Thumb url={it.thumbnail} alt={`${it.type} 신고 사진`} />
                   {it.needsReview && <span className="admin-badge review">검수 필요</span>}
                 </div>
                 <div className="admin-card-body">
