@@ -168,6 +168,10 @@ export function changeStatus(id, status) {
   const issue = getIssueById(id);
   if (!issue) return { error: '문제를 찾을 수 없습니다.' };
 
+  // 같은 상태 재클릭은 무시 — 이력에 중복 기록이 쌓이고,
+  // '완료' 재설정 시 보관기간(completedAt) 기산이 리셋되는 것을 막는다.
+  if (issue.status === status) return { issue: summarizeIssue(issue) };
+
   issue.status = status;
   // 보관기간(#59)은 '완료' 시각부터 계산한다. 완료를 되돌리면 기산도 초기화.
   if (status === '완료') issue.completedAt = new Date().toISOString();

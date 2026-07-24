@@ -71,6 +71,9 @@ async function req(method, url, body) {
   return payload.data ?? payload;
 }
 
+/** 서버 연결 확인 — 배포된 프론트가 백엔드 부재를 사용자에게 알릴 때 사용 */
+export const health = () => req('GET', '/api/health');
+
 // ── 시민 (FE 팀이 사용) ──
 /** 사진 업로드용 presigned URL 발급 — 응답의 publicUrl을 신고에 첨부한다 */
 export const presignUpload = ({ filename, contentType, fileSize }) =>

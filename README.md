@@ -49,7 +49,7 @@ flowchart LR
 - **Frontend**: React 18 + Vite, Leaflet+OpenStreetMap(키 불필요), Pretendard·고운돋움
 - **Backend**: 순수 node:http (프레임워크 무의존) — 서버리스 전환 시 라우터만 이식
 - **AI**: `MOA_GEMINI_API_KEY` 설정 시 **Gemini 비전 실분류**(무료 키: aistudio.google.com/apikey), 미설정·장애 시 결정적 mock 폴백
-- **품질 게이트**: PR마다 백엔드 테스트 **113개** + 프론트 빌드가 필수 체크 — 깨진 코드는 머지 불가
+- **품질 게이트**: PR마다 백엔드 테스트 전체 + 프론트 빌드가 필수 체크 — 깨진 코드는 머지 불가
 
 ## 실행 방법
 
@@ -77,14 +77,17 @@ npm run dev
 | 변수 | 기본값 | 용도 |
 |---|---|---|
 | `MOA_PORT` | 4000 | 포트 (`PORT`보다 우선 — 개발 도구 주입 사고 방지) |
-| `MOA_GEMINI_API_KEY` | (없음 → mock) | Gemini 비전 실분류 |
+| `MOA_GEMINI_API_KEY` / `MOA_GEMINI_MODEL` | (없음 → mock) / `gemini-2.0-flash` | Gemini 비전 실분류·모델 |
 | `MOA_ADMIN_TOKEN` | (자동 생성 → 콘솔 출력) | 관리자 Bearer 인증 — **배포 시 고정값 필수** |
+| `MOA_TRUST_PROXY` | (없음) | `1`이면 신뢰 프록시 뒤로 보고 X-Forwarded-For로 IP 판별 |
 | `MOA_ALLOWED_ORIGIN` | `*` | CORS를 프론트 origin으로 제한 |
 | `MOA_DATA_FILE` | `./data/moa-data.json` | 영속화 파일 (`off`면 인메모리) |
-| `MOA_UPLOAD_DIR` | `./uploads` | 신고 사진 저장 경로 |
+| `MOA_UPLOAD_DIR` / `MOA_UPLOAD_SECRET` | `./uploads` / (랜덤) | 사진 저장 경로 · presign 서명 키(다중 인스턴스 시 고정) |
 | `MOA_MAX_BODY_BYTES` | 15MB | 요청 본문 상한 (초과 413) |
-| `MOA_REPORT_LIMIT` | 5 | IP당 시간당 신고 한도 (초과 429) |
-| `MOA_EMPATHY_WINDOW_MS` | 1시간 | 같은 IP 공감 재시도 간격 |
+| `MOA_REPORT_LIMIT` / `_WINDOW_MS` | 5 / 1시간 | IP당 신고 한도·창 (초과 429) |
+| `MOA_ANALYZE_LIMIT` / `MOA_UPLOAD_LIMIT` / `MOA_GEOCODE_LIMIT` | 20 / 60 / 30 (분당) | IP당 AI분석·업로드·역지오코딩 한도 |
+| `MOA_EMPATHY_CAP` / `MOA_EMPATHY_WINDOW_MS` | 5 / 1시간 | 공감 우선순위 상한·IP 재시도 간격 |
+| `MOA_MERGE_RADIUS_M` / `_WINDOW_HOURS` / `MOA_MIN_CONFIDENCE` | 50 / 72 / 0.7 | 통합·검수 파라미터 |
 | `MOA_RETENTION_SWEEP_MS` | 1시간 | 개인정보 보관기한 스윕 주기 |
 
 </details>

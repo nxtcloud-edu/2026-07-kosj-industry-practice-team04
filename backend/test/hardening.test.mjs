@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { handleRequest, BOOT_ADMIN_TOKEN } from '../src/router.js';
 import { clearReportLimits } from '../src/report-limit.js';
+import { reverseGeocode, clearGeocodeCache } from '../src/geocode.js';
 
 /**
  * 프로덕션 하드닝 (Issue #56 · #57)
@@ -129,6 +130,28 @@ test('계약 규칙 3 — 같은 IP의 신고가 시간당 한도를 넘으면 4
   } finally {
     delete process.env.MOA_REPORT_LIMIT;
     clearReportLimits();
+  }
+});
+
+test('역지오코딩도 IP당 레이트리밋이 걸린다 (외부 API 중계 남용 방지)', async () => {
+  process.env.MOA_GEOCODE_LIMIT = '1';
+  clearReportLimits();
+  clearGeocodeCache();
+  // 외부 API를 실제로 부르지 않도록 같은 격자의 캐시를 먼저 채워둔다.
+  await reverseGeocode(36.11, 127.11, {
+    fetchFn: async () => ({ ok: true, status: 200, json: async () => ({ display_name: '테스트 주소' }) }),
+  });
+  try {
+    const first = await fetch(`${base}/api/geocode/reverse?lat=36.11&lng=127.11`);
+    assert.equal(first.status, 200);
+    assert.equal((await first.json()).data.address, '테스트 주소');
+
+    const second = await fetch(`${base}/api/geocode/reverse?lat=36.11&lng=127.11`);
+    assert.equal(second.status, 429, '한도를 넘으면 429');
+  } finally {
+    delete process.env.MOA_GEOCODE_LIMIT;
+    clearReportLimits();
+    clearGeocodeCache();
   }
 });
 

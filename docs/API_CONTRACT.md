@@ -73,13 +73,14 @@ return body.data ?? body;
 | 1 | `POST /api/uploads/presign` | `{filename, contentType, fileSize?}` | `{uploadUrl, publicUrl, fileKey, expiresIn}` | #9·#55 |
 | 1-1 | `PUT {uploadUrl}` (= `/uploads/:fileKey?exp=&sig=`) | 사진 바이트 (본문 그대로, ≤10MB) | `201 {publicUrl}` — 서명 틀리면 403, 재업로드 409 | #55 |
 | 1-2 | `GET /uploads/:fileKey` | — | 이미지 바이트 (`Cache-Control: immutable`) — 없으면 404 | #55 |
-| 2 | `POST /api/analyze` | `{photo(dataURL) 또는 photoUrl, filename?}` | `{type, confidence, needsReview, engine}` — engine: `gemini`\|`mock` | #10·#11 |
+| 2 | `POST /api/analyze` | `{photo(dataURL) 또는 photoUrl, filename?}` | `{type, confidence, needsReview, engine}` — engine: `gemini`\|`mock`. IP 분당 20건 초과 **429** | #10·#11 |
 | 3 | `GET /api/issues/nearby?lat=&lng=&type=` | — | `{params, candidates:[{...issueSummary, distance}]}` | #13·#14 |
 | 3-1 | `GET /api/issues/map?lat=&lng=&radiusM=` | — | `{issues:[{id,type,status,statusIndex,priorityLabel,reportCount,empathy,lat,lng,address,createdAt,distance}]}` — **사진·개인정보 없음** | 내 주변 탭 |
-| 3-2 | `GET /api/geocode/reverse?lat=&lng=` | — | `{address}` — 실주소(Nominatim, 100m 격자 캐시), 실패 시 `null` | 실주소 표시 |
-| 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` | #9 |
+| 3-2 | `GET /api/geocode/reverse?lat=&lng=` | — | `{address}` — 실주소(Nominatim, 100m 격자 캐시), 실패 시 `null`. IP 분당 30건 초과 **429** | 실주소 표시 |
+| 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` — `photos`는 업로드 경로 또는 https만, IP 시간당 5건 초과 **429** | #9 |
 | 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{status, dept, statusFlow, history}}` — history는 **상태 변경 이벤트만** (통합된 타인 신고의 접수번호·공감 이벤트 미노출) | #22·#23·#34 |
-| 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` — 같은 IP가 같은 문제에 1시간 내 재요청 시 **429** | #15·#58 |
+| 6 | `POST /api/issues/:id/empathy` | `{deviceId(영문·숫자 8~64자)}` | `{count, added, priority}` — 같은 IP가 같은 문제에 1시간 내 재요청 시 **429** | #15·#58 |
+| 7 | `GET /api/health` | — | **봉투 없는 예외** — `{status:'ok', classifier, adminAuth, timestamp}` 평면 객체 (헬스체크·배포 스모크 관례) | 운영 |
 
 **신고 접수 요청 본문 (4번)** — 현재 구현 기준 (PR #37·#43)
 ```json
@@ -132,7 +133,7 @@ return body.data ?? body;
 **report** (개별 신고)
 ```json
 {
-  "id": "rp_xxx", "receiptNo": "SJ-2026-0722-0001",
+  "id": "rp_xxx", "receiptNo": "MOA-20260722-38291",
   "photoUrl": "…", "address": "…", "lat": 36.48, "lng": 127.28,
   "type": "도로 파손", "confidence": 0.87, "spam": false, "createdAt": "…"
 }

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { kstDatePath } from './kst.js';
 
 /**
  * Presigned URL 발급 서비스 (Issue #9 · #55 · PER-002)
@@ -28,7 +29,7 @@ function signKey(fileKey, exp) {
 export function generatePresignedUrl({ filename }) {
   const ext = (filename.split('.').pop() || 'jpg').toLowerCase();
   const uniqueId = crypto.randomUUID();
-  const datePrefix = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
+  const datePrefix = kstDatePath(); // KST — 접수번호 날짜와 파일 경로 날짜를 일치시킨다
   const fileKey = `reports/${datePrefix}/${uniqueId}.${ext}`;
 
   const exp = Math.floor(Date.now() / 1000) + URL_EXPIRY_SECONDS;

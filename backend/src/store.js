@@ -27,11 +27,15 @@ let persistTimer = null;
 function persist() {
   if (!dataFile) return;
   clearTimeout(persistTimer);
-  persistTimer = setTimeout(flushNow, 300);
+  // 디바운스 콜백에서 던진 예외는 잡아줄 곳이 없어 프로세스 전체를 죽인다.
+  // (디스크 가득참·권한 문제 등) 저장 실패가 서버 다운으로 번지지 않게 감싼다.
+  persistTimer = setTimeout(() => {
+    try { flushNow(); } catch (e) { console.error(`[moa-backend] 스냅숏 저장 실패(무시하고 계속): ${e.message}`); }
+  }, 300);
   persistTimer.unref?.();
 }
 
-/** 즉시 저장 (프로세스 종료 훅·스윕 직후용) */
+/** 즉시 저장 (프로세스 종료 훅·스윕 직후용) — 호출자가 예외를 처리하거나 무시한다. */
 export function flushNow() {
   if (!dataFile) return;
   clearTimeout(persistTimer);
@@ -68,10 +72,20 @@ export function initPersistence(filePath) {
       }
       console.log(`[moa-backend] 데이터 복원 — 신고 ${reports.size}건 · 문제 ${issues.size}건 (${dataFile})`);
     } catch (e) {
-      console.error(`[moa-backend] 데이터 파일을 읽지 못했습니다 — 빈 상태로 시작: ${e.message}`);
+      // 손상 파일을 그대로 두면 첫 저장 때 덮어써 복구 기회를 영구히 잃는다.
+      // 타임스탬프 백업으로 옆에 보존한 뒤 빈 상태로 시작한다.
+      const backup = `${dataFile}.corrupt-${Date.now()}`;
+      try {
+        fs.renameSync(dataFile, backup);
+        console.error(`[moa-backend] 데이터 파일이 손상됨 — ${backup}로 백업 후 빈 상태로 시작: ${e.message}`);
+      } catch {
+        console.error(`[moa-backend] 손상 데이터 파일 백업 실패 — 빈 상태로 시작: ${e.message}`);
+      }
     }
   }
 
+  // 어떤 경로로 종료되든 마지막 스냅숏은 남긴다 (안전망).
+  // 시그널의 우아한 종료(진행 중 요청 마무리)는 server.js가 담당한다.
   process.once('exit', () => { try { flushNow(); } catch { /* 종료 중 실패는 무시 */ } });
 }
 

@@ -82,3 +82,38 @@ export function deleteUpload(fileKey) {
     return false;
   }
 }
+
+/**
+ * 저장소의 모든 파일 키를 나열한다 (고아 파일 정리용).
+ * reports/YYYY/MM/DD/uuid.ext 구조를 순회한다.
+ * @returns {{ fileKey: string, mtimeMs: number }[]}
+ */
+export function listUploads() {
+  const root = path.resolve(uploadDir(), 'reports');
+  if (!fs.existsSync(root)) return [];
+  const out = [];
+  // reports/YYYY/MM/DD/*.ext — 4단계 고정 깊이라 재귀 없이 순회한다.
+  for (const y of safeReaddir(root)) {
+    for (const m of safeReaddir(path.join(root, y))) {
+      for (const d of safeReaddir(path.join(root, y, m))) {
+        const dir = path.join(root, y, m, d);
+        for (const f of safeReaddir(dir)) {
+          const fileKey = `reports/${y}/${m}/${d}/${f}`;
+          if (!isValidFileKey(fileKey)) continue;
+          try {
+            out.push({ fileKey, mtimeMs: fs.statSync(path.join(dir, f)).mtimeMs });
+          } catch { /* 순회 중 사라진 파일은 건너뛴다 */ }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function safeReaddir(dir) {
+  try {
+    return fs.readdirSync(dir);
+  } catch {
+    return [];
+  }
+}

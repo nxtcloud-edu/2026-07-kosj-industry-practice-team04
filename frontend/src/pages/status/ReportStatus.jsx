@@ -66,12 +66,12 @@ export default function ReportStatus() {
   }, [data, receiptNo]);
 
   if (loading) {
-    return <main className="status-page"><div className="spinner" role="status" aria-label="처리 현황 불러오는 중" /></main>;
+    return <div className="status-page"><div className="spinner" role="status" aria-label="처리 현황 불러오는 중" /></div>;
   }
 
   if (error || !statusInfo) {
     return (
-      <main className="status-page">
+      <div className="status-page">
         <h1 className="status-page__title">신고 조회</h1>
         <section className="status-error" role="alert">
           <strong>처리 현황을 조회할 수 없습니다</strong>
@@ -79,12 +79,12 @@ export default function ReportStatus() {
           <small>보안을 위해 조회 토큰은 재발급되지 않습니다. 링크를 잃어버린 경우 담당 기관에 접수번호로 문의해 주세요.</small>
         </section>
         <button className="status-home-btn" onClick={() => navigate('/')}>홈으로 돌아가기</button>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="status-page">
+    <div className="status-page">
       {/* 헤더 */}
       <header className="status-page__header">
         <h1 className="status-page__title">신고 조회</h1>
@@ -148,6 +148,6 @@ export default function ReportStatus() {
       >
         홈으로 돌아가기
       </button>
-    </main>
+    </div>
   );
 }

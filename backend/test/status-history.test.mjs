@@ -57,6 +57,26 @@ test('시민 조회 이력에는 상태 변경만 남고 타인 접수번호는 
   assert.equal(data.issue.status, '처리중');
 });
 
+test('같은 상태 재설정은 무시된다 — 이력 중복·보관기간 리셋 방지', () => {
+  clearReports();
+  clearIssues();
+  const r = submitReport({
+    photos: ['/uploads/reports/2026/07/24/11111111-2222-3333-4444-777777777777.jpg'],
+    latitude: 36.48, longitude: 127.28, locationConsent: true,
+    type: '도로 파손', confidence: 0.9,
+  });
+  const issue = findIssueByReceiptNo(r.receiptNo);
+
+  changeStatus(issue.id, '완료');
+  const firstCompletedAt = issue.completedAt;
+  const historyLen = issue.history.length;
+
+  const again = changeStatus(issue.id, '완료');
+  assert.equal(again.error, undefined, '오류 없이 무시된다');
+  assert.equal(issue.history.length, historyLen, '이력이 중복 기록되지 않는다');
+  assert.equal(issue.completedAt, firstCompletedAt, '보관기간 기산이 리셋되지 않는다');
+});
+
 test('헬스체크가 분류 엔진·인증 모드를 알려준다 (배포 확인용)', async () => {
   const res = await fetch(`${base}/api/health`);
   const body = await res.json();

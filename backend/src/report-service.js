@@ -3,6 +3,7 @@ import { saveReport } from './store.js';
 import { generateViewToken, hashViewToken } from './view-token.js';
 import { attachReportToIssue } from './issue-service.js';
 import { needsReview } from './domain.js';
+import { kstDateCompact } from './kst.js';
 
 /**
  * 신고 접수 비즈니스 로직 (Issue #9 · SFR-001)
@@ -15,7 +16,7 @@ import { needsReview } from './domain.js';
  * @returns {string}
  */
 function generateReceiptNo() {
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const date = kstDateCompact(); // KST 기준 — 자정~오전9시 접수분이 전날로 찍히지 않게
   const seq = crypto.randomInt(10000, 99999);
   return `MOA-${date}-${seq}`;
 }

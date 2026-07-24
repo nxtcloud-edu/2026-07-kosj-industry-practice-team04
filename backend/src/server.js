@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { handleRequest, BOOT_ADMIN_TOKEN } from './router.js';
-import { initPersistence } from './store.js';
+import { initPersistence, flushNow } from './store.js';
 import { sweepRetention } from './retention.js';
 
 /**
@@ -47,5 +47,22 @@ server.listen(PORT, () => {
   }
   console.log(`  데이터 파일: ${dataFile === 'off' ? '인메모리 전용' : dataFile}`);
 });
+
+// 우아한 종료 — Ctrl+C·서비스 중지(SIGTERM) 시 진행 중 요청을 마무리하고
+// 스냅숏을 저장한 뒤 나간다. 지연되면 5초 후 강제 종료(안전망은 store의 exit 훅).
+let shuttingDown = false;
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.on(sig, () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`\n[moa-backend] ${sig} 수신 — 종료 준비 중…`);
+    const force = setTimeout(() => process.exit(0), 5000);
+    force.unref?.();
+    server.close(() => {
+      try { flushNow(); } catch { /* exit 훅이 재시도 */ }
+      process.exit(0);
+    });
+  });
+}
 
 export default server;
