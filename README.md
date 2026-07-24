@@ -77,7 +77,7 @@ npm run dev
 | 변수 | 기본값 | 용도 |
 |---|---|---|
 | `MOA_PORT` | 4000 | 포트 (`PORT`보다 우선 — 개발 도구 주입 사고 방지) |
-| `MOA_GEMINI_API_KEY` / `MOA_GEMINI_MODEL` | (없음 → mock) / `gemini-2.0-flash` | Gemini 비전 실분류·모델 |
+| `MOA_GEMINI_API_KEY` / `MOA_GEMINI_MODEL` | (없음 → mock) / `gemini-flash-latest` | Gemini 비전 실분류·모델 |
 | `MOA_ADMIN_TOKEN` | (자동 생성 → 콘솔 출력) | 관리자 Bearer 인증 — **배포 시 고정값 필수** |
 | `MOA_TRUST_PROXY` | (없음) | `1`이면 신뢰 프록시 뒤로 보고 X-Forwarded-For로 IP 판별 |
 | `MOA_ALLOWED_ORIGIN` | `*` | CORS를 프론트 origin으로 제한 |
