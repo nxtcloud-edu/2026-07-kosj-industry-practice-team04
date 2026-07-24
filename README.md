@@ -58,6 +58,7 @@ flowchart LR
 ```bash
 # 터미널 1 — 백엔드 (:4000)
 cd backend
+cp .env.example .env    # 최초 1회 (관리자 토큰 demo-team04가 이미 들어 있음)
 npm start
 
 # 터미널 2 — 프론트엔드 (:5173)
@@ -67,7 +68,10 @@ npm run dev
 ```
 
 - 시민 앱 http://localhost:5173 · 관리자 http://localhost:5173/admin
-- **관리자 토큰**: 백엔드 시작 로그의 `관리자 토큰(자동 생성): xxxx`를 게이트에 입력 (고정하려면 `MOA_ADMIN_TOKEN` 설정). 콘솔은 **항상 잠겨 있습니다**
+- **관리자 토큰 (MVP 데모용)**: `demo-team04` — `/admin` 진입 시 이 값을 입력하세요.
+  `backend/.env.example`에 기본으로 들어 있어 `cp` 후 바로 동작합니다.
+  > ⚠️ 실제 배포 시에는 반드시 `MOA_ADMIN_TOKEN`을 **다른 값으로** 바꾸세요. 지금 값은 공개 데모용입니다.
+- **AI 분류 (선택)**: Gemini 키가 있으면 `backend/.env`의 `MOA_GEMINI_API_KEY=`에 넣으세요 (키는 절대 커밋 금지 — `.env`는 gitignore됨). 없으면 mock으로 동작합니다.
 - 데이터는 `backend/data/moa-data.json` 스냅숏으로 **재시작해도 유지** — 초기화는 이 파일과 `backend/uploads/` 삭제
 - 테스트 `cd backend && npm test` · 분류 정확도 표본 `npm run eval`
 
