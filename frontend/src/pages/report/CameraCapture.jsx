@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useImageCompression, { formatFileSize } from '../../hooks/useImageCompression.js';
-import { saveDraftAnalysis, saveDraftPhotos } from '../../reportDraft.js';
+import { clearDraftAnalysis, saveDraftAnalysis, saveDraftPhotos } from '../../reportDraft.js';
 import { analyzePhoto } from '../../api.js';
 import './report.css';
 
@@ -52,6 +52,27 @@ export default function CameraCapture() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files]);
 
+  // 대표 사진(첫 장) 기준 AI 분류 — 분류 실패가 신고 자체를 막아서는 안 되므로 조용히 넘어간다.
+  const analyzeFirstPhoto = useCallback(async (file) => {
+    setAnalyzing(true);
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const result = await analyzePhoto(dataUrl, file.name);
+      setAnalysis(result);
+      saveDraftAnalysis(result);
+    } catch {
+      setAnalysis(null);
+      clearDraftAnalysis();
+    } finally {
+      setAnalyzing(false);
+    }
+  }, []);
+
   // 파일 선택 핸들러 — 선택 즉시 자동 압축 후 등록 (Issue #6, PER-002)
   const handleFileChange = useCallback(
     async (e) => {
@@ -77,41 +98,32 @@ export default function CameraCapture() {
       }));
 
       // 첫 사진으로 AI 유형 분류 (Issue #10·#11).
-      // 분류 실패가 신고 자체를 막아서는 안 되므로 조용히 넘어간다.
       if (files.length === 0 && compressed[0]) {
-        setAnalyzing(true);
-        try {
-          const dataUrl = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(compressed[0]);
-          });
-          const result = await analyzePhoto(dataUrl, compressed[0].name);
-          setAnalysis(result);
-          saveDraftAnalysis(result);
-        } catch {
-          setAnalysis(null);
-        } finally {
-          setAnalyzing(false);
-        }
+        analyzeFirstPhoto(compressed[0]);
       }
     },
-    [files.length, compressImages]
+    [files.length, compressImages, analyzeFirstPhoto]
   );
 
-  // 개별 삭제
+  // 개별 삭제 — 분류의 근거였던 첫 사진을 지우면 남은 첫 장으로 다시 분류한다
   const handleDeleteOne = useCallback((index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    const next = files.filter((_, i) => i !== index);
+    setFiles(next);
     setWarning('');
-  }, []);
+    if (index === 0) {
+      setAnalysis(null);
+      clearDraftAnalysis();
+      if (next[0]) analyzeFirstPhoto(next[0]);
+    }
+  }, [files, analyzeFirstPhoto]);
 
-  // 전체 삭제
+  // 전체 삭제 — 낡은 분류 결과가 남아 다음 접수에 쓰이지 않게 함께 지운다
   const handleDeleteAll = useCallback(() => {
     setFiles([]);
     setWarning('');
     setSavedBytes({ before: 0, after: 0 });
     setAnalysis(null);
+    clearDraftAnalysis();
   }, []);
 
   // 카메라 열기

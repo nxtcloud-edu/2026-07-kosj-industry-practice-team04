@@ -374,7 +374,9 @@ export async function handleRequest(req, res) {
               status: issue.status,
               statusFlow: STATUS_FLOW,
               dept: issue.dept,
-              history: issue.history,
+              // 상태 변경 이력만 내려준다 — 통합된 다른 신고의 접수번호가
+              // 담긴 이벤트(신고 접수/통합/공감)는 타인 정보라 제외한다.
+              history: issue.history.filter((h) => h.event?.startsWith('상태 변경')),
             },
           } : {}),
         },
@@ -441,7 +443,12 @@ export async function handleRequest(req, res) {
 
     // ─── 헬스체크 ────────────────────────────────────────
     if (method === 'GET' && pathname === '/api/health') {
-      return json(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
+      return json(res, 200, {
+        status: 'ok',
+        classifier: process.env.MOA_GEMINI_API_KEY ? 'gemini' : 'mock',
+        adminAuth: process.env.MOA_ADMIN_TOKEN ? 'env' : 'boot-token',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     // ─── 404 ─────────────────────────────────────────────

@@ -287,6 +287,15 @@
 .admin-status-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-deep); }
 .admin-status-btn.current { background: var(--brand); border-color: var(--brand); color: #fff; }
 
+/* 신고 위치 지도 (상세) */
+.admin-map-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.admin-map-wrap .moa-map { height: 300px; }
+.admin-map-hint { font-size: 12px; color: var(--ink-faint); font-weight: 700; }
+
 /* 통합 신고 카드 */
 .admin-report-grid {
   display: grid;
@@ -300,6 +309,10 @@
   background: var(--paper);
 }
 .admin-report-card.spam { opacity: 0.62; }
+.admin-report-card.is-selected {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-tint), var(--shadow-card);
+}
 .admin-report-photo {
   width: 100%;
   aspect-ratio: 16 / 10;

@@ -78,7 +78,7 @@ return body.data ?? body;
 | 3-1 | `GET /api/issues/map?lat=&lng=&radiusM=` | — | `{issues:[{id,type,status,statusIndex,priorityLabel,reportCount,empathy,lat,lng,address,createdAt,distance}]}` — **사진·개인정보 없음** | 내 주변 탭 |
 | 3-2 | `GET /api/geocode/reverse?lat=&lng=` | — | `{address}` — 실주소(Nominatim, 100m 격자 캐시), 실패 시 `null` | 실주소 표시 |
 | 4 | `POST /api/reports` | 아래 참조 | `201 {receiptNo, viewToken, statusPath, issue, merged}` | #9 |
-| 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{...issueSummary, history, statusFlow}}` | #22·#23·#34 |
+| 5 | `GET /api/status/:receiptNo?token=` | — | `{report:{receiptNo,status,createdAt}, issue?:{status, dept, statusFlow, history}}` — history는 **상태 변경 이벤트만** (통합된 타인 신고의 접수번호·공감 이벤트 미노출) | #22·#23·#34 |
 | 6 | `POST /api/issues/:id/empathy` | `{deviceId}` | `{count, added, priority}` — 같은 IP가 같은 문제에 1시간 내 재요청 시 **429** | #15·#58 |
 
 **신고 접수 요청 본문 (4번)** — 현재 구현 기준 (PR #37·#43)

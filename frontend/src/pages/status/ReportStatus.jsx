@@ -51,8 +51,17 @@ export default function ReportStatus() {
       statusDetail: status === '완료'
         ? '신고 처리가 완료되었습니다.'
         : '담당 부서에서 신고 내용을 확인하고 있습니다.',
+      dept: issue.dept ?? null,
       receivedAt: report.createdAt ? new Date(report.createdAt).toLocaleString('ko-KR') : '-',
       steps: flow.map((label, index) => ({ label, done: index <= currentIndex })),
+      // 담당자의 상태 변경 기록 (서버가 상태 변경 이벤트만 내려준다 — 타인 정보 없음)
+      history: [
+        { label: '신고 접수', at: report.createdAt },
+        ...(issue.history ?? []).map((h) => ({
+          label: h.event.replace('상태 변경 → ', '') + ' 단계로 변경',
+          at: h.at,
+        })),
+      ],
     };
   }, [data, receiptNo]);
 
@@ -90,7 +99,10 @@ export default function ReportStatus() {
       {/* 현재 상태 */}
       <section className="status-current">
         <div className="status-current__badge">{statusInfo.status}</div>
-        <p className="status-current__detail">{statusInfo.statusDetail}</p>
+        <p className="status-current__detail">
+          {statusInfo.statusDetail}
+          {statusInfo.dept && <> 담당: <b>{statusInfo.dept}</b></>}
+        </p>
         <span className="status-current__date">
           접수일시: {statusInfo.receivedAt}
         </span>
@@ -111,6 +123,23 @@ export default function ReportStatus() {
           ))}
         </ol>
       </section>
+
+      {/* 처리 기록 — 담당자가 상태를 바꾼 시각 */}
+      {statusInfo.history.length > 1 && (
+        <section className="status-history" aria-label="처리 기록">
+          <h2 className="status-steps__heading">처리 기록</h2>
+          <ol className="status-history__list">
+            {statusInfo.history.map((h, i) => (
+              <li className="status-history__item" key={i}>
+                <span className="status-history__label">{h.label}</span>
+                <time className="status-history__time">
+                  {h.at ? new Date(h.at).toLocaleString('ko-KR') : ''}
+                </time>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {/* 홈으로 돌아가기 */}
       <button
