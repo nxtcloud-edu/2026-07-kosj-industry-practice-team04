@@ -171,13 +171,18 @@ export default function CameraCapture() {
           사진을 압축하는 중입니다…
         </p>
       )}
-      {!isCompressing && savedBytes.before > 0 && (
-        <p className="camera-compress-info">
-          자동 압축 완료 · {formatFileSize(savedBytes.before)} → {formatFileSize(savedBytes.after)}
-          {savedBytes.before > savedBytes.after &&
-            ` (${Math.round((1 - savedBytes.after / savedBytes.before) * 100)}% 절감)`}
-        </p>
-      )}
+      {/* 이미 충분히 작은 사진은 압축해도 줄지 않는다 — "0% 절감"처럼
+          의미 없는 수치를 보여주지 않고 준비 완료만 알린다. */}
+      {!isCompressing && savedBytes.before > 0 && (() => {
+        const saved = Math.round((1 - savedBytes.after / savedBytes.before) * 100);
+        return (
+          <p className="camera-compress-info">
+            {saved >= 1
+              ? `사진 최적화 완료 · ${formatFileSize(savedBytes.before)} → ${formatFileSize(savedBytes.after)} (${saved}% 절감)`
+              : `사진 준비 완료 · ${formatFileSize(savedBytes.after)}`}
+          </p>
+        );
+      })()}
 
       {/* AI 유형 분류 결과 (Issue #10·#11) */}
       {analyzing && (

@@ -11,7 +11,7 @@
 
 /* ── 상단바 ── */
 .admin-topbar {
-  background: var(--brand-deep);
+  background: var(--surface-invert);
   border-bottom: 4px solid var(--accent);
 }
 .admin-topbar-inner {
@@ -28,9 +28,9 @@
 .admin-title-mark {
   font-family: var(--font-display);
   font-size: 21px;
-  color: #fff;
+  color: var(--on-invert);
 }
-.admin-title-sub { font-size: 13.5px; font-weight: 700; color: rgba(255, 255, 255, 0.66); }
+.admin-title-sub { font-size: 13.5px; font-weight: 700; color: var(--on-invert-soft); }
 .admin-top-actions { display: flex; gap: 8px; }
 
 /* ── 버튼 ── */
@@ -47,24 +47,24 @@
   transition: filter 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
 }
 .admin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.admin-btn.teal { background: var(--brand); color: #fff; }
+.admin-btn.teal { background: var(--brand); color: var(--on-brand); }
 .admin-btn.teal:hover:not(:disabled) { filter: brightness(1.08); }
 .admin-btn.ghost {
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  color: #fff;
+  border: 1.5px solid var(--on-invert-soft);
+  color: var(--on-invert);
   background: transparent;
 }
-.admin-topbar .admin-btn.ghost:hover { border-color: #fff; }
+.admin-topbar .admin-btn.ghost:hover { border-color: var(--on-invert); }
 .admin-main .admin-btn.ghost {
   border-color: var(--line-strong);
   color: var(--ink);
   background: var(--card);
 }
 .admin-main .admin-btn.ghost:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-deep); }
-.admin-btn.danger { background: var(--danger-tint); color: var(--danger); border: 1.5px solid #eec5c0; }
-.admin-btn.danger:hover:not(:disabled) { background: #f6d7d3; }
-.admin-btn.yellow { background: var(--warn-tint); color: #7a5a10; border: 1.5px solid #ecd9a8; }
-.admin-btn.yellow:hover:not(:disabled) { background: #f8e9c4; }
+.admin-btn.danger { background: var(--danger-tint); color: var(--danger); border: 1.5px solid var(--danger-line); }
+.admin-btn.danger:hover:not(:disabled) { background: var(--danger-tint-hover); }
+.admin-btn.yellow { background: var(--warn-tint); color: var(--warn-ink); border: 1.5px solid var(--warn-line); }
+.admin-btn.yellow:hover:not(:disabled) { background: var(--warn-line-hover); }
 
 /* ── 본문 ── */
 .admin-main {
@@ -97,10 +97,10 @@
 }
 .admin-stat span { font-size: 12px; font-weight: 800; color: var(--ink-faint); }
 .admin-stat b { font-size: 24px; font-variant-numeric: tabular-nums; color: var(--ink); }
-.admin-stat.total { border-color: #bcd9cd; background: var(--brand-tint); }
+.admin-stat.total { border-color: var(--brand-line); background: var(--brand-tint); }
 .admin-stat.total b { color: var(--brand-deep); }
-.admin-stat.review { border-color: #ecd9a8; background: var(--warn-tint); }
-.admin-stat.review b { color: #9a7413; }
+.admin-stat.review { border-color: var(--warn-line); background: var(--warn-tint); }
+.admin-stat.review b { color: var(--warn-ink-strong); }
 
 /* 필터/정렬 */
 .admin-toolbar {
@@ -123,7 +123,7 @@
   transition: all 0.15s;
 }
 .admin-tab:hover { border-color: var(--brand); color: var(--brand-deep); }
-.admin-tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.admin-tab.active { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
 
 .admin-sort {
   display: inline-flex;
@@ -198,13 +198,13 @@
   font-weight: 900;
 }
 .admin-badge.high { background: var(--danger-tint); color: var(--danger); }
-.admin-badge.mid { background: var(--warn-tint); color: #9a7413; }
+.admin-badge.mid { background: var(--warn-tint); color: var(--warn-ink-strong); }
 .admin-badge.low { background: var(--paper-deep); color: var(--ink-faint); }
 .admin-badge.review {
   position: absolute;
   top: 8px; left: 8px;
-  background: #7a5a10;
-  color: #fff;
+  background: var(--warn-ink);
+  color: var(--card);
 }
 .admin-card .admin-badge.review { box-shadow: 0 2px 8px rgba(35, 42, 32, 0.3); }
 .admin-badge.spam { background: var(--danger); color: #fff; }
@@ -230,7 +230,7 @@
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 900;
-  color: #fff;
+  color: var(--on-status);
 }
 .admin-status.s0 { background: var(--st-received); }
 .admin-status.s1 { background: var(--st-assigned); }
@@ -285,7 +285,7 @@
   transition: all 0.15s;
 }
 .admin-status-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-deep); }
-.admin-status-btn.current { background: var(--brand); border-color: var(--brand); color: #fff; }
+.admin-status-btn.current { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
 
 /* 신고 위치 지도 (상세) */
 .admin-map-wrap {
