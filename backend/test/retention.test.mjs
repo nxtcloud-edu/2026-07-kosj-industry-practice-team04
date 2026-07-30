@@ -18,6 +18,23 @@ import { saveUpload } from '../src/upload-store.js';
 const DAY = 24 * 60 * 60 * 1000;
 const FILE_KEY = 'reports/2026/07/23/11111111-2222-3333-4444-555555555555.jpg';
 
+/**
+ * ⚠ 업로드 저장소를 반드시 임시 폴더로 격리한다.
+ * sweepRetention은 MOA_UPLOAD_DIR 미설정 시 process.cwd()/uploads —
+ * 즉 개발용 실제 사진 폴더를 대상으로 돈다. 이 테스트는 '먼 미래' 시각을
+ * 주입하므로, 격리하지 않으면 실제 업로드 파일이 고아로 판정돼 삭제된다.
+ * (npm test 한 번에 로컬 데모 사진이 사라지던 문제)
+ */
+let uploadDir;
+test.before(() => {
+  uploadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'moa-retention-'));
+  process.env.MOA_UPLOAD_DIR = uploadDir;
+});
+test.after(() => {
+  fs.rmSync(uploadDir, { recursive: true, force: true });
+  delete process.env.MOA_UPLOAD_DIR;
+});
+
 function setup({ withUploadFile = false } = {}) {
   clearReports();
   clearIssues();
@@ -63,11 +80,10 @@ test('#59 완료 30일이 지나면 연락처만 삭제된다', () => {
 });
 
 test('#59 완료 6개월이 지나면 사진·위치·토큰이 삭제·비식별화된다', () => {
-  process.env.MOA_UPLOAD_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'moa-ret-'));
-  try {
-    // 임시 저장소에 실제 파일을 두고 스윕이 지우는 것까지 확인한다.
+  {
+    // 임시 저장소(파일 단위로 격리됨)에 실제 파일을 두고 스윕이 지우는 것까지 확인한다.
     const { receiptNo, issue } = setup({ withUploadFile: true });
-    const uploaded = path.join(process.env.MOA_UPLOAD_DIR, FILE_KEY);
+    const uploaded = path.join(uploadDir, FILE_KEY);
     assert.ok(fs.existsSync(uploaded));
 
     const completed = new Date(issue.completedAt).getTime();
@@ -81,9 +97,6 @@ test('#59 완료 6개월이 지나면 사진·위치·토큰이 삭제·비식�
     assert.equal(report.address, null);
     assert.equal(report.lat, 36.48, '좌표는 약 1km 격자로 비식별화된다');
     assert.equal(fs.existsSync(uploaded), false, '업로드 파일도 삭제되어야 한다');
-  } finally {
-    fs.rmSync(process.env.MOA_UPLOAD_DIR, { recursive: true, force: true });
-    delete process.env.MOA_UPLOAD_DIR;
   }
 });
 

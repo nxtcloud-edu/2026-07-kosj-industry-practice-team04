@@ -21,12 +21,13 @@ const TYPE_COLORS = {
 };
 
 function pinIcon(color, { active = false, mine = false } = {}) {
-  const size = active ? 34 : 26;
+  // 터치 타깃은 44×44로 고정하고(WCAG 2.5.5), 핀 그림만 안쪽에 그린다.
+  const visual = active ? 32 : 26;
   return L.divIcon({
     className: 'moa-pin-wrap',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    html: `<span class="moa-pin ${active ? 'is-active' : ''} ${mine ? 'is-mine' : ''}" style="--pin:${color}"></span>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 38],
+    html: `<span class="moa-pin ${active ? 'is-active' : ''} ${mine ? 'is-mine' : ''}" style="--pin:${color}; --pin-size:${visual}px"></span>`,
   });
 }
 

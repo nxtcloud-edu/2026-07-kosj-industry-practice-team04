@@ -10,6 +10,17 @@
 |---|---|---|
 | 앱 설치·회원가입·긴 양식 — 신고 문턱이 높아 디지털 취약층이 포기한다 | 같은 문제가 별개 민원으로 쌓여 처리보다 중복 확인에 시간을 쓴다 | 접수 순서 중심 처리로 위험한 문제가 뒤로 밀린다 |
 
+## 화면 보기
+
+실제로 동작하는 앱을 자동 조작해 찍은 화면입니다 — **[docs/screenshots/](docs/screenshots/)** 에 12장이 있고, 각 화면 설명은 [캡처 목록](docs/screenshots/README.md)에 정리돼 있습니다.
+
+| 시민 앱 | 접근성 | 관리자 |
+|---|---|---|
+| <img src="docs/screenshots/02-citizen-camera-ai.png" width="180" alt="촬영 화면 — Gemini가 도로 파손 98%로 분류"> | <img src="docs/screenshots/09-a11y-theme-contrast.png" width="180" alt="고대비 모드"> | <img src="docs/screenshots/11-admin-list.png" width="420" alt="관리자 대표 문제 목록"> |
+| 촬영 즉시 **Gemini가 유형·신뢰도 판정** | **고대비 모드** (대비 14:1) | 우선순위 정렬 · 상태 · 담당 부서 |
+
+발표·영상용 진행 대본은 **[시연 시나리오](docs/DEMO_SCENARIO.md)** 를 보세요.
+
 ## 지금 동작하는 것
 
 **시민 앱** — 하단 3탭 (모바일 우선, PC는 와이드 레이아웃)
@@ -123,6 +134,8 @@ npm run dev
 | 목적 | 문서 |
 |---|---|
 | 👋 팀원 온보딩 | [START_HERE.md](docs/START_HERE.md) |
+| 🖼 화면 캡처 12장 | [docs/screenshots/](docs/screenshots/README.md) |
+| 🎬 시연 시나리오 (발표·영상용) | [DEMO_SCENARIO.md](docs/DEMO_SCENARIO.md) |
 | 협업 규칙 (사람별 브랜치·PR·보드) | [COLLABORATION.md](docs/COLLABORATION.md) · [GIT_QUICKSTART.md](docs/GIT_QUICKSTART.md) |
 | 📄 API 계약 v1 (FE·BE 공통 기준) | [API_CONTRACT.md](docs/API_CONTRACT.md) |
 | 개인정보 보관·삭제 정책 | [PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) |
