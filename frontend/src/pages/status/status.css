@@ -15,7 +15,7 @@
 
 .status-error {
   padding: 18px;
-  border: 1px solid #eec5c0;
+  border: 1px solid var(--danger-line);
   border-radius: var(--r-card);
   background: var(--danger-tint);
   color: var(--danger);
@@ -24,7 +24,7 @@
 }
 .status-error strong { font-size: 16px; }
 .status-error p { line-height: 1.6; font-size: 14px; }
-.status-error small { color: #9c5550; line-height: 1.5; font-size: 12.5px; }
+.status-error small { color: var(--danger-ink-soft); line-height: 1.5; font-size: 12.5px; }
 
 /* 접수번호 카드 */
 .status-card {
@@ -57,7 +57,7 @@
   padding: 18px;
   border-radius: var(--r-card);
   background: var(--brand-tint);
-  border: 1px solid #bcd9cd;
+  border: 1px solid var(--brand-line);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -67,7 +67,7 @@
   padding: 6px 14px;
   border-radius: 999px;
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
   font-size: 14px;
   font-weight: 900;
 }

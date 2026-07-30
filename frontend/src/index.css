@@ -1,7 +1,16 @@
 /* ============================================================
-   「모아」 디자인 시스템 — 클린 라이트 (2026-07 리뉴얼)
+   「모아」 디자인 시스템 (2026-07 리뉴얼)
    따뜻한 종이 질감 + 소나무 녹색 브랜드 + 감귤빛 포인트.
-   접근성(글자 크기 100~160% · 고대비)은 아래 전용 블록이 담당한다.
+
+   화면 모드는 셀렉터를 나열하지 않고 **CSS 변수만 덮어써서** 전환한다
+   (html[data-theme="dark" | "contrast"]). 새 컴포넌트가 var()만 쓰면
+   세 모드에 자동으로 대응된다 — 모드별 규칙을 빠뜨릴 수 없는 구조.
+
+   · 기본   : 종이빛 라이트
+   · 다크   : 눈이 편한 다크 — 순수 검정/흰색을 피해 헐레이션(빛 번짐)을 줄인다
+   · 고대비 : 저시력 사용자용 최대 대비 — 다만 #000+#FFDF00의 눈부심을
+             완화하려 근접 검정(#0b0d0a)과 순화된 앰버(#ffd84d)를 쓴다.
+             (대비비 14:1 유지 — WCAG AAA 7:1의 두 배)
    ============================================================ */
 
 :root {
@@ -15,35 +24,212 @@
   /* 잉크 */
   --ink: #232a20;
   --ink-soft: #5c6554;
-  --ink-faint: #8b927f;
+  --ink-faint: #6e7566;
 
   /* 브랜드 — 소나무 */
   --brand: #15685a;
   --brand-deep: #0c4a3f;
   --brand-tint: #e3f0ea;
+  --brand-line: #bcd9cd;
   --brand-glow: rgba(21, 104, 90, 0.16);
+  --on-brand: #ffffff;          /* 브랜드 배경 위 글자 */
 
   /* 포인트 — 감귤 */
   --accent: #e5652e;
   --accent-tint: #fcede3;
+  --accent-tint-hover: #f9ddc9;
+  --accent-line: #e5652e;
+  --accent-ink: #9c3d12;        /* 감귤 배경 위 글자 */
 
   /* 상태 */
   --st-received: #75806e;
   --st-assigned: #3a6ea5;
   --st-working: #c98f1b;
   --st-done: #3e8e5a;
+  --on-status: #ffffff;         /* 상태 칩 글자 */
+
+  /* 의미색 (성공·주의·위험) */
+  --ok-tint: #ecf5ee;
+  --ok-line: #cde4d3;
+  --ok-ink: #3e8e5a;
+  --warn-tint: #fdf4e0;
+  --warn-line: #ecd9a8;
+  --warn-line-hover: #f8e9c4;
+  --warn-ink: #7a5a10;
+  --warn-ink-strong: #9a7413;
   --danger: #c4453c;
   --danger-tint: #fbe9e7;
-  --warn-tint: #fdf4e0;
+  --danger-tint-hover: #f6d7d3;
+  --danger-line: #eec5c0;
+  --danger-ink-soft: #9c5550;
+
+  /* 촬영 가이드 일러스트 */
+  --illus-sky: #dce8df;
+  --illus-ground: #b9c4ae;
+  --illus-road: #8b927f;
+  --illus-road-alt: #a6ac99;
+  --illus-blur: #cfd6c8;
 
   /* 형태 */
   --r-card: 18px;
   --r-ctl: 12px;
   --shadow-card: 0 1px 2px rgba(35, 42, 32, 0.05), 0 10px 28px -14px rgba(35, 42, 32, 0.22);
   --shadow-float: 0 2px 6px rgba(35, 42, 32, 0.08), 0 18px 44px -18px rgba(35, 42, 32, 0.3);
+  --dot-grid: rgba(35, 42, 32, 0.025);
+  --map-filter: saturate(0.82) contrast(0.97);
 
   --font-display: 'Gowun Dodum', 'Pretendard Variable', sans-serif;
   --tab-height: 66px;
+
+  /* 반전 표면 — 관리자 상단바·접수증 머리 등 어두운 띠 */
+  --surface-invert: #0c4a3f;
+  --on-invert: #ffffff;
+  --on-invert-soft: rgba(255, 255, 255, 0.66);
+  --hero-from: #eef4ec;
+  --hero-to: #e2efe7;
+  --hero-line: #d8e6dc;
+  --glass: rgba(255, 255, 255, 0.92);
+
+}
+
+/* ──────────────── 다크 모드 — 눈이 편한 쪽으로 ────────────────
+   순수 검정(#000) 바탕에 순수 흰색을 얹으면 대비는 최대지만
+   난시 사용자에게 헐레이션(글자가 번져 보이는 현상)이 생긴다.
+   따라서 바탕은 살짝 든 다크 그레이, 글자는 살짝 낮춘 오프화이트로
+   맞춰 대비 14:1을 유지하면서 눈부심을 줄인다. */
+html[data-theme='dark'] {
+  --paper: #171a16;
+  --paper-deep: #212520;
+  --card: #1f231d;
+  --line: #2f342c;
+  --line-strong: #434a3e;
+
+  --ink: #e4e7df;               /* 순수 흰색(#fff) 대신 */
+  --ink-soft: #b6bdaf;
+  --ink-faint: #8d9585;
+
+  --brand: #57ab94;
+  --brand-deep: #7cc3ac;        /* 어두운 바탕에서 읽히도록 밝게 */
+  --brand-tint: #1e2c27;
+  --brand-line: #33513f;
+  --brand-glow: rgba(87, 171, 148, 0.3);
+  --on-brand: #0d1712;
+
+  --accent: #e8825a;
+  --accent-tint: #2f231c;
+  --accent-tint-hover: #3b2b22;
+  --accent-line: #6b432e;
+  --accent-ink: #f0a884;
+
+  --st-received: #9aa591;
+  --st-assigned: #7fb0dd;
+  --st-working: #dcb04a;
+  --st-done: #74c096;
+  --on-status: #0d1712;
+
+  --ok-tint: #1c2a20;
+  --ok-line: #2f4a37;
+  --ok-ink: #7dc294;
+  --warn-tint: #2c2517;
+  --warn-line: #4d3f22;
+  --warn-line-hover: #5c4b28;
+  --warn-ink: #e0c079;
+  --warn-ink-strong: #edd18d;
+  --danger: #e08b84;
+  --danger-tint: #2f1f1d;
+  --danger-tint-hover: #3d2825;
+  --danger-line: #5c3733;
+  --danger-ink-soft: #d3a29d;
+
+  --illus-sky: #2a332b;
+  --illus-ground: #3a4238;
+  --illus-road: #565e51;
+  --illus-road-alt: #454c41;
+  --illus-blur: #333a31;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+  --shadow-float: 0 2px 6px rgba(0, 0, 0, 0.35), 0 18px 44px -18px rgba(0, 0, 0, 0.7);
+  --dot-grid: rgba(255, 255, 255, 0.022);
+  --map-filter: saturate(0.7) brightness(0.78) contrast(1.05);
+  color-scheme: dark;
+
+  --surface-invert: #12211c;
+  --on-invert: #e7ece4;
+  --on-invert-soft: rgba(231, 236, 228, 0.7);
+  --hero-from: #1d2823;
+  --hero-to: #19211d;
+  --hero-line: #2f3d35;
+  --glass: rgba(31, 35, 29, 0.94);
+
+}
+
+/* ──────────────── 고대비 모드 — 선명하되 덜 눈부시게 ────────────────
+   저시력 사용자를 위한 최대 대비는 유지하되(14:1), 눈부심의 원인인
+   순수 검정·형광 노랑을 근접 검정·순화된 앰버로 바꾼다. */
+html[data-theme='contrast'] {
+  --paper: #0b0d0a;
+  --paper-deep: #14170f;
+  --card: #0b0d0a;
+  --line: #ffd84d;              /* 경계는 앰버로 — 형태를 또렷하게 */
+  --line-strong: #ffd84d;
+
+  --ink: #f7f6ef;               /* 순수 흰색보다 살짝 낮춰 번짐 완화 */
+  --ink-soft: #f7f6ef;
+  --ink-faint: #e6e2d2;
+
+  --brand: #ffd84d;
+  --brand-deep: #ffd84d;
+  --brand-tint: #0b0d0a;
+  --brand-line: #ffd84d;
+  --brand-glow: rgba(255, 216, 77, 0.28);
+  --on-brand: #0b0d0a;
+
+  --accent: #ffd84d;
+  --accent-tint: #0b0d0a;
+  --accent-tint-hover: #1c1a10;
+  --accent-line: #ffd84d;
+  --accent-ink: #ffd84d;
+
+  --st-received: #0b0d0a;
+  --st-assigned: #0b0d0a;
+  --st-working: #0b0d0a;
+  --st-done: #0b0d0a;
+  --on-status: #ffd84d;
+
+  --ok-tint: #0b0d0a;
+  --ok-line: #ffd84d;
+  --ok-ink: #ffd84d;
+  --warn-tint: #0b0d0a;
+  --warn-line: #ffd84d;
+  --warn-line-hover: #1c1a10;
+  --warn-ink: #ffd84d;
+  --warn-ink-strong: #ffd84d;
+  --danger: #ffb4a8;
+  --danger-tint: #0b0d0a;
+  --danger-tint-hover: #1c1410;
+  --danger-line: #ffb4a8;
+  --danger-ink-soft: #ffb4a8;
+
+  --illus-sky: #14170f;
+  --illus-ground: #22261a;
+  --illus-road: #6b6650;
+  --illus-road-alt: #4a4738;
+  --illus-blur: #1a1d14;
+
+  --shadow-card: none;
+  --shadow-float: none;
+  --dot-grid: transparent;
+  --map-filter: grayscale(1) invert(0.9) contrast(1.1);
+  color-scheme: dark;
+
+  --surface-invert: #0b0d0a;
+  --on-invert: #ffd84d;
+  --on-invert-soft: #f7f6ef;
+  --hero-from: #0b0d0a;
+  --hero-to: #0b0d0a;
+  --hero-line: #ffd84d;
+  --glass: #0b0d0a;
+
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,7 +242,7 @@ html {
 body {
   font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Malgun Gothic', -apple-system, sans-serif;
   background:
-    radial-gradient(rgba(35, 42, 32, 0.025) 1px, transparent 1px) 0 0 / 22px 22px,
+    radial-gradient(var(--dot-grid) 1px, transparent 1px) 0 0 / 22px 22px,
     var(--paper);
   color: var(--ink);
   line-height: 1.6;
@@ -152,22 +338,22 @@ img { max-width: 100%; display: block; }
   gap: 12px;
   font-size: 13px;
   font-weight: 700;
-  color: #7a5a10;
+  color: var(--warn-ink);
   background: var(--warn-tint);
-  border-block: 1px solid #ecd9a8;
+  border-block: 1px solid var(--warn-line);
 }
 .app-offline button {
   flex-shrink: 0;
   min-height: 36px;
   padding: 6px 14px;
   border-radius: 999px;
-  border: 1.5px solid #ecd9a8;
-  background: #fff;
+  border: 1.5px solid var(--warn-line);
+  background: var(--card);
   font-size: 12.5px;
   font-weight: 800;
-  color: #7a5a10;
+  color: var(--warn-ink);
 }
-.app-offline button:hover:not(:disabled) { border-color: #7a5a10; }
+.app-offline button:hover:not(:disabled) { border-color: var(--warn-ink); }
 
 /* 페이지 공통 머리글 */
 .page-head { padding: 14px 2px 16px; }
@@ -187,7 +373,7 @@ img { max-width: 100%; display: block; }
   justify-content: center;
   gap: 6px;
   padding: 8px max(12px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
 }
@@ -226,7 +412,7 @@ img { max-width: 100%; display: block; }
   padding: 14px 22px;
   border-radius: 14px;
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
   font-size: 16px;
   font-weight: 800;
   box-shadow: 0 10px 22px -10px var(--brand-glow), inset 0 -2px 0 rgba(0, 0, 0, 0.12);
@@ -269,7 +455,7 @@ img { max-width: 100%; display: block; }
 .chip.is-active {
   background: var(--brand);
   border-color: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
 }
 .chip--action { border-style: dashed; }
 .chip-group { display: inline-flex; gap: 8px; flex-wrap: wrap; }
@@ -283,7 +469,7 @@ img { max-width: 100%; display: block; }
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
-  color: #fff;
+  color: var(--on-status);
 }
 .status-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); }
 .status-chip.s0 { background: var(--st-received); }
@@ -310,9 +496,9 @@ img { max-width: 100%; display: block; }
   color: var(--ink-soft);
   margin: 8px 0;
 }
-.notice.info { background: var(--brand-tint); border-color: #bcd9cd; color: var(--brand-deep); }
-.notice.warn { background: var(--warn-tint); border-color: #ecd9a8; color: #7a5a10; }
-.notice.error { background: var(--danger-tint); border-color: #eec5c0; color: var(--danger); }
+.notice.info { background: var(--brand-tint); border-color: var(--brand-line); color: var(--brand-deep); }
+.notice.warn { background: var(--warn-tint); border-color: var(--warn-line); color: var(--warn-ink); }
+.notice.error { background: var(--danger-tint); border-color: var(--danger-line); color: var(--danger); }
 .notice__link { text-decoration: underline; font-weight: 800; }
 
 /* ============ 홈 (신고 시작) ============ */
@@ -327,16 +513,16 @@ img { max-width: 100%; display: block; }
   background:
     radial-gradient(340px 200px at 88% -20%, rgba(229, 101, 46, 0.14), transparent 65%),
     repeating-linear-gradient(-45deg, rgba(12, 74, 63, 0.045) 0 1px, transparent 1px 9px),
-    linear-gradient(160deg, #eef4ec, #e2efe7);
-  border: 1px solid #d8e6dc;
+    linear-gradient(160deg, var(--hero-from), var(--hero-to));
+  border: 1px solid var(--hero-line);
 }
 .home-hero__eyebrow {
   display: inline-block;
   font-size: 12px;
   font-weight: 800;
   color: var(--brand-deep);
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid #cfe2d6;
+  background: var(--card);
+  border: 1px solid var(--brand-line);
   padding: 4px 11px;
   border-radius: 999px;
   margin-bottom: 12px;
@@ -478,7 +664,7 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
    데스크톱(정밀 포인터)에서는 컴팩트한 시각 크기를 유지한다. */
 @media (pointer: coarse) {
   .font-size-step { width: 44px; min-width: 44px; min-height: 44px; }
-  .accessibility-toggle { min-height: 44px; }
+  .theme-option { min-height: 44px; padding-inline: 14px; }
   .preview-grid__delete,
   .compressor-grid__delete {
     width: 40px;
@@ -494,46 +680,36 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.accessibility-toggle {
-  min-height: 40px;
-  padding: 7px 12px;
+/* 화면 모드 — 기본 / 다크 / 고대비 3단 선택 */
+.theme-control {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 3px;
+  padding: 3px;
   border: 1.5px solid var(--line-strong);
   border-radius: 999px;
   background: var(--card);
-  color: var(--ink);
-  font-size: 13px;
+}
+.theme-option {
+  min-height: 34px;
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 12.5px;
   font-weight: 800;
   line-height: 1.2;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
-.accessibility-toggle:hover { border-color: var(--brand); }
-.accessibility-toggle[aria-pressed='true'] {
-  border-color: var(--brand);
+.theme-option:hover:not(.is-active) { background: var(--paper-deep); color: var(--brand-deep); }
+.theme-option.is-active {
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
 }
-.accessibility-icon {
-  min-width: 18px;
-  font-size: 14px;
-  font-weight: 900;
-  text-align: center;
-}
-.accessibility-state {
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--paper-deep);
-  color: var(--ink-faint);
-  font-size: 10.5px;
-  font-weight: 900;
-}
-.accessibility-toggle[aria-pressed='true'] .accessibility-state {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-}
+.theme-option__icon { font-size: 13px; font-weight: 900; }
 
 /* ============ 글자 크기 100~160% (20% 단위) ============ */
 
@@ -643,111 +819,31 @@ html[data-font-scale]:not([data-font-scale='100']) :where(
 html[data-font-scale]:not([data-font-scale='100']) :where(.tab-item) {
   min-height: calc(var(--a11y-control-height) + 8px);
 }
-html[data-font-scale]:not([data-font-scale='100']) .accessibility-state,
+html[data-font-scale]:not([data-font-scale='100']) .theme-option,
 html[data-font-scale]:not([data-font-scale='100']) .font-size-value {
   font-size: var(--a11y-state-text) !important;
 }
 
-/* ============ 고대비 모드 — 검정 바탕 · 노랑 포인트 ============ */
+/* ============ 모드별 미세 보정 ============
+   색은 위 :root / [data-theme] 변수가 전부 처리한다.
+   여기에는 변수로 표현할 수 없는 소수의 예외만 둔다. */
 
-html.a11y-high-contrast { background: #000; color-scheme: dark; }
-html.a11y-high-contrast body,
-html.a11y-high-contrast .admin-shell {
-  background: #000 !important;
-  color: #fff !important;
-}
-html.a11y-high-contrast :where(.app-header, .tab-bar, .admin-topbar) {
-  background: #000 !important;
-  color: #fff !important;
-  border-color: #ffdf00 !important;
-  backdrop-filter: none;
-}
-html.a11y-high-contrast .app-brand__mark { color: #ffdf00; }
-html.a11y-high-contrast .app-brand__mark::after { background: transparent; }
-html.a11y-high-contrast :where(.font-size-control, .accessibility-toggle, .app-header__admin, .chip, .btn-ghost) {
-  background: #000 !important;
-  color: #fff !important;
-  border-color: #ffdf00 !important;
-}
-html.a11y-high-contrast .font-size-step {
-  background: #000;
-  color: #ffdf00;
-  border: 1px solid #ffdf00;
-}
-html.a11y-high-contrast :where(
-  .accessibility-heading, .font-size-label, .accessibility-state,
-  .page-head__sub, .home-hero__desc, .home-step__desc, .home-link__body small,
-  .home-foot, .admin-title-sub, .admin-stat span, .admin-card-addr, .admin-dept,
-  .admin-report-meta, .admin-timeline time,
-  .status-history__time, .status-steps__heading, .admin-map-hint,
-  .ticket__note, .ticket__date, .ticket__label, .lookup-form__note
-) { color: #fff !important; }
-html.a11y-high-contrast :where(
-  .font-size-value, .home-hero__title, .page-head__title, .flow-head__title,
-  .home-link__arrow, .admin-title-mark, .admin-stat.total b, .admin-stat.review b,
-  .admin-params b, .admin-mono
-) { color: #ffdf00 !important; }
-html.a11y-high-contrast .app-offline,
-html.a11y-high-contrast .app-offline button {
-  background: #000 !important;
-  color: #ffdf00 !important;
-  border-color: #ffdf00 !important;
-}
-html.a11y-high-contrast :where(
-  .home-hero, .home-step, .home-link, .notice,
-  .location-card, .location-info-card, .location-map-card, .location-map-empty,
-  .camera-guide__box, .camera-examples, .preview-section, .photo-quality-check,
-  .similar-choice, .similar-choice__card, .ticket, .ticket__head, .ticket__foot,
-  .lookup-form, .my-reports__item, .nearby-card, .nearby-popup, .nearby-empty,
-  .status-card, .status-current, .status-error, .status-history, .status-steps,
-  .admin-map-wrap,
-  .admin-stat, .admin-sort, .admin-params, .admin-card, .admin-detail-head,
-  .admin-panel, .admin-report-card, .admin-gate__card
-) {
-  background: #000 !important;
-  border-color: #ffdf00 !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-html.a11y-high-contrast :where(.home-step__no, .status-chip) {
-  background: #ffdf00 !important;
-  color: #000 !important;
-}
-html.a11y-high-contrast .status-chip::before { background: #000; }
-html.a11y-high-contrast :where(
-  .admin-card-thumb, .admin-thumb-empty, .admin-select,
-  .lookup-form__input, .admin-gate__input
-) {
-  background: #000 !important;
-  color: #fff !important;
-  border-color: #ffdf00 !important;
-}
-html.a11y-high-contrast :where(
-  .btn-primary, .admin-btn, .admin-tab, .admin-sort button, .admin-status-btn, .admin-status
-) {
-  background: #000 !important;
-  color: #fff !important;
-  border: 1px solid #ffdf00 !important;
-  box-shadow: none !important;
-}
-html.a11y-high-contrast .accessibility-toggle[aria-pressed='true'],
-html.a11y-high-contrast .chip.is-active,
-html.a11y-high-contrast .tab-item.is-active,
-html.a11y-high-contrast body .btn-primary,
-html.a11y-high-contrast body .admin-tab.active,
-html.a11y-high-contrast body .admin-sort button.active,
-html.a11y-high-contrast body .admin-status-btn.current {
-  background: #ffdf00 !important;
-  color: #000 !important;
-  border-color: #ffdf00 !important;
-}
-html.a11y-high-contrast .accessibility-toggle[aria-pressed='true'] .accessibility-state {
-  background: #000;
-  color: #ffdf00 !important;
-}
-html.a11y-high-contrast .tab-item { color: #fff; }
-html.a11y-high-contrast .moa-map { filter: grayscale(1) invert(0.92) contrast(1.15); }
-html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
+/* 브랜드 마크 밑줄 하이라이트 — 어두운 모드에서는 지운다 */
+html[data-theme='dark'] .app-brand__mark::after,
+html[data-theme='contrast'] .app-brand__mark::after { background: transparent; }
+
+/* 히어로의 장식 오버레이(감귤 번짐·사선)는 어두운 바탕에서 탁해 보여 걷어낸다 */
+html[data-theme='contrast'] .home-hero { background: var(--paper); }
+
+/* 고대비: 경계를 또렷하게 — 카드·칩·버튼에 테두리를 강제한다 */
+html[data-theme='contrast'] :where(
+  .home-step, .home-link, .notice, .status-chip, .admin-badge,
+  .admin-status, .btn-primary, .admin-btn, .admin-tab, .admin-status-btn,
+  .tab-item.is-active, .chip.is-active, .ticket, .ticket__badge
+) { border: 1.5px solid var(--line); }
+
+/* 고대비: 사진은 그대로 두되(정보), 장식용 그라디언트만 단순화 */
+html[data-theme='contrast'] .admin-thumb-empty { background: var(--paper-deep); }
 
 /* ============ 지도 (Leaflet 공통) ============ */
 
@@ -758,7 +854,7 @@ html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
   background: var(--paper-deep);
   z-index: 0; /* Leaflet 내부 z-index가 탭 바를 덮지 않게 */
 }
-.moa-map .leaflet-tile-pane { filter: saturate(0.82) contrast(0.97); }
+.moa-map .leaflet-tile-pane { filter: var(--map-filter); }
 .moa-map .leaflet-control-attribution { font-size: 9px; opacity: 0.75; }
 
 .moa-pin-wrap { background: none; border: none; }
@@ -767,7 +863,7 @@ html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
   width: 100%;
   height: 100%;
   background: var(--pin, var(--brand));
-  border: 2.5px solid #fff;
+  border: 2.5px solid var(--card);
   border-radius: 50% 50% 50% 4px;
   transform: rotate(-45deg);
   box-shadow: 0 3px 8px rgba(35, 42, 32, 0.35);
@@ -779,7 +875,7 @@ html.a11y-high-contrast :focus-visible { outline-color: #ffdf00; }
   position: absolute;
   inset: 26%;
   border-radius: 50%;
-  background: #fff;
+  background: var(--card);
 }
 
 /* ============ 데스크톱 확장 — PC에서 좁아 보이지 않게 ============ */

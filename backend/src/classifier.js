@@ -19,7 +19,9 @@ import { TYPES, DETECTABLE_TYPES } from './types.js';
 // 신뢰도 임계값 — 이 값 미만이면 자동 통합에서 제외하고 관리자 검수 큐로 보낸다(QUR-001·COR-001).
 export const REVIEW_THRESHOLD = 0.7;
 
-const GEMINI_TIMEOUT_MS = 12000;
+// 실제 촬영 사진은 합성 이미지보다 업로드·추론이 오래 걸린다.
+// 12초에서는 정상 응답도 중간에 끊겨 mock으로 떨어졌다 — 여유를 두고 조정 가능하게.
+const GEMINI_TIMEOUT_MS = Number(process.env.MOA_GEMINI_TIMEOUT_MS ?? 25000);
 
 // 파일명 힌트: 현장에서 흔한 파일명 패턴을 우선 매칭 (mock 엔진용).
 const HINTS = [
