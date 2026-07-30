@@ -40,12 +40,13 @@
   --accent-tint-hover: #f9ddc9;
   --accent-line: #e5652e;
   --accent-ink: #9c3d12;        /* 감귤 배경 위 글자 */
+  --accent-strong: #b8460f;     /* 흰 글자를 얹는 감귤 (AA 확보) */
 
   /* 상태 */
-  --st-received: #75806e;
+  --st-received: #5f6858;
   --st-assigned: #3a6ea5;
-  --st-working: #c98f1b;
-  --st-done: #3e8e5a;
+  --st-working: #8a6210;
+  --st-done: #2f7a4a;
   --on-status: #ffffff;         /* 상태 칩 글자 */
 
   /* 의미색 (성공·주의·위험) */
@@ -79,7 +80,7 @@
   --map-filter: saturate(0.82) contrast(0.97);
 
   --font-display: 'Gowun Dodum', 'Pretendard Variable', sans-serif;
-  --tab-height: 66px;
+  --tab-height: 72px;   /* 실측 71px + 여유 — 배율별로 아래에서 덮어쓴다 */
 
   /* 반전 표면 — 관리자 상단바·접수증 머리 등 어두운 띠 */
   --surface-invert: #0c4a3f;
@@ -120,6 +121,7 @@ html[data-theme='dark'] {
   --accent-tint-hover: #3b2b22;
   --accent-line: #6b432e;
   --accent-ink: #f0a884;
+  --accent-strong: #c25a2c;
 
   --st-received: #9aa591;
   --st-assigned: #7fb0dd;
@@ -189,6 +191,7 @@ html[data-theme='contrast'] {
   --accent-tint-hover: #1c1a10;
   --accent-line: #ffd84d;
   --accent-ink: #ffd84d;
+  --accent-strong: #ffd84d;
 
   --st-received: #0b0d0a;
   --st-assigned: #0b0d0a;
@@ -286,7 +289,7 @@ img { max-width: 100%; display: block; }
   margin: 0 auto;
 }
 
-.app-brand { display: inline-flex; align-items: baseline; gap: 8px; }
+.app-brand { display: inline-flex; align-items: baseline; gap: 8px; min-height: 44px; }
 .app-brand__mark {
   font-family: var(--font-display);
   font-size: 26px;
@@ -304,13 +307,16 @@ img { max-width: 100%; display: block; }
   border-radius: 4px;
   z-index: -1;
 }
-.app-brand__desc { font-size: 13px; font-weight: 700; color: var(--ink-faint); }
+.app-brand__desc { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
 
 .app-header__admin {
-  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--ink-faint);
-  padding: 7px 12px;
+  color: var(--ink-soft);
+  padding: 7px 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--card);
@@ -388,8 +394,8 @@ img { max-width: 100%; display: block; }
   justify-content: center;
   gap: 3px;
   border-radius: 14px;
-  color: var(--ink-faint);
-  font-size: 12px;
+  color: var(--ink-soft);
+  font-size: 14px;
   font-weight: 700;
   transition: background 0.18s, color 0.18s, transform 0.12s;
 }
@@ -441,12 +447,12 @@ img { max-width: 100%; display: block; }
 .btn-ghost:active:not(:disabled) { transform: scale(0.98); }
 
 .chip {
-  min-height: 40px;
-  padding: 8px 16px;
+  min-height: 44px;
+  padding: 10px 16px;
   border-radius: 999px;
   border: 1.5px solid var(--line-strong);
   background: var(--card);
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--ink-soft);
   transition: all 0.15s;
@@ -465,9 +471,9 @@ img { max-width: 100%; display: block; }
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 11px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--on-status);
 }
@@ -518,7 +524,7 @@ img { max-width: 100%; display: block; }
 }
 .home-hero__eyebrow {
   display: inline-block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--brand-deep);
   background: var(--card);
@@ -556,19 +562,19 @@ img { max-width: 100%; display: block; }
 }
 .home-step__no {
   position: absolute;
-  top: -8px; left: 50%;
+  top: -11px; left: 50%;
   transform: translateX(-50%);
-  width: 20px; height: 20px;
+  width: 26px; height: 26px;
   display: grid; place-items: center;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 900;
 }
 .home-step__icon { font-size: 24px; }
 .home-step__title { font-size: 14px; }
-.home-step__desc { font-size: 11.5px; color: var(--ink-faint); line-height: 1.45; }
+.home-step__desc { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
 
 .home-links { display: flex; flex-direction: column; gap: 10px; }
 .home-link {
@@ -586,12 +592,12 @@ img { max-width: 100%; display: block; }
 .home-link__icon { font-size: 24px; }
 .home-link__body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .home-link__body b { font-size: 15.5px; }
-.home-link__body small { font-size: 12.5px; color: var(--ink-faint); }
+.home-link__body small { font-size: 14px; color: var(--ink-soft); }
 .home-link__arrow { color: var(--brand); font-weight: 900; }
 
 .home-foot {
-  font-size: 12px;
-  color: var(--ink-faint);
+  font-size: 14px;
+  color: var(--ink-soft);
   text-align: center;
   padding: 2px 12px 8px;
   line-height: 1.6;
@@ -621,8 +627,8 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
 }
 .accessibility-heading {
   margin-right: 2px;
-  color: var(--ink-faint);
-  font-size: 12px;
+  color: var(--ink-soft);
+  font-size: 14px;
   font-weight: 800;
 }
 .font-size-control {
@@ -638,14 +644,14 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
 .font-size-label {
   padding-inline: 8px 2px;
   color: var(--ink-soft);
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 800;
   white-space: nowrap;
 }
 .font-size-step {
-  width: 34px;
-  min-width: 34px;
-  min-height: 32px;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -663,8 +669,6 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
 /* 터치 기기에서는 접근성 조작부·작은 삭제 버튼을 최소 44px로 키운다 (WCAG 2.5.5).
    데스크톱(정밀 포인터)에서는 컴팩트한 시각 크기를 유지한다. */
 @media (pointer: coarse) {
-  .font-size-step { width: 44px; min-width: 44px; min-height: 44px; }
-  .theme-option { min-height: 44px; padding-inline: 14px; }
   .preview-grid__delete,
   .compressor-grid__delete {
     width: 40px;
@@ -673,9 +677,9 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
   }
 }
 .font-size-value {
-  min-width: 44px;
+  min-width: 48px;
   color: var(--brand-deep);
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 900;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -691,14 +695,14 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
   background: var(--card);
 }
 .theme-option {
-  min-height: 34px;
-  padding: 6px 12px;
+  min-height: 44px;
+  padding: 8px 13px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   border-radius: 999px;
   color: var(--ink-soft);
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 800;
   line-height: 1.2;
   white-space: nowrap;
@@ -709,11 +713,12 @@ body:has(.admin-shell) .accessibility-bar { max-width: 1120px; padding-top: 10px
   background: var(--brand);
   color: var(--on-brand);
 }
-.theme-option__icon { font-size: 13px; font-weight: 900; }
+.theme-option__icon { font-size: 15px; font-weight: 900; }
 
 /* ============ 글자 크기 100~160% (20% 단위) ============ */
 
 html[data-font-scale='120'] {
+  --tab-height: 78px;
   --a11y-home-title: 34px;
   --a11y-heading-text: 22px;
   --a11y-body-text: 17px;
@@ -724,6 +729,7 @@ html[data-font-scale='120'] {
   --a11y-line-height: 1.7;
 }
 html[data-font-scale='140'] {
+  --tab-height: 84px;
   --a11y-home-title: 38px;
   --a11y-heading-text: 26px;
   --a11y-body-text: 19px;
@@ -734,6 +740,7 @@ html[data-font-scale='140'] {
   --a11y-line-height: 1.8;
 }
 html[data-font-scale='160'] {
+  --tab-height: 90px;
   --a11y-home-title: 43px;
   --a11y-heading-text: 30px;
   --a11y-body-text: 22px;
@@ -855,13 +862,21 @@ html[data-theme='contrast'] .admin-thumb-empty { background: var(--paper-deep); 
   z-index: 0; /* Leaflet 내부 z-index가 탭 바를 덮지 않게 */
 }
 .moa-map .leaflet-tile-pane { filter: var(--map-filter); }
-.moa-map .leaflet-control-attribution { font-size: 9px; opacity: 0.75; }
+.moa-map .leaflet-control-attribution { font-size: 11px; opacity: 0.9; }
+/* 지도 확대·축소 버튼도 44px 터치 타깃으로 (기본 30px) */
+.moa-map .leaflet-control-zoom a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+}
 
-.moa-pin-wrap { background: none; border: none; }
+/* divIcon 자체를 44×44 터치 타깃으로 두고, 핀 그림만 안쪽에 작게 그린다 */
+.moa-pin-wrap { background: none; border: none; display: grid; place-items: center; }
 .moa-pin {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: var(--pin-size, 26px);
+  height: var(--pin-size, 26px);
   background: var(--pin, var(--brand));
   border: 2.5px solid var(--card);
   border-radius: 50% 50% 50% 4px;
